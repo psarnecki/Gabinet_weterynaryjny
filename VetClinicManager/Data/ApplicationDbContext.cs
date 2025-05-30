@@ -12,7 +12,6 @@ public class ApplicationDbContext : IdentityDbContext<User>
     }
 
     public DbSet<Animal> Animals { get; set; }
-    public DbSet<Client> Clients { get; set; }
     public DbSet<Order> Orders { get; set; }
     public DbSet<OrderUpdate> OrderUpdates { get; set; }
     

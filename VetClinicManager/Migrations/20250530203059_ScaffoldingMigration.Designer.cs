@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using VetClinicManager.Data;
 
@@ -11,9 +12,11 @@ using VetClinicManager.Data;
 namespace VetClinicManager.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250530203059_ScaffoldingMigration")]
+    partial class ScaffoldingMigration
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -171,6 +174,9 @@ namespace VetClinicManager.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("ClientId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("DateOfBirth")
                         .HasColumnType("datetime2");
 
@@ -190,15 +196,40 @@ namespace VetClinicManager.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("UserId")
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClientId");
+
+                    b.ToTable("Animals");
+                });
+
+            modelBuilder.Entity("VetClinicManager.Models.Client", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Email")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PhoneNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Animals");
+                    b.ToTable("Clients");
                 });
 
             modelBuilder.Entity("VetClinicManager.Models.Order", b =>
@@ -398,13 +429,13 @@ namespace VetClinicManager.Migrations
 
             modelBuilder.Entity("VetClinicManager.Models.Animal", b =>
                 {
-                    b.HasOne("VetClinicManager.Models.User", "User")
+                    b.HasOne("VetClinicManager.Models.Client", "Client")
                         .WithMany("Animals")
-                        .HasForeignKey("UserId")
+                        .HasForeignKey("ClientId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("User");
+                    b.Navigation("Client");
                 });
 
             modelBuilder.Entity("VetClinicManager.Models.Order", b =>
@@ -440,6 +471,11 @@ namespace VetClinicManager.Migrations
                     b.Navigation("MedicalOrders");
                 });
 
+            modelBuilder.Entity("VetClinicManager.Models.Client", b =>
+                {
+                    b.Navigation("Animals");
+                });
+
             modelBuilder.Entity("VetClinicManager.Models.Order", b =>
                 {
                     b.Navigation("Updates");
@@ -447,8 +483,6 @@ namespace VetClinicManager.Migrations
 
             modelBuilder.Entity("VetClinicManager.Models.User", b =>
                 {
-                    b.Navigation("Animals");
-
                     b.Navigation("AssignedOrders");
                 });
 #pragma warning restore 612, 618
