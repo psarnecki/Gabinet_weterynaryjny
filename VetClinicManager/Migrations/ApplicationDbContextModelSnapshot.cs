@@ -167,34 +167,36 @@ namespace VetClinicManager.Migrations
                         .HasColumnType("real");
 
                     b.Property<string>("Breed")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
-                    b.Property<DateTime>("DateOfBirth")
+                    b.Property<DateTime?>("DateOfBirth")
                         .HasColumnType("datetime2");
 
                     b.Property<int>("Gender")
                         .HasColumnType("int");
 
                     b.Property<string>("ImageUrl")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<DateTime?>("LastVisitDate")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("MicrochipId")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("Species")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("UserId")
-                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
@@ -224,11 +226,16 @@ namespace VetClinicManager.Migrations
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<int?>("VisitUpdateId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.HasIndex("AnimalId");
 
                     b.HasIndex("MedicationId");
+
+                    b.HasIndex("VisitUpdateId");
 
                     b.ToTable("AnimalMedications");
                 });
@@ -242,13 +249,15 @@ namespace VetClinicManager.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Allergies")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<int>("AnimalId")
                         .HasColumnType("int");
 
                     b.Property<string>("ChronicDiseases")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<bool>("IsSterilized")
                         .HasColumnType("bit");
@@ -257,7 +266,8 @@ namespace VetClinicManager.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Vaccinations")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.HasKey("Id");
 
@@ -277,7 +287,8 @@ namespace VetClinicManager.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
 
                     b.HasKey("Id");
 
@@ -305,11 +316,13 @@ namespace VetClinicManager.Migrations
 
                     b.Property<string>("FirstName")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
 
                     b.Property<string>("LastName")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("bit");
@@ -338,7 +351,8 @@ namespace VetClinicManager.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Specialization")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
 
                     b.Property<bool>("TwoFactorEnabled")
                         .HasColumnType("bit");
@@ -378,7 +392,7 @@ namespace VetClinicManager.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Description")
-                        .IsRequired()
+                        .HasMaxLength(5000)
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("Priority")
@@ -389,7 +403,8 @@ namespace VetClinicManager.Migrations
 
                     b.Property<string>("Title")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
 
                     b.HasKey("Id");
 
@@ -409,14 +424,16 @@ namespace VetClinicManager.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("ImageUrl")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("Notes")
-                        .IsRequired()
+                        .HasMaxLength(5000)
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PrescribedMedications")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<DateTime>("UpdateDate")
                         .HasColumnType("datetime2");
@@ -427,7 +444,8 @@ namespace VetClinicManager.Migrations
 
                     b.Property<string>("UpdatedByVetId")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<int>("VisitId")
                         .HasColumnType("int");
@@ -497,8 +515,7 @@ namespace VetClinicManager.Migrations
                     b.HasOne("VetClinicManager.Models.User", "User")
                         .WithMany("Animals")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("User");
                 });
@@ -517,9 +534,16 @@ namespace VetClinicManager.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("VetClinicManager.Models.VisitUpdate", "VisitUpdate")
+                        .WithMany()
+                        .HasForeignKey("VisitUpdateId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.Navigation("Animal");
 
                     b.Navigation("Medication");
+
+                    b.Navigation("VisitUpdate");
                 });
 
             modelBuilder.Entity("VetClinicManager.Models.HealthRecord", b =>
@@ -543,7 +567,8 @@ namespace VetClinicManager.Migrations
 
                     b.HasOne("VetClinicManager.Models.User", "AssignedVet")
                         .WithMany("AssignedVisits")
-                        .HasForeignKey("AssignedVetId");
+                        .HasForeignKey("AssignedVetId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Animal");
 

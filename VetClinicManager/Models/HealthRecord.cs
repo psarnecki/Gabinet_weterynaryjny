@@ -1,14 +1,24 @@
-﻿namespace VetClinicManager.Models;
+﻿using System.ComponentModel.DataAnnotations;
+namespace VetClinicManager.Models;
 
 public class HealthRecord
 {
+    [Key]
     public int Id { get; set; }
+    
+    [Required]
     public int AnimalId { get; set; }
     public Animal Animal { get; set; }
     
     public bool IsSterilized { get; set; }
+    
+    [MaxLength(500)]
     public string? ChronicDiseases { get; set; }
+    
+    [MaxLength(500)]
     public string? Allergies { get; set; }
+    
+    [MaxLength(500)]
     public string? Vaccinations { get; set; }
     public DateTime LastVaccinationDate { get; set; }
 }
