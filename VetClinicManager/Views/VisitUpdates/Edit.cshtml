@@ -1,0 +1,56 @@
+@model VetClinicManager.Models.VisitUpdate
+
+@{
+    ViewData["Title"] = "Edit";
+}
+
+<h1>Edit</h1>
+
+<h4>VisitUpdate</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Edit">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="Id" />
+            <div class="form-group">
+                <label asp-for="Notes" class="control-label"></label>
+                <input asp-for="Notes" class="form-control" />
+                <span asp-validation-for="Notes" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="UpdateDate" class="control-label"></label>
+                <input asp-for="UpdateDate" class="form-control" />
+                <span asp-validation-for="UpdateDate" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="ImageUrl" class="control-label"></label>
+                <input asp-for="ImageUrl" class="form-control" />
+                <span asp-validation-for="ImageUrl" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="PrescribedMedications" class="control-label"></label>
+                <input asp-for="PrescribedMedications" class="form-control" />
+                <span asp-validation-for="PrescribedMedications" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="VisitId" class="control-label"></label>
+                <select asp-for="VisitId" class="form-control" asp-items="ViewBag.VisitId"></select>
+                <span asp-validation-for="VisitId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="UpdatedByVetId" class="control-label"></label>
+                <input asp-for="UpdatedByVetId" class="form-control" />
+                <span asp-validation-for="UpdatedByVetId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Save" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+

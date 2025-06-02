@@ -9,9 +9,10 @@ public class Animal {
     public string Species { get; set; }
     public string Breed { get; set; }
     public DateTime DateOfBirth { get; set; }
-    public int BodyWeight { get; set; }
+    public float BodyWeight { get; set; }
     public Gender Gender { get; set; }
     public string? ImageUrl { get; set; }
+    public HealthRecord? HealthRecord { get; set; }
 
     public string UserId { get; set; }
     public User User { get; set; }

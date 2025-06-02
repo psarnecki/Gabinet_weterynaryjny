@@ -14,6 +14,9 @@ public class ApplicationDbContext : IdentityDbContext<User>
     public DbSet<Animal> Animals { get; set; }
     public DbSet<Visit> Visits { get; set; }
     public DbSet<VisitUpdate> VisitUpdates { get; set; }
+    public DbSet<HealthRecord> HealthRecords { get; set; } 
+    public DbSet<Medication> Medications { get; set; }   
+    public DbSet<AnimalMedication> AnimalMedications { get; set; } 
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

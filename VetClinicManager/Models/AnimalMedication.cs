@@ -2,11 +2,10 @@
 
 public class AnimalMedication
 {
-    public string? VetId { get; set; }
-    public User? Vet { get; set; }
+    public int Id { get; set; }
     
-    public int HealthRecordId { get; set; }
-    public Animal HealthRecord { get; set; }
+    public int AnimalId { get; set; } 
+    public Animal Animal { get; set; }
 
     public int MedicationId { get; set; }
     public Medication Medication { get; set; }

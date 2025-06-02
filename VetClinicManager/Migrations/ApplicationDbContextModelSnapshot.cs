@@ -17,7 +17,7 @@ namespace VetClinicManager.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.11")
+                .HasAnnotation("ProductVersion", "9.0.0")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -163,6 +163,9 @@ namespace VetClinicManager.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<float>("BodyWeight")
+                        .HasColumnType("real");
+
                     b.Property<string>("Breed")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -170,12 +173,16 @@ namespace VetClinicManager.Migrations
                     b.Property<DateTime>("DateOfBirth")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("Gender")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("Gender")
+                        .HasColumnType("int");
 
                     b.Property<string>("ImageUrl")
-                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("LastVisitDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("MicrochipId")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
@@ -197,7 +204,7 @@ namespace VetClinicManager.Migrations
                     b.ToTable("Animals");
                 });
 
-            modelBuilder.Entity("VetClinicManager.Models.Order", b =>
+            modelBuilder.Entity("VetClinicManager.Models.AnimalMedication", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -208,30 +215,25 @@ namespace VetClinicManager.Migrations
                     b.Property<int>("AnimalId")
                         .HasColumnType("int");
 
-                    b.Property<string>("AssignedUserId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<DateTime>("CreatedDate")
+                    b.Property<DateTime?>("EndDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("MedicationId")
+                        .HasColumnType("int");
 
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
                     b.HasIndex("AnimalId");
 
-                    b.HasIndex("AssignedUserId");
+                    b.HasIndex("MedicationId");
 
-                    b.ToTable("Orders");
+                    b.ToTable("AnimalMedications");
                 });
 
-            modelBuilder.Entity("VetClinicManager.Models.OrderUpdate", b =>
+            modelBuilder.Entity("VetClinicManager.Models.HealthRecord", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -239,29 +241,47 @@ namespace VetClinicManager.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("ImageUrl")
-                        .IsRequired()
+                    b.Property<string>("Allergies")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("MedicalOrderId")
+                    b.Property<int>("AnimalId")
                         .HasColumnType("int");
 
-                    b.Property<string>("Notes")
-                        .IsRequired()
+                    b.Property<string>("ChronicDiseases")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("PrescribedMedications")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<bool>("IsSterilized")
+                        .HasColumnType("bit");
 
-                    b.Property<DateTime>("UpdateDate")
+                    b.Property<DateTime>("LastVaccinationDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("Vaccinations")
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("MedicalOrderId");
+                    b.HasIndex("AnimalId")
+                        .IsUnique();
 
-                    b.ToTable("OrderUpdates");
+                    b.ToTable("HealthRecords");
+                });
+
+            modelBuilder.Entity("VetClinicManager.Models.Medication", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Medications");
                 });
 
             modelBuilder.Entity("VetClinicManager.Models.User", b =>
@@ -318,7 +338,6 @@ namespace VetClinicManager.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Specialization")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("TwoFactorEnabled")
@@ -339,6 +358,87 @@ namespace VetClinicManager.Migrations
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
                     b.ToTable("AspNetUsers", (string)null);
+                });
+
+            modelBuilder.Entity("VetClinicManager.Models.Visit", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AnimalId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("AssignedVetId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Priority")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AnimalId");
+
+                    b.HasIndex("AssignedVetId");
+
+                    b.ToTable("Visits");
+                });
+
+            modelBuilder.Entity("VetClinicManager.Models.VisitUpdate", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ImageUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Notes")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PrescribedMedications")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedById")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("UpdatedByVetId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("VisitId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UpdatedById");
+
+                    b.HasIndex("VisitId");
+
+                    b.ToTable("VisitUpdates");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -403,49 +503,94 @@ namespace VetClinicManager.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("VetClinicManager.Models.Order", b =>
+            modelBuilder.Entity("VetClinicManager.Models.AnimalMedication", b =>
                 {
                     b.HasOne("VetClinicManager.Models.Animal", "Animal")
-                        .WithMany("MedicalOrders")
+                        .WithMany()
                         .HasForeignKey("AnimalId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("VetClinicManager.Models.User", "AssignedUser")
-                        .WithMany("AssignedOrders")
-                        .HasForeignKey("AssignedUserId");
-
-                    b.Navigation("Animal");
-
-                    b.Navigation("AssignedUser");
-                });
-
-            modelBuilder.Entity("VetClinicManager.Models.OrderUpdate", b =>
-                {
-                    b.HasOne("VetClinicManager.Models.Order", "MedicalOrder")
-                        .WithMany("Updates")
-                        .HasForeignKey("MedicalOrderId")
+                    b.HasOne("VetClinicManager.Models.Medication", "Medication")
+                        .WithMany("AnimalMedications")
+                        .HasForeignKey("MedicationId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("MedicalOrder");
+                    b.Navigation("Animal");
+
+                    b.Navigation("Medication");
+                });
+
+            modelBuilder.Entity("VetClinicManager.Models.HealthRecord", b =>
+                {
+                    b.HasOne("VetClinicManager.Models.Animal", "Animal")
+                        .WithOne("HealthRecord")
+                        .HasForeignKey("VetClinicManager.Models.HealthRecord", "AnimalId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Animal");
+                });
+
+            modelBuilder.Entity("VetClinicManager.Models.Visit", b =>
+                {
+                    b.HasOne("VetClinicManager.Models.Animal", "Animal")
+                        .WithMany("Visits")
+                        .HasForeignKey("AnimalId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("VetClinicManager.Models.User", "AssignedVet")
+                        .WithMany("AssignedVisits")
+                        .HasForeignKey("AssignedVetId");
+
+                    b.Navigation("Animal");
+
+                    b.Navigation("AssignedVet");
+                });
+
+            modelBuilder.Entity("VetClinicManager.Models.VisitUpdate", b =>
+                {
+                    b.HasOne("VetClinicManager.Models.User", "UpdatedBy")
+                        .WithMany()
+                        .HasForeignKey("UpdatedById")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("VetClinicManager.Models.Visit", "Visit")
+                        .WithMany("Updates")
+                        .HasForeignKey("VisitId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("UpdatedBy");
+
+                    b.Navigation("Visit");
                 });
 
             modelBuilder.Entity("VetClinicManager.Models.Animal", b =>
                 {
-                    b.Navigation("MedicalOrders");
+                    b.Navigation("HealthRecord");
+
+                    b.Navigation("Visits");
                 });
 
-            modelBuilder.Entity("VetClinicManager.Models.Order", b =>
+            modelBuilder.Entity("VetClinicManager.Models.Medication", b =>
                 {
-                    b.Navigation("Updates");
+                    b.Navigation("AnimalMedications");
                 });
 
             modelBuilder.Entity("VetClinicManager.Models.User", b =>
                 {
                     b.Navigation("Animals");
 
-                    b.Navigation("AssignedOrders");
+                    b.Navigation("AssignedVisits");
+                });
+
+            modelBuilder.Entity("VetClinicManager.Models.Visit", b =>
+                {
+                    b.Navigation("Updates");
                 });
 #pragma warning restore 612, 618
         }
