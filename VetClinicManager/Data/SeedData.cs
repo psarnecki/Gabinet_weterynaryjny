@@ -35,7 +35,7 @@ public class SeedData
 
     private async Task SeedRolesAsync()
     {
-        var roleNames = new[] { "Admin", "Vet", "Client" };
+        var roleNames = new[] { "Admin", "Vet", "Receptionist", "Client" };
 
         foreach (var roleName in roleNames)
         {
@@ -52,8 +52,8 @@ public class SeedData
         {
             new User
             {
-                UserName = "admin@admin.com",
-                Email = "admin@vetclinic.com",
+                UserName = "admin@vet.com",
+                Email = "admin@vet.com",
                 FirstName = "Jan",
                 LastName = "Kowalski",
                 Specialization = "Administrator",
@@ -61,8 +61,8 @@ public class SeedData
             },
             new User
             {
-                UserName = "vet@vetclinic.com",
-                Email = "vet@vetclinic.com",
+                UserName = "vet@vet.com",
+                Email = "vet@vet.com",
                 FirstName = "Anna",
                 LastName = "Nowak",
                 Specialization = "Lekarz weterynarii",
@@ -70,17 +70,26 @@ public class SeedData
             },
             new User
             {
-                UserName = "assistant@vetclinic.com",
-                Email = "assistant@vetclinic.com",
+                UserName = "receptionist@vet.com",
+                Email = "receptionist@vet.com",
+                FirstName = "Agata",
+                LastName = "Poloczek",
+                Specialization = "Recepcjonistka",
+                EmailConfirmed = true
+            },
+            new User
+            {
+                UserName = "client@vet.com",
+                Email = "client@vet.com",
                 FirstName = "Michał",
                 LastName = "Wiśniewski",
-                Specialization = "Asystent",
+                Specialization = "Klient",
                 EmailConfirmed = true
             }
         };
 
-        var passwords = new[] { "Admin123!", "Vet123!", "Client123!" };
-        var roles = new[] { "Admin", "Vet", "Client" };
+        var passwords = new[] { "Admin123!", "Vet123!", "Rec123!", "Client123!" };
+        var roles = new[] { "Admin", "Vet", "Receptionist", "Client" };
 
         for (int i = 0; i < users.Count; i++)
         {
