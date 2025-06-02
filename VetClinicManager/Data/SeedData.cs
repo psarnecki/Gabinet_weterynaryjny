@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using VetClinicManager.Data;
+using VetClinicManager.Models.Enums;
 
 public class SeedData
 {
@@ -29,8 +30,8 @@ public class SeedData
         await SeedRolesAsync();
         await SeedUsersAsync();
         await SeedAnimalsAsync();
-        await SeedOrdersAsync();
-        await SeedOrderUpdatesAsync();
+        await SeedVisitsAsync();
+        await SeedVisitUpdatesAsync();
     }
 
     private async Task SeedRolesAsync()
@@ -56,7 +57,6 @@ public class SeedData
                 Email = "admin@vet.com",
                 FirstName = "Jan",
                 LastName = "Kowalski",
-                Specialization = "Administrator",
                 EmailConfirmed = true
             },
             new User
@@ -74,7 +74,6 @@ public class SeedData
                 Email = "receptionist@vet.com",
                 FirstName = "Agata",
                 LastName = "Poloczek",
-                Specialization = "Recepcjonistka",
                 EmailConfirmed = true
             },
             new User
@@ -83,7 +82,6 @@ public class SeedData
                 Email = "client@vet.com",
                 FirstName = "Michał",
                 LastName = "Wiśniewski",
-                Specialization = "Klient",
                 EmailConfirmed = true
             }
         };
@@ -119,7 +117,7 @@ public class SeedData
                 Species = "Pies",
                 Breed = "Mieszaniec",
                 DateOfBirth = new DateTime(2018, 5, 10),
-                Gender = "Samiec",
+                Gender = Gender.Male,
                 ImageUrl = "/uploads/default-dog.jpg",
                 UserId = users[0].Id
             },
@@ -129,7 +127,7 @@ public class SeedData
                 Species = "Kot",
                 Breed = "Europejski",
                 DateOfBirth = new DateTime(2020, 2, 15),
-                Gender = "Samiec",
+                Gender = Gender.Male,
                 ImageUrl = "/uploads/default-cat.jpg",
                 UserId = users[0].Id
             },
@@ -139,7 +137,7 @@ public class SeedData
                 Species = "Kot",
                 Breed = "Syjamski",
                 DateOfBirth = new DateTime(2019, 8, 22),
-                Gender = "Samica",
+                Gender = Gender.Female,
                 ImageUrl = "/uploads/default-cat.jpg",
                 UserId = users[1].Id
             }
@@ -149,9 +147,9 @@ public class SeedData
         await _context.SaveChangesAsync();
     }
 
-    private async Task SeedOrdersAsync()
+    private async Task SeedVisitsAsync()
     {
-        if (await _context.Orders.AnyAsync()) return;
+        if (await _context.Visits.AnyAsync()) return;
 
         var animals = await _context.Animals.ToListAsync();
         var users = await _userManager.Users.ToListAsync();
@@ -159,73 +157,73 @@ public class SeedData
         var vetUser = users.First(u => u.Specialization == "Lekarz weterynarii");
         var assistantUser = users.First(u => u.Specialization == "Asystent");
 
-        var orders = new List<Order>
+        var visits = new List<Visit>
         {
-            new Order
+            new Visit
             {
                 Title = "Szczepienie przeciwko wściekliźnie",
                 Description = "Routine vaccination",
                 CreatedDate = DateTime.Now.AddDays(-10),
                 AnimalId = animals[0].Id,
-                AssignedUserId = vetUser.Id
+                AssignedVetId = vetUser.Id
             },
-            new Order
+            new Visit
             {
                 Title = "Kontrola stanu zdrowia",
                 Description = "Routine checkup",
                 CreatedDate = DateTime.Now.AddDays(-5),
                 AnimalId = animals[1].Id,
-                AssignedUserId = vetUser.Id
+                AssignedVetId = vetUser.Id
             },
-            new Order
+            new Visit
             {
                 Title = "Leczenie infekcji ucha",
                 Description = "Ear infection treatment",
                 CreatedDate = DateTime.Now.AddDays(-2),
                 AnimalId = animals[2].Id,
-                AssignedUserId = assistantUser.Id
+                AssignedVetId = assistantUser.Id
             }
         };
 
-        await _context.Orders.AddRangeAsync(orders);
+        await _context.Visits.AddRangeAsync(visits);
         await _context.SaveChangesAsync();
     }
 
-    private async Task SeedOrderUpdatesAsync()
+    private async Task SeedVisitUpdatesAsync()
     {
-        if (await _context.OrderUpdates.AnyAsync()) return;
+        if (await _context.VisitUpdates.AnyAsync()) return;
 
-        var orders = await _context.Orders.ToListAsync();
+        var visits = await _context.Visits.ToListAsync();
 
-        var updates = new List<OrderUpdate>
+        var updates = new List<VisitUpdate>
         {
-            new OrderUpdate
+            new VisitUpdate
             {
                 Notes = "Szczepienie wykonane, zwierzę w dobrym stanie",
                 UpdateDate = DateTime.Now.AddDays(-9),
                 ImageUrl = "/uploads/vaccine.jpg",
                 PrescribedMedications = "Brak",
-                MedicalOrderId = orders[0].Id
+                VisitId = visits[0].Id
             },
-            new OrderUpdate
+            new VisitUpdate
             {
                 Notes = "Kontrola wykazała dobry stan zdrowia",
                 UpdateDate = DateTime.Now.AddDays(-4),
                 ImageUrl = "/uploads/checkup.jpg",
                 PrescribedMedications = "Brak",
-                MedicalOrderId = orders[1].Id
+                VisitId = visits[1].Id
             },
-            new OrderUpdate
+            new VisitUpdate
             {
                 Notes = "Rozpoczęto leczenie antybiotykami",
                 UpdateDate = DateTime.Now.AddDays(-1),
                 ImageUrl = "/uploads/ear-infection.jpg",
                 PrescribedMedications = "Antybiotyk XYZ, 1 tabletka dziennie przez 7 dni",
-                MedicalOrderId = orders[2].Id
+                VisitId = visits[2].Id
             }
         };
 
-        await _context.OrderUpdates.AddRangeAsync(updates);
+        await _context.VisitUpdates.AddRangeAsync(updates);
         await _context.SaveChangesAsync();
     }
 }

@@ -35,4 +35,22 @@
       <Folder Include="wwwroot\uploads\" />
     </ItemGroup>
 
+    <ItemGroup>
+      <_ContentIncludedByDefault Remove="Views\Orders\Create.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Orders\Delete.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Orders\Details.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Orders\Edit.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Orders\Index.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\OrderUpdates\Create.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\OrderUpdates\Delete.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\OrderUpdates\Details.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\OrderUpdates\Edit.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\OrderUpdates\Index.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Animals\Create.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Animals\Delete.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Animals\Details.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Animals\Edit.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Animals\Index.cshtml" />
+    </ItemGroup>
+
 </Project>

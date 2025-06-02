@@ -12,8 +12,8 @@ public class ApplicationDbContext : IdentityDbContext<User>
     }
 
     public DbSet<Animal> Animals { get; set; }
-    public DbSet<Order> Orders { get; set; }
-    public DbSet<OrderUpdate> OrderUpdates { get; set; }
+    public DbSet<Visit> Visits { get; set; }
+    public DbSet<VisitUpdate> VisitUpdates { get; set; }
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

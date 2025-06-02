@@ -1,16 +1,21 @@
+using VetClinicManager.Models.Enums;
+
 namespace VetClinicManager.Models;
 
-public class Animal
-{
+public class Animal {
     public int Id { get; set; }
     public string Name { get; set; }
+    public string? MicrochipId { get; set; } 
     public string Species { get; set; }
     public string Breed { get; set; }
     public DateTime DateOfBirth { get; set; }
-    public string Gender { get; set; }
-    public string ImageUrl { get; set; }
+    public int BodyWeight { get; set; }
+    public Gender Gender { get; set; }
+    public string? ImageUrl { get; set; }
+
     public string UserId { get; set; }
     public User User { get; set; }
 
-    public ICollection<Order> MedicalOrders { get; set; } = new List<Order>();
+    public ICollection<Visit> Visits { get; set; } = new List<Visit>();
+    public DateTime? LastVisitDate { get; set; }
 }
