@@ -1,4 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace VetClinicManager.Models;
 
 public class VisitUpdate {
@@ -16,11 +18,14 @@ public class VisitUpdate {
     public string? PrescribedMedications { get; set; }
     
     [Required]
+    [ForeignKey("Visit")]
     public int VisitId { get; set; }
     public Visit Visit { get; set; }
 
     [Required]
-    [MaxLength(500)] 
+    [ForeignKey("UpdatedBy")]
     public string UpdatedByVetId { get; set; }
     public User UpdatedBy { get; set; } // weterynarz
+    
+    public ICollection<AnimalMedication> AnimalMedications { get; set; } = new List<AnimalMedication>();
 }

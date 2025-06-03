@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using VetClinicManager.Models.Enums;
 
 namespace VetClinicManager.Models;
@@ -32,9 +33,12 @@ public class Animal {
     
     public HealthRecord? HealthRecord { get; set; }
     
+    [ForeignKey("User")]
     public string? UserId { get; set; }
     public User? User { get; set; }
-
+    
     public ICollection<Visit> Visits { get; set; } = new List<Visit>();
     public DateTime? LastVisitDate { get; set; }
+    
+    public ICollection<AnimalMedication> AnimalMedications { get; set; } = new List<AnimalMedication>();
 }

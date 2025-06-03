@@ -1,5 +1,7 @@
 ﻿using VetClinicManager.Models.Enums;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace VetClinicManager.Models;
 
 public class Visit {
@@ -21,7 +23,8 @@ public class Visit {
     [Required]
     public int AnimalId { get; set; }
     public Animal Animal { get; set; }
-
+    
+    [ForeignKey("AssignedVet")]
     public string? AssignedVetId { get; set; }
     
     public User? AssignedVet { get; set; } // główny lekarz przypisany do wizyty

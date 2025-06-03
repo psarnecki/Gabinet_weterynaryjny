@@ -6,7 +6,8 @@ namespace VetClinicManager.Data
 {
     public class ApplicationDbContext : IdentityDbContext<User>
     {
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
+        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
+            : base(options)
         {
         }
 
@@ -14,7 +15,6 @@ namespace VetClinicManager.Data
         public DbSet<AnimalMedication> AnimalMedications { get; set; }
         public DbSet<HealthRecord> HealthRecords { get; set; }
         public DbSet<Medication> Medications { get; set; }
-        public DbSet<User> Users { get; set; }
         public DbSet<Visit> Visits { get; set; }
         public DbSet<VisitUpdate> VisitUpdates { get; set; }
 
@@ -22,51 +22,59 @@ namespace VetClinicManager.Data
         {
             base.OnModelCreating(modelBuilder);
 
+            // Animal -> HealthRecord (1:1)
             modelBuilder.Entity<Animal>()
                 .HasOne(a => a.HealthRecord)
                 .WithOne(hr => hr.Animal)
                 .HasForeignKey<HealthRecord>(hr => hr.AnimalId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            // Animal -> Visits (1:N)
             modelBuilder.Entity<Animal>()
                 .HasMany(a => a.Visits)
                 .WithOne(v => v.Animal)
                 .HasForeignKey(v => v.AnimalId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            // Animal -> AnimalMedications (1:N)
+            modelBuilder.Entity<Animal>()
+                .HasMany(a => a.AnimalMedications)
+                .WithOne(am => am.Animal)
+                .HasForeignKey(am => am.AnimalId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // User -> Animals (1:N)
             modelBuilder.Entity<User>()
                 .HasMany(u => u.Animals)
                 .WithOne(a => a.User)
                 .HasForeignKey(a => a.UserId)
                 .OnDelete(DeleteBehavior.SetNull);
 
+            // User -> AssignedVisits (1:N)
             modelBuilder.Entity<User>()
                 .HasMany(u => u.AssignedVisits)
                 .WithOne(v => v.AssignedVet)
                 .HasForeignKey(v => v.AssignedVetId)
                 .OnDelete(DeleteBehavior.SetNull);
 
+            // Visit -> VisitUpdates (1:N)
             modelBuilder.Entity<Visit>()
                 .HasMany(v => v.Updates)
                 .WithOne(vu => vu.Visit)
                 .HasForeignKey(vu => vu.VisitId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            // VisitUpdate -> AnimalMedications (1:N) (opcjonalna relacja)
             modelBuilder.Entity<VisitUpdate>()
-                .HasMany<AnimalMedication>()
+                .HasMany(vu => vu.AnimalMedications)
                 .WithOne(am => am.VisitUpdate)
                 .HasForeignKey(am => am.VisitUpdateId)
                 .OnDelete(DeleteBehavior.SetNull);
 
-            modelBuilder.Entity<AnimalMedication>()
-                .HasOne(am => am.Animal)
-                .WithMany()
-                .HasForeignKey(am => am.AnimalId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<AnimalMedication>()
-                .HasOne(am => am.Medication)
-                .WithMany(m => m.AnimalMedications)
+            // Medication -> AnimalMedications (1:N)
+            modelBuilder.Entity<Medication>()
+                .HasMany(m => m.AnimalMedications)
+                .WithOne(am => am.Medication)
                 .HasForeignKey(am => am.MedicationId)
                 .OnDelete(DeleteBehavior.Cascade);
         }
