@@ -9,7 +9,7 @@ public class VisitUpdate {
 
     [MaxLength(5000)]
     public string? Notes { get; set; }
-    public DateTime UpdateDate { get; set; } = DateTime.Now;
+    public DateTime UpdateDate { get; set; } = DateTime.UtcNow;
     
     [MaxLength(500)]
     public string? ImageUrl { get; set; }
