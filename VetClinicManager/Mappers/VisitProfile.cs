@@ -21,23 +21,29 @@ public static partial class VisitMapper
     public static partial VisitDtoUser ToUserDto(this Visit visit);
     
     // Helper mappings for nested objects
-    private static AnimalBriefDto Map(Animal animal)
-        => new() { Id = animal.Id, Name = animal.Name, Breed = animal.Breed ?? string.Empty };
+    private static AnimalBriefDto Map(Animal? animal)
+        => animal == null 
+            ? new AnimalBriefDto { Id = 0, Name = string.Empty, Breed = string.Empty }
+            : new AnimalBriefDto { Id = animal.Id, Name = animal.Name, Breed = animal.Breed ?? string.Empty };
     
     private static VetBriefDto? Map(User? user)
-        => user == null ? null : new() 
-        { 
-            Id = user.Id, 
-            FirstName = user.FirstName ?? string.Empty, 
-            LastName = user.LastName ?? string.Empty, 
-            Email = user.Email ?? string.Empty 
-        };
+        => user == null 
+            ? null 
+            : new VetBriefDto 
+            { 
+                Id = user.Id, 
+                FirstName = user.FirstName ?? string.Empty, 
+                LastName = user.LastName ?? string.Empty, 
+                Email = user.Email ?? string.Empty 
+            };
     
-    private static List<VisitUpdateDto> Map(ICollection<VisitUpdate> updates)
-        => updates.Select(update => new VisitUpdateDto
-        {
-            Id = update.Id,
-            Notes = update.Notes,
-            UpdateDate = update.UpdateDate
-        }).ToList();
+    private static List<VisitUpdateDto> Map(ICollection<VisitUpdate>? updates)
+        => updates == null 
+            ? new List<VisitUpdateDto>()
+            : updates.Select(update => new VisitUpdateDto
+            {
+                Id = update.Id,
+                Notes = update.Notes,
+                UpdateDate = update.UpdateDate
+            }).ToList();
 }

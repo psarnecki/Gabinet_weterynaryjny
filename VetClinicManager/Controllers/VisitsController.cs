@@ -32,16 +32,22 @@ namespace VetClinicManager.Controllers
         [Authorize(Roles = "Admin,Receptionist,Vet")]
         public async Task<IActionResult> Index()
         {
-            var visits = await _context.Visits
-                .Include(v => v.Animal)
-                .Include(v => v.AssignedVet)
-                .Include(v => v.Updates)
-                .ToListAsync();
-
             var currentUser = await _userManager.GetUserAsync(User);
             var isReceptionist = await _userManager.IsInRoleAsync(currentUser, "Admin") || 
-                               await _userManager.IsInRoleAsync(currentUser, "Receptionist");
+                                 await _userManager.IsInRoleAsync(currentUser, "Receptionist");
             var isVet = await _userManager.IsInRoleAsync(currentUser, "Vet");
+
+            IQueryable<Visit> visitsQuery = _context.Visits
+                .Include(v => v.Animal)
+                .Include(v => v.AssignedVet)
+                .Include(v => v.Updates);
+
+            if (isVet && !isReceptionist)
+            {
+                visitsQuery = visitsQuery.Where(v => v.AssignedVetId == currentUser.Id);
+            }
+
+            var visits = await visitsQuery.ToListAsync();
 
             if (isReceptionist)
             {
@@ -50,14 +56,14 @@ namespace VetClinicManager.Controllers
             }
             else if (isVet)
             {
-                var vetDtos = visits.Select(v => v.ToVetDto()).ToList();
+                var vetDtos = visits.Select(v => v.ToVetDto()).ToList(); // Używamy mappera
                 return View("IndexVet", vetDtos);
             }
 
             return Forbid();
         }
-
         // GET: Visits/Details/5
+        [Authorize(Roles = "Admin,Receptionist,Vet,Client")]
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -90,10 +96,15 @@ namespace VetClinicManager.Controllers
                 var dto = visit.ToReceptionistDto();
                 return View("DetailsReceptionist", dto);
             }
-            else if (isVet && isAssignedVet)
+            else if (isVet)
             {
-                var dto = visit.ToVetDto();
-                return View("DetailsVet", dto);
+                if (!isAssignedVet)
+                {
+                    return Forbid();
+                }
+    
+                var vetDto = visit.ToVetDto();
+                return View("DetailsVet", vetDto);
             }
             else if (isClient && visit.Animal?.UserId == currentUserId)
             {
@@ -106,11 +117,12 @@ namespace VetClinicManager.Controllers
 
         // GET: Visits/Create
         [Authorize(Roles = "Admin,Receptionist")]
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
+            var vetUsers = await GetVetUsersAsync();
+            
             ViewData["AnimalId"] = new SelectList(_context.Animals, "Id", "Name");
-            ViewData["AssignedVetId"] = new SelectList(_context.Users
-                .Where(u => _userManager.IsInRoleAsync(u, "Vet").Result), "Id", "Email");
+            ViewData["AssignedVetId"] = new SelectList(vetUsers, "Id", "Email");
             return View(new CreateVisitDto { CreatedDate = DateTime.Now });
         }
 
@@ -128,9 +140,10 @@ namespace VetClinicManager.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
+            var vetUsers = await GetVetUsersAsync();
+            
             ViewData["AnimalId"] = new SelectList(_context.Animals, "Id", "Name", createVisitDto.AnimalId);
-            ViewData["AssignedVetId"] = new SelectList(_context.Users
-                .Where(u => _userManager.IsInRoleAsync(u, "Vet").Result), "Id", "Email", createVisitDto.AssignedVetId);
+            ViewData["AssignedVetId"] = new SelectList(vetUsers, "Id", "Email", createVisitDto.AssignedVetId);
             return View(createVisitDto);
         }
 
@@ -149,6 +162,7 @@ namespace VetClinicManager.Controllers
                 return NotFound();
             }
 
+            var vetUsers = await GetVetUsersAsync();
             var currentUser = await _userManager.GetUserAsync(User);
             var isVet = await _userManager.IsInRoleAsync(currentUser, "Vet");
             var isAssignedVet = visit.AssignedVetId == currentUser?.Id;
@@ -166,12 +180,17 @@ namespace VetClinicManager.Controllers
                 CreatedDate = visit.CreatedDate,
                 Status = visit.Status,
                 Priority = visit.Priority,
-                AssignedVetId = visit.AssignedVetId
+                AssignedVetId = visit.AssignedVetId,
+                Animal = new AnimalBriefDto
+                {
+                    Id = visit.AnimalId,
+                    Name = _context.Animals.Find(visit.AnimalId)?.Name ?? string.Empty,
+                    Breed = _context.Animals.Find(visit.AnimalId)?.Breed ?? string.Empty
+                }
             };
 
             ViewData["AnimalId"] = new SelectList(_context.Animals, "Id", "Name", visit.AnimalId);
-            ViewData["AssignedVetId"] = new SelectList(_context.Users
-                .Where(u => _userManager.IsInRoleAsync(u, "Vet").Result), "Id", "Email", visit.AssignedVetId);
+            ViewData["AssignedVetId"] = new SelectList(vetUsers, "Id", "Email", visit.AssignedVetId);
             return View(updateDto);
         }
 
@@ -205,7 +224,18 @@ namespace VetClinicManager.Controllers
                         return Forbid();
                     }
 
-                    updateVisitDto.ToEntity(visit);
+                    if (isVet)
+                    {
+                        // Weterynarz może edytować tylko określone pola
+                        visit.Description = updateVisitDto.Description;
+                        visit.Status = updateVisitDto.Status;
+                    }
+                    else
+                    {
+                        // Admin/Recepcja może edytować wszystkie pola
+                        updateVisitDto.ToEntity(visit);
+                    }
+
                     _context.Update(visit);
                     await _context.SaveChangesAsync();
                 }
@@ -215,17 +245,15 @@ namespace VetClinicManager.Controllers
                     {
                         return NotFound();
                     }
-                    else
-                    {
-                        throw;
-                    }
+                    throw;
                 }
                 return RedirectToAction(nameof(Index));
             }
 
+            var vetUsers = await GetVetUsersAsync();
+            
             ViewData["AnimalId"] = new SelectList(_context.Animals, "Id", "Name", updateVisitDto.Animal?.Id);
-            ViewData["AssignedVetId"] = new SelectList(_context.Users
-                .Where(u => _userManager.IsInRoleAsync(u, "Vet").Result), "Id", "Email", updateVisitDto.AssignedVetId);
+            ViewData["AssignedVetId"] = new SelectList(vetUsers, "Id", "Email", updateVisitDto.AssignedVetId);
             return View(updateVisitDto);
         }
 
@@ -271,6 +299,15 @@ namespace VetClinicManager.Controllers
         private bool VisitExists(int id)
         {
             return _context.Visits.Any(e => e.Id == id);
+        }
+
+        private async Task<List<User>> GetVetUsersAsync()
+        {
+            return await (from user in _context.Users
+                        join userRole in _context.UserRoles on user.Id equals userRole.UserId
+                        join role in _context.Roles on userRole.RoleId equals role.Id
+                        where role.Name == "Vet"
+                        select user).ToListAsync();
         }
     }
 }
