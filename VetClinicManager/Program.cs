@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using VetClinicManager.Data;
 using VetClinicManager.Models;
 using VetClinicManager.Services;
+using VetClinicManager.Mappers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -35,6 +36,8 @@ builder.Services.AddTransient<IEmailSender, DummyEmailSender>();
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 builder.Services.AddTransient<SeedData>();
+
+builder.Services.AddAutoMapper(typeof(AnimalProfile));
 
 var app = builder.Build();
 

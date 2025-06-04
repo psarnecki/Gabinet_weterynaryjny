@@ -12,6 +12,8 @@
     </ItemGroup>
 
     <ItemGroup>
+        <PackageReference Include="AutoMapper" Version="14.0.0" />
+        <PackageReference Include="AutoMapper.Extensions.EnumMapping" Version="4.1.0" />
         <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="9.0.0" />
         <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.0" />
         <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="9.0.0" />
@@ -28,8 +30,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="DTOs\" />
-      <Folder Include="Mappers\" />
+      <Folder Include="Data\DTO\" />
       <Folder Include="wwwroot\uploads\" />
     </ItemGroup>
 

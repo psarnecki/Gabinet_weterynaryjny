@@ -7,8 +7,10 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using AutoMapper;
 using VetClinicManager.Data;
 using VetClinicManager.Models;
+using VetClinicManager.DTOs;
 
 namespace VetClinicManager.Controllers
 {
@@ -17,19 +19,28 @@ namespace VetClinicManager.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<User> _userManager;
+        private readonly IMapper _mapper;
 
-        public AnimalsController(ApplicationDbContext context, UserManager<User> userManager)
+        public AnimalsController(
+            ApplicationDbContext context, 
+            UserManager<User> userManager,
+            IMapper mapper)
         {
             _context = context;
-            _userManager =  userManager;
+            _userManager = userManager;
+            _mapper = mapper;
         }
 
         // GET: Animals
         [Authorize(Roles = "Admin,Receptionist,Vet")]
         public async Task<IActionResult> Index()
         {
-            var applicationDbContext = _context.Animals.Include(a => a.User);
-            return View(await applicationDbContext.ToListAsync());
+            var animals = await _context.Animals
+                .Include(a => a.User)
+                .ToListAsync();
+                
+            var animalDtos = _mapper.Map<List<AnimalDto>>(animals);
+            return View(animalDtos);
         }
 
         // GET: Animals/Details/5
@@ -44,6 +55,7 @@ namespace VetClinicManager.Controllers
             var animal = await _context.Animals
                 .Include(a => a.User)
                 .FirstOrDefaultAsync(m => m.Id == id);
+                
             if (animal == null)
             {
                 return NotFound();
@@ -61,9 +73,10 @@ namespace VetClinicManager.Controllers
             if (!isPersonnel && !isOwner)
             {
                 return Forbid();
-            } 
+            }
             
-            return View(animal);
+            var animalDto = _mapper.Map<AnimalDto>(animal);
+            return View(animalDto);
         }
 
         // GET: Animals/Create
@@ -71,25 +84,25 @@ namespace VetClinicManager.Controllers
         public IActionResult Create()
         {
             ViewData["UserId"] = new SelectList(_context.Users, "Id", "Id");
-            return View();
+            return View(new CreateAnimalDto());
         }
 
         // POST: Animals/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [Authorize(Roles = "Admin,Receptionist")]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Name,Species,Breed,DateOfBirth,Gender,ImageUrl,UserId")] Animal animal)
+        public async Task<IActionResult> Create(CreateAnimalDto createAnimalDto)
         {
             if (ModelState.IsValid)
             {
+                var animal = _mapper.Map<Animal>(createAnimalDto);
                 _context.Add(animal);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Id", animal.UserId);
-            return View(animal);
+            
+            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Id", createAnimalDto.UserId);
+            return View(createAnimalDto);
         }
 
         // GET: Animals/Edit/5
@@ -106,33 +119,35 @@ namespace VetClinicManager.Controllers
             {
                 return NotFound();
             }
+            
+            var updateAnimalDto = _mapper.Map<UpdateAnimalDto>(animal);
             ViewData["UserId"] = new SelectList(_context.Users, "Id", "Id", animal.UserId);
-            return View(animal);
+            return View(updateAnimalDto);
         }
 
         // POST: Animals/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [Authorize(Roles = "Admin,Receptionist")]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Species,Breed,DateOfBirth,Gender,ImageUrl,UserId")] Animal animal)
+        public async Task<IActionResult> Edit(int id, UpdateAnimalDto updateAnimalDto)
         {
-            if (id != animal.Id)
-            {
-                return NotFound();
-            }
-
             if (ModelState.IsValid)
             {
                 try
                 {
+                    var animal = await _context.Animals.FindAsync(id);
+                    if (animal == null)
+                    {
+                        return NotFound();
+                    }
+                    
+                    _mapper.Map(updateAnimalDto, animal);
                     _context.Update(animal);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!AnimalExists(animal.Id))
+                    if (!AnimalExists(id))
                     {
                         return NotFound();
                     }
@@ -143,8 +158,9 @@ namespace VetClinicManager.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Id", animal.UserId);
-            return View(animal);
+            
+            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Id", updateAnimalDto.UserId);
+            return View(updateAnimalDto);
         }
 
         // GET: Animals/Delete/5
@@ -159,12 +175,14 @@ namespace VetClinicManager.Controllers
             var animal = await _context.Animals
                 .Include(a => a.User)
                 .FirstOrDefaultAsync(m => m.Id == id);
+                
             if (animal == null)
             {
                 return NotFound();
             }
 
-            return View(animal);
+            var animalDto = _mapper.Map<AnimalDto>(animal);
+            return View(animalDto);
         }
 
         // POST: Animals/Delete/5
