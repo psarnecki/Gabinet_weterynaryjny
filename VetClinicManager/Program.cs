@@ -29,6 +29,14 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.AccessDeniedPath = "/Identity/Account/AccessDenied";
 
     options.LogoutPath = "/Identity/Account/Logout";
+    
+    options.Events.OnSignedIn = async context =>
+    {
+        if (context.Principal.IsInRole("Admin"))
+        {
+            context.Response.Redirect("/Admin");
+        }
+    };
 });
 
 builder.Services.AddTransient<IEmailSender, DummyEmailSender>();
@@ -85,12 +93,17 @@ app.UseStaticFiles();
 app.UseRouting();
 
 app.UseAuthentication();
-
 app.UseAuthorization();
+
+app.MapAreaControllerRoute(
+    name: "Admin",
+    areaName: "Admin",
+    pattern: "Admin/{controller=Users}/{action=Index}/{id?}");
 
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
 app.MapRazorPages();
 
 app.Run();

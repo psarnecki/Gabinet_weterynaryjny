@@ -1,0 +1,42 @@
+@model IEnumerable<VetClinicManager.Areas.Admin.DTOs.UserListDto> 
+
+@{
+    ViewData["Title"] = "Zarządzanie Użytkownikami";
+    Layout = "_Layout";
+}
+
+<h1>Zarządzanie Użytkownikami</h1>
+
+<p>
+    <a asp-area="Admin" asp-controller="Users" asp-action="Create" class="btn btn-primary">Utwórz nowego użytkownika</a>
+</p>
+
+<table class="table">
+    <thead>
+    <tr>
+        <th>Imię</th>
+        <th>Nazwisko</th>
+        <th>Email</th>
+        <th>Role</th>
+        <th></th> @* Kolumna na przyciski akcji *@
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>@Html.DisplayFor(modelItem => item.FirstName)</td>
+            <td>@Html.DisplayFor(modelItem => item.LastName)</td>
+            <td>@Html.DisplayFor(modelItem => item.Email)</td>
+            <td>
+                @string.Join(", ", item.Roles) @* Wyświetl role po przecinku *@
+            </td>
+            <td>
+                @* TODO: Dodaj linki do Edycji i Usuwania *@
+                <a asp-area="Admin" asp-controller="Users" asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-secondary">Edytuj</a> |
+                <a asp-area="Admin" asp-controller="Users" asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Usuń</a>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
