@@ -1,3 +1,5 @@
+using System.Reflection;
+using Riok.Mapperly.Abstractions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
@@ -36,8 +38,6 @@ builder.Services.AddTransient<IEmailSender, DummyEmailSender>();
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 builder.Services.AddTransient<SeedData>();
-
-builder.Services.AddAutoMapper(typeof(AnimalProfile));
 
 var app = builder.Build();
 

@@ -1,16 +1,12 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using AutoMapper;
 using VetClinicManager.Data;
 using VetClinicManager.Models;
 using VetClinicManager.DTOs;
+using VetClinicManager.Mappers;
 
 namespace VetClinicManager.Controllers
 {
@@ -19,16 +15,13 @@ namespace VetClinicManager.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<User> _userManager;
-        private readonly IMapper _mapper;
 
         public AnimalsController(
             ApplicationDbContext context, 
-            UserManager<User> userManager,
-            IMapper mapper)
+            UserManager<User> userManager)
         {
             _context = context;
             _userManager = userManager;
-            _mapper = mapper;
         }
 
         // GET: Animals
@@ -39,7 +32,7 @@ namespace VetClinicManager.Controllers
                 .Include(a => a.User)
                 .ToListAsync();
                 
-            var animalDtos = _mapper.Map<List<AnimalDto>>(animals);
+            var animalDtos = animals.ToDtos(); 
             return View(animalDtos);
         }
 
@@ -75,7 +68,7 @@ namespace VetClinicManager.Controllers
                 return Forbid();
             }
             
-            var animalDto = _mapper.Map<AnimalDto>(animal);
+            var animalDto = animal.ToDto(); 
             return View(animalDto);
         }
 
@@ -95,7 +88,7 @@ namespace VetClinicManager.Controllers
         {
             if (ModelState.IsValid)
             {
-                var animal = _mapper.Map<Animal>(createAnimalDto);
+                var animal = createAnimalDto.ToEntity(); 
                 _context.Add(animal);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
@@ -119,12 +112,12 @@ namespace VetClinicManager.Controllers
             {
                 return NotFound();
             }
-            
-            var updateAnimalDto = _mapper.Map<UpdateAnimalDto>(animal);
+    
+            var updateAnimalDto = animal.ToUpdateDto();
             ViewData["UserId"] = new SelectList(_context.Users, "Id", "Id", animal.UserId);
             return View(updateAnimalDto);
         }
-
+        
         // POST: Animals/Edit/5
         [Authorize(Roles = "Admin,Receptionist")]
         [HttpPost]
@@ -141,7 +134,7 @@ namespace VetClinicManager.Controllers
                         return NotFound();
                     }
                     
-                    _mapper.Map(updateAnimalDto, animal);
+                    updateAnimalDto.UpdateFromDto(animal);
                     _context.Update(animal);
                     await _context.SaveChangesAsync();
                 }
@@ -181,7 +174,7 @@ namespace VetClinicManager.Controllers
                 return NotFound();
             }
 
-            var animalDto = _mapper.Map<AnimalDto>(animal);
+            var animalDto = animal.ToDto();
             return View(animalDto);
         }
 

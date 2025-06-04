@@ -1,12 +1,12 @@
-@model VetClinicManager.Models.Visit
+@model VetClinicManager.Dtos.UpdateVisitDto
 
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Edytuj wizytę";
 }
 
-<h1>Edit</h1>
+<h1>Edytuj wizytę</h1>
 
-<h4>Visit</h4>
+<h4>Wizyta</h4>
 <hr />
 <div class="row">
     <div class="col-md-4">
@@ -14,48 +14,55 @@
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="Id" />
             <div class="form-group">
-                <label asp-for="Title" class="control-label"></label>
+                <label asp-for="Title" class="control-label">Tytuł</label>
                 <input asp-for="Title" class="form-control" />
                 <span asp-validation-for="Title" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="Description" class="control-label"></label>
-                <input asp-for="Description" class="form-control" />
+                <label asp-for="Description" class="control-label">Opis</label>
+                <textarea asp-for="Description" class="form-control"></textarea>
                 <span asp-validation-for="Description" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="CreatedDate" class="control-label"></label>
-                <input asp-for="CreatedDate" class="form-control" />
+                <label asp-for="CreatedDate" class="control-label">Data utworzenia</label>
+                <input asp-for="CreatedDate" class="form-control" type="datetime-local" />
                 <span asp-validation-for="CreatedDate" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="Status" class="control-label"></label>
-                <select asp-for="Status" class="form-control"></select>
+                <label asp-for="Status" class="control-label">Status</label>
+                <select asp-for="Status" class="form-control" asp-items="Html.GetEnumSelectList<VetClinicManager.Models.Enums.VisitStatus>()">
+                </select>
                 <span asp-validation-for="Status" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="Priority" class="control-label"></label>
-                <select asp-for="Priority" class="form-control"></select>
+                <label asp-for="Priority" class="control-label">Priorytet</label>
+                <select asp-for="Priority" class="form-control" asp-items="Html.GetEnumSelectList<VetClinicManager.Models.Enums.VisitPriority>()">
+                </select>
                 <span asp-validation-for="Priority" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="AnimalId" class="control-label"></label>
-                <select asp-for="AnimalId" class="form-control" asp-items="ViewBag.AnimalId"></select>
-                <span asp-validation-for="AnimalId" class="text-danger"></span>
+                <label class="control-label">Zwierzę</label>
+                <input class="form-control" value="@Model.Animal?.Name" readonly />
+                <input type="hidden" name="Animal.Id" value="@Model.Animal?.Id" />
             </div>
             <div class="form-group">
-                <label asp-for="AssignedVetId" class="control-label"></label>
-                <select asp-for="AssignedVetId" class="form-control" asp-items="ViewBag.AssignedVetId"></select>
+                <label asp-for="AssignedVetId" class="control-label">Weterynarz</label>
+                <select asp-for="AssignedVetId" class="form-control" asp-items="ViewBag.AssignedVetId">
+                    <option value="">-- Wybierz weterynarza --</option>
+                </select>
                 <span asp-validation-for="AssignedVetId" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
+                <input type="submit" value="Zapisz" class="btn btn-primary" />
             </div>
         </form>
     </div>
 </div>
 
 <div>
-    <a asp-action="Index">Back to List</a>
+    <a asp-action="Index">Powrót do listy</a>
 </div>
 
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

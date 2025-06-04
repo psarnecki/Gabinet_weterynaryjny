@@ -4,7 +4,6 @@ namespace VetClinicManager.DTOs;
 public class AnimalDto
 {
     public int Id { get; set; }
-    
     public string Name { get; set; }
     public string? MicrochipId { get; set; }
     public string? Species { get; set; }
@@ -19,6 +18,7 @@ public class AnimalDto
 
 public class CreateAnimalDto
 {
+    public int Id { get; set; }
     public string Name { get; set; }
     public string? MicrochipId { get; set; }
     public string? Species { get; set; }
@@ -32,8 +32,9 @@ public class CreateAnimalDto
 
 public class UpdateAnimalDto
 {
+    public int Id { get; set; }
     public string Name { get; set; }
-    public string? MicrochipId { get; set; }
+    public string? MicrochipId { get; set; }        
     public string? Species { get; set; }
     public string? Breed { get; set; }
     public DateTime? DateOfBirth { get; set; }
