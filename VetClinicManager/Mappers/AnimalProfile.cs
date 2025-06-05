@@ -1,31 +1,45 @@
 ﻿using Riok.Mapperly.Abstractions;
-using VetClinicManager.DTOs;
+using VetClinicManager.DTOs.AnimalDTOs;
 using VetClinicManager.Models;
 using VetClinicManager.Models.Enums;
 
 namespace VetClinicManager.Mappers;
 
 [Mapper]
-public static partial class AnimalMapper
+public partial class AnimalMapper
 {
-    // Mapowanie z Animal na AnimalDto
-    public static partial AnimalDto ToDto(this Animal animal);
+    // Mapowanie z Animal na AnimalListVetRecDto (dla weterynarzy/recepcji)
+    public partial AnimalListVetRecDto ToVetRecDto(Animal animal);
+    
+    // Mapowanie z Animal na AnimalListUserDto (dla klientów)
+    public partial AnimalListUserDto ToUserDto(Animal animal);
     
     // Mapowanie z CreateAnimalDto na Animal
-    public static partial Animal ToEntity(this CreateAnimalDto dto);
+    public partial Animal ToEntity(CreateAnimalDto dto);
     
-    // Mapowanie z UpdateAnimalDto na Animal
-    public static partial Animal ToEntity(this UpdateAnimalDto dto);
+    // Mapowanie z AnimalEditDto na Animal (tworzenie nowej instancji)
+    public partial Animal ToEntity(AnimalEditDto dto);
     
-    // Aktualizacja istniejącego Animal z UpdateAnimalDto
-    public static partial void UpdateFromDto(this UpdateAnimalDto dto, Animal animal);
+    // Aktualizacja istniejącego Animal z AnimalEditDto
+    public partial void UpdateFromDto(AnimalEditDto dto, Animal animal);
     
-    public static partial UpdateAnimalDto ToUpdateDto(this Animal animal);
+    // Mapowanie z Animal na AnimalEditDto
+    public partial AnimalEditDto ToEditDto(Animal animal);
     
-    // Mapowanie kolekcji Animal na AnimalDto
-    public static partial IEnumerable<AnimalDto> ToDtos(this IEnumerable<Animal> animals);
+    // Mapowanie kolekcji Animal na AnimalListVetRecDto
+    public partial IEnumerable<AnimalListVetRecDto> ToVetRecDtos(IEnumerable<Animal> animals);
     
-    // Metody pomocnicze dla specjalnych przypadków (jeśli potrzebne)
-    private static string? MapUserId(string? userId) => userId;
-    private static Gender MapGender(Gender gender) => gender;
+    // Mapowanie kolekcji Animal na AnimalListUserDto
+    public partial IEnumerable<AnimalListUserDto> ToUserDtos(IEnumerable<Animal> animals);
+
+    // Metody pomocnicze dla specjalnych przypadków
+    private string? MapMicrochipId(string? microchipId) => microchipId;
+    private string? MapSpecies(string? species) => species;
+    private string? MapBreed(string? breed) => breed;
+    private string? MapImageUrl(string? imageUrl) => imageUrl;
+    private string? MapUserId(string? userId) => userId;
+    private Gender MapGender(Gender gender) => gender;
+    
+    // Metoda dla LastVisitDate - można dodać logikę jeśli potrzebna
+    private DateTime? MapLastVisitDate(DateTime? date) => date;
 }

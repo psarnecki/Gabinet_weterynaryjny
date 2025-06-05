@@ -38,6 +38,10 @@ builder.Services.AddTransient<IEmailSender, DummyEmailSender>();
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 builder.Services.AddTransient<SeedData>();
+builder.Services.AddSingleton<VisitMapper>();
+builder.Services.AddSingleton<AnimalMapper>();
+builder.Services.AddScoped<IAnimalService, AnimalService>();
+builder.Services.AddScoped<IVisitService, VisitService>();
 
 var app = builder.Build();
 

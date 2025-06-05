@@ -1,35 +1,38 @@
 ﻿using Riok.Mapperly.Abstractions;
-using VetClinicManager.Dtos;
+using VetClinicManager.DTOs.VisitDTOs;
+using VetClinicManager.DTOs.VisitDTOs.VisitBriefDTOs;
 using VetClinicManager.Models;
 
+namespace VetClinicManager.Mappers;
+
 [Mapper]
-public static partial class VisitMapper
+public partial class VisitMapper
 {
     // Map from CreateVisitDto to Visit
-    public static partial Visit ToEntity(this CreateVisitDto dto);
+    public partial Visit ToEntity(VisitCreateDto dto);
     
     // Map from UpdateVisitDto to existing Visit
-    public static partial void ToEntity(this UpdateVisitDto dto, Visit visit);
+    public partial void ToEntity(VisitEditDto dto, Visit visit);
     
     // Map from Visit to VisitDtoReceptionist
-    public static partial VisitDtoReceptionist ToReceptionistDto(this Visit visit);
+    public partial VisitListReceptionistDto ToReceptionistDto(Visit visit);
     
     // Map from Visit to VisitDtoVet
-    public static partial VisitDtoVet ToVetDto(this Visit visit);
+    public partial VisitListVetDto ToVetDto(Visit visit);
     
     // Map from Visit to VisitDtoUser
-    public static partial VisitDtoUser ToUserDto(this Visit visit);
+    public partial VisitListUserDto ToUserDto(Visit visit);
     
     // Helper mappings for nested objects
-    private static AnimalBriefDto Map(Animal? animal)
+    private VisitAnimalBriefDto Map(Animal? animal)
         => animal == null 
-            ? new AnimalBriefDto { Id = 0, Name = string.Empty, Breed = string.Empty }
-            : new AnimalBriefDto { Id = animal.Id, Name = animal.Name, Breed = animal.Breed ?? string.Empty };
+            ? new VisitAnimalBriefDto { Id = 0, Name = string.Empty, Breed = string.Empty }
+            : new VisitAnimalBriefDto { Id = animal.Id, Name = animal.Name, Breed = animal.Breed ?? string.Empty };
     
-    private static VetBriefDto? Map(User? user)
+    private VisitVetBriefDto? Map(User? user)
         => user == null 
             ? null 
-            : new VetBriefDto 
+            : new VisitVetBriefDto 
             { 
                 Id = user.Id, 
                 FirstName = user.FirstName ?? string.Empty, 
@@ -37,10 +40,10 @@ public static partial class VisitMapper
                 Email = user.Email ?? string.Empty 
             };
     
-    private static List<VisitUpdateDto> Map(ICollection<VisitUpdate>? updates)
+    private List<VisitUpdateBriefDto> Map(ICollection<VisitUpdate>? updates)
         => updates == null 
-            ? new List<VisitUpdateDto>()
-            : updates.Select(update => new VisitUpdateDto
+            ? new List<VisitUpdateBriefDto>()
+            : updates.Select(update => new VisitUpdateBriefDto
             {
                 Id = update.Id,
                 Notes = update.Notes,

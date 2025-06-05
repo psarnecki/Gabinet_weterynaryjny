@@ -2,201 +2,225 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
 using VetClinicManager.Data;
+using VetClinicManager.DTOs.AnimalDTOs;
 using VetClinicManager.Models;
-using VetClinicManager.DTOs;
-using VetClinicManager.Mappers;
+using VetClinicManager.Services;
 
 namespace VetClinicManager.Controllers
 {
     [Authorize]
     public class AnimalsController : Controller
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IAnimalService _animalService;
         private readonly UserManager<User> _userManager;
+        private readonly ApplicationDbContext _context;
 
         public AnimalsController(
-            ApplicationDbContext context, 
-            UserManager<User> userManager)
+            IAnimalService animalService,
+            UserManager<User> userManager,
+            ApplicationDbContext context)
         {
-            _context = context;
+            _animalService = animalService;
             _userManager = userManager;
+            _context = context;
         }
 
-        // GET: Animals
         [Authorize(Roles = "Admin,Receptionist,Vet")]
         public async Task<IActionResult> Index()
         {
-            var animals = await _context.Animals
-                .Include(a => a.User)
-                .ToListAsync();
-                
-            var animalDtos = animals.ToDtos(); 
-            return View(animalDtos);
+            try
+            {
+                var animalDtos = await _animalService.GetAnimalsForPersonnelAsync();
+                return View(animalDtos);
+            }
+            catch (Exception ex)
+            {
+                return HandleError(ex);
+            }
         }
 
-        // GET: Animals/Details/5
         [Authorize(Roles = "Admin,Receptionist,Vet,Client")]
         public async Task<IActionResult> Details(int? id)
         {
-            if (id == null)
+            if (id == null) return NotFound();
+
+            try
+            {
+                var currentUser = await _userManager.GetUserAsync(User);
+                var currentUserId = currentUser?.Id;
+
+                if (await IsPersonnelAsync(currentUser))
+                {
+                    var dto = await _animalService.GetAnimalDetailsForPersonnelAsync(id.Value);
+                    return View(dto);
+                }
+                else if (await _animalService.IsAnimalOwnerAsync(id.Value, currentUserId))
+                {
+                    var dto = await _animalService.GetAnimalDetailsForOwnerAsync(id.Value, currentUserId);
+                    return View(dto);
+                }
+
+                return Forbid();
+            }
+            catch (KeyNotFoundException)
             {
                 return NotFound();
             }
-
-            var animal = await _context.Animals
-                .Include(a => a.User)
-                .FirstOrDefaultAsync(m => m.Id == id);
-                
-            if (animal == null)
-            {
-                return NotFound();
-            }
-        
-            var currentUser = await _userManager.GetUserAsync(User);
-            var currentUserId = currentUser?.Id;
-
-            bool isPersonnel = await _userManager.IsInRoleAsync(currentUser, "Admin") ||
-                               await _userManager.IsInRoleAsync(currentUser, "Receptionist") ||
-                               await _userManager.IsInRoleAsync(currentUser, "Vet");
-
-            bool isOwner = await _userManager.IsInRoleAsync(currentUser, "Client") && animal.UserId == currentUserId;
-            
-            if (!isPersonnel && !isOwner)
+            catch (UnauthorizedAccessException)
             {
                 return Forbid();
             }
-            
-            var animalDto = animal.ToDto(); 
-            return View(animalDto);
+            catch (Exception ex)
+            {
+                return HandleError(ex);
+            }
         }
 
-        // GET: Animals/Create
         [Authorize(Roles = "Admin,Receptionist")]
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
-            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Id");
+            var clientUsers = await GetClientUsersAsync();
+            ViewData["UserId"] = new SelectList(clientUsers, "Id", "Email");
             return View(new CreateAnimalDto());
         }
 
-        // POST: Animals/Create
         [Authorize(Roles = "Admin,Receptionist")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(CreateAnimalDto createAnimalDto)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                var animal = createAnimalDto.ToEntity(); 
-                _context.Add(animal);
-                await _context.SaveChangesAsync();
+                var clientUsers = await GetClientUsersAsync();
+                ViewData["UserId"] = new SelectList(clientUsers, "Id", "Email", createAnimalDto.UserId);
+                return View(createAnimalDto);
+            }
+
+            try
+            {
+                await _animalService.CreateAnimalAsync(createAnimalDto);
                 return RedirectToAction(nameof(Index));
             }
-            
-            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Id", createAnimalDto.UserId);
-            return View(createAnimalDto);
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", ex.Message);
+                var clientUsers = await GetClientUsersAsync();
+                ViewData["UserId"] = new SelectList(clientUsers, "Id", "Email", createAnimalDto.UserId);
+                return View(createAnimalDto);
+            }
         }
 
-        // GET: Animals/Edit/5
         [Authorize(Roles = "Admin,Receptionist")]
         public async Task<IActionResult> Edit(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
-            var animal = await _context.Animals.FindAsync(id);
-            if (animal == null)
+            try
+            {
+                var updateAnimalDto = await _animalService.GetAnimalForEditAsync(id.Value);
+                var clientUsers = await GetClientUsersAsync();
+                ViewData["UserId"] = new SelectList(clientUsers, "Id", "Email", updateAnimalDto.UserId);
+                return View(updateAnimalDto);
+            }
+            catch (KeyNotFoundException)
             {
                 return NotFound();
             }
-    
-            var updateAnimalDto = animal.ToUpdateDto();
-            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Id", animal.UserId);
-            return View(updateAnimalDto);
+            catch (Exception ex)
+            {
+                return HandleError(ex);
+            }
         }
-        
-        // POST: Animals/Edit/5
+
         [Authorize(Roles = "Admin,Receptionist")]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, UpdateAnimalDto updateAnimalDto)
+        public async Task<IActionResult> Edit(int id, AnimalEditDto animalEditDto)
         {
-            if (ModelState.IsValid)
+            if (id != animalEditDto.Id) return NotFound();
+
+            if (!ModelState.IsValid)
             {
-                try
-                {
-                    var animal = await _context.Animals.FindAsync(id);
-                    if (animal == null)
-                    {
-                        return NotFound();
-                    }
-                    
-                    updateAnimalDto.UpdateFromDto(animal);
-                    _context.Update(animal);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!AnimalExists(id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
+                var clientUsers = await GetClientUsersAsync();
+                ViewData["UserId"] = new SelectList(clientUsers, "Id", "Email", animalEditDto.UserId);
+                return View(animalEditDto);
+            }
+
+            try
+            {
+                await _animalService.UpdateAnimalAsync(id, animalEditDto);
                 return RedirectToAction(nameof(Index));
             }
-            
-            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Id", updateAnimalDto.UserId);
-            return View(updateAnimalDto);
+            catch (KeyNotFoundException)
+            {
+                return NotFound();
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", ex.Message);
+                var clientUsers = await GetClientUsersAsync();
+                ViewData["UserId"] = new SelectList(clientUsers, "Id", "Email", animalEditDto.UserId);
+                return View(animalEditDto);
+            }
         }
 
-        // GET: Animals/Delete/5
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int? id)
         {
-            if (id == null)
+            if (id == null) return NotFound();
+
+            try
+            {
+                var animalDto = await _animalService.GetAnimalForDeleteAsync(id.Value);
+                return View(animalDto);
+            }
+            catch (KeyNotFoundException)
             {
                 return NotFound();
             }
-
-            var animal = await _context.Animals
-                .Include(a => a.User)
-                .FirstOrDefaultAsync(m => m.Id == id);
-                
-            if (animal == null)
+            catch (Exception ex)
             {
-                return NotFound();
+                return HandleError(ex);
             }
-
-            var animalDto = animal.ToDto();
-            return View(animalDto);
         }
 
-        // POST: Animals/Delete/5
         [Authorize(Roles = "Admin")]
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var animal = await _context.Animals.FindAsync(id);
-            if (animal != null)
+            try
             {
-                _context.Animals.Remove(animal);
+                await _animalService.DeleteAnimalAsync(id);
+                return RedirectToAction(nameof(Index));
             }
-
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            catch (KeyNotFoundException)
+            {
+                return NotFound();
+            }
+            catch (Exception ex)
+            {
+                return HandleError(ex);
+            }
         }
 
-        private bool AnimalExists(int id)
+        private async Task<List<User>> GetClientUsersAsync()
         {
-            return _context.Animals.Any(e => e.Id == id);
+            return (await _userManager.GetUsersInRoleAsync("Client")).ToList();
+        }
+
+        private async Task<bool> IsPersonnelAsync(User user)
+        {
+            return await _userManager.IsInRoleAsync(user, "Admin") ||
+                   await _userManager.IsInRoleAsync(user, "Receptionist") ||
+                   await _userManager.IsInRoleAsync(user, "Vet");
+        }
+
+        private IActionResult HandleError(Exception ex)
+        {
+            ModelState.AddModelError("", ex.Message);
+            return View("Error");
         }
     }
 }
