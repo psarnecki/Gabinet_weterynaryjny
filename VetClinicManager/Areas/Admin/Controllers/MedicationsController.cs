@@ -1,158 +1,150 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using VetClinicManager.Data;
+using VetClinicManager.Areas.Admin.DTOs.Medications;
 using VetClinicManager.Models;
+using VetClinicManager.Services;
 
-namespace VetClinicManager.Areas.Admin.Controllers
+namespace VetClinicManager.Areas.Admin.Controllers;
+    
+[Area("Admin")]
+[Authorize(Roles = "Admin")]
+public class MedicationsController : Controller
 {
-    [Area("Admin")]
-    public class MedicationsController : Controller
+    private readonly IMedicationService _medicationService;
+
+    public MedicationsController(IMedicationService medicationService)
     {
-        private readonly ApplicationDbContext _context;
+        _medicationService = medicationService;
+    }
 
-        public MedicationsController(ApplicationDbContext context)
+    // GET: Admin/Medications
+    public async Task<IActionResult> Index()
+    {
+        var medicationListDtos = await _medicationService.GetAllMedicationsAsync();
+        return View(medicationListDtos);
+    }
+
+    // GET: Admin/Medications/Details/5
+    public async Task<IActionResult> Details(int? id)
+    {
+        if (id == null)
         {
-            _context = context;
+            return NotFound();
         }
 
-        // GET: Medications
-        public async Task<IActionResult> Index()
+        var medicationDto = await _medicationService.GetMedicationForDetailsAsync(id.Value);
+
+        if (medicationDto == null)
         {
-            return View(await _context.Medications.ToListAsync());
+            return NotFound();
         }
 
-        // GET: Medications/Details/5
-        public async Task<IActionResult> Details(int? id)
+        return View("Details", medicationDto);
+    }
+
+    // GET: Admin/Medications/Create
+    public IActionResult Create()
+    {
+        return View(new MedicationCreateDto());
+    }
+
+    // POST: Admin/Medications/Create
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Create(MedicationCreateDto createDto)
+    {
+        if (!ModelState.IsValid) 
         {
-            if (id == null)
+            return View(createDto);
+        }
+        
+        var resultDto = await _medicationService.CreateMedicationAsync(createDto);
+        
+        return RedirectToAction(nameof(Index));
+    }
+
+    // GET: Admin/Medications/Edit/5
+    public async Task<IActionResult> Edit(int? id)
+    {
+        if (id == null) 
+        {
+            return NotFound();
+        }
+
+        var editDto = await _medicationService.GetMedicationForEditAsync(id.Value);
+        
+        if (editDto == null) 
+        {
+            return NotFound(); 
+        }
+        
+        return View(editDto);
+    }
+
+    // POST: Admin/Medications/Edit/5
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Edit(int id, MedicationEditDto editDto)
+    {
+        if (id != editDto.Id) 
+        {
+            return NotFound();
+        }
+        
+        if (!ModelState.IsValid) 
+        {
+            return View(editDto);
+        }
+
+        try
+        {
+            await _medicationService.UpdateMedicationAsync(editDto);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!await _medicationService.MedicationExistsAsync(editDto.Id))
             {
                 return NotFound();
             }
-
-            var medication = await _context.Medications
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (medication == null)
+            else
             {
-                return NotFound();
+                throw;
             }
-
-            return View(medication);
-        }
-
-        // GET: Medications/Create
-        public IActionResult Create()
+        } 
+        catch
         {
-            return View();
+            throw;
         }
 
-        // POST: Medications/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Name")] Medication medication)
+        return RedirectToAction(nameof(Index));
+    }
+
+    // GET: Admin/Medications/Delete/5
+    public async Task<IActionResult> Delete(int? id)
+    {
+        if (id == null)
         {
-            if (ModelState.IsValid)
-            {
-                _context.Add(medication);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
-            return View(medication);
+            return NotFound();
         }
 
-        // GET: Medications/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        var deleteDto = await _medicationService.GetMedicationForDeleteAsync(id.Value);
+        
+        if (deleteDto == null)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var medication = await _context.Medications.FindAsync(id);
-            if (medication == null)
-            {
-                return NotFound();
-            }
-            return View(medication);
+            return NotFound();
         }
 
-        // POST: Medications/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Name")] Medication medication)
-        {
-            if (id != medication.Id)
-            {
-                return NotFound();
-            }
+        return View(deleteDto);
+    }
 
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    _context.Update(medication);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!MedicationExists(medication.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
-            }
-            return View(medication);
-        }
-
-        // GET: Medications/Delete/5
-        public async Task<IActionResult> Delete(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var medication = await _context.Medications
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (medication == null)
-            {
-                return NotFound();
-            }
-
-            return View(medication);
-        }
-
-        // POST: Medications/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
-            var medication = await _context.Medications.FindAsync(id);
-            if (medication != null)
-            {
-                _context.Medications.Remove(medication);
-            }
-
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
-        }
-
-        private bool MedicationExists(int id)
-        {
-            return _context.Medications.Any(e => e.Id == id);
-        }
+    // POST: Admin/Medications/Delete/5
+    [HttpPost, ActionName("Delete")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteConfirmed(int id)
+    {
+        await _medicationService.DeleteMedicationAsync(id);
+        
+        return RedirectToAction(nameof(Index));
     }
 }

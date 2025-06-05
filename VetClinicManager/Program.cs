@@ -41,6 +41,8 @@ builder.Services.ConfigureApplicationCookie(options =>
 });
 
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IMedicationService, MedicationService>();
+builder.Services.AddSingleton<MedicationMapper>();
 builder.Services.AddSingleton<UserMapper>();
 builder.Services.AddTransient<IEmailSender, DummyEmailSender>();
 builder.Services.AddControllersWithViews();
