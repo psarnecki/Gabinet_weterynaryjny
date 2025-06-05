@@ -8,8 +8,9 @@ using Microsoft.EntityFrameworkCore;
 using VetClinicManager.Data;
 using VetClinicManager.Models;
 
-namespace VetClinicManager.Controllers
+namespace VetClinicManager.Areas.Admin.Controllers
 {
+    [Area("Admin")]
     public class MedicationsController : Controller
     {
         private readonly ApplicationDbContext _context;

@@ -1,4 +1,4 @@
-﻿namespace VetClinicManager.Areas.Admin.DTOs.User;
+﻿namespace VetClinicManager.Areas.Admin.DTOs.Users;
 
 public class UserListDto
 {

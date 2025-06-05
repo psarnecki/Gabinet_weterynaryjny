@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using VetClinicManager.Areas.Admin.DTOs;
-using VetClinicManager.Areas.Admin.DTOs.User;
+using VetClinicManager.Areas.Admin.DTOs.Users;
 using VetClinicManager.Services;
 
 namespace VetClinicManager.Areas.Admin.Controllers;

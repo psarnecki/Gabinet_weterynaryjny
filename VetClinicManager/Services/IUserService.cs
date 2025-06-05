@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using VetClinicManager.Areas.Admin.DTOs;
-using VetClinicManager.Areas.Admin.DTOs.User;
+using VetClinicManager.Areas.Admin.DTOs.Users;
 using VetClinicManager.Models;
 
 namespace VetClinicManager.Services;

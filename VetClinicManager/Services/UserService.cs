@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using VetClinicManager.Areas.Admin.DTOs;
-using VetClinicManager.Areas.Admin.DTOs.User;
+using VetClinicManager.Areas.Admin.DTOs.Users;
 using VetClinicManager.Areas.Admin.Mappers;
 using VetClinicManager.Models;
 
