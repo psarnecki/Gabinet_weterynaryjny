@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using VetClinicManager.Data;
 using VetClinicManager.Models;
 using VetClinicManager.Services;
+using VetClinicManager.Areas.Admin.Mappers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -39,6 +40,8 @@ builder.Services.ConfigureApplicationCookie(options =>
     };
 });
 
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddSingleton<UserMapper>();
 builder.Services.AddTransient<IEmailSender, DummyEmailSender>();
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();

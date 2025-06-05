@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace VetClinicManager.Areas.Admin.DTOs;
+namespace VetClinicManager.Areas.Admin.DTOs.User;
 
 public class UserDeleteDto
 {
