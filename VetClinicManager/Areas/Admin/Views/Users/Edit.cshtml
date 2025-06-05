@@ -2,7 +2,7 @@
 
 @{
     ViewData["Title"] = "Edytuj Użytkownika";
-    Layout = "_Layout"; @* Upewnij się, że ścieżka do layoutu jest poprawna *@
+    Layout = "_Layout";
 }
 
 <h1>Edytuj Użytkownika</h1>
@@ -10,19 +10,15 @@
 <hr />
 <div class="row">
     <div class="col-md-6">
-        @* Formularz POST do akcji Edit, przekazujemy ID użytkownika w asp-route-id *@
         <form asp-area="Admin" asp-controller="Users" asp-action="Edit" asp-route-id="@Model.Id" method="post">
-            @* Validation Summary wyświetla wszystkie błędy walidacji i błędy z UserManager *@
             <div asp-validation-summary="All" class="text-danger"></div>
 
-            @* Ukryte pole na ID użytkownika - kluczowe do przesłania do akcji POST *@
             <input type="hidden" asp-for="Id" />
 
-            @* Pola formularza - podobne jak w Create *@
             <div class="form-group mb-3">
                 <label asp-for="FirstName" class="form-label"></label>
                 <input asp-for="FirstName" class="form-control" />
-                <span asp-validation-for="FirstName" class="text-danger"></span> @* Wyświetla błędy dla tego pola *@
+                <span asp-validation-for="FirstName" class="text-danger"></span>
             </div>
              <div class="form-group mb-3">
                 <label asp-for="LastName" class="form-label"></label>
@@ -40,7 +36,6 @@
                 <span asp-validation-for="Specialization" class="text-danger"></span>
             </div>
 
-            @* Sekcja edycji ról *@
             <div class="form-group mb-3">
                  <label asp-for="SelectedRoles" class="form-label"></label><br/>
                  @if (Model.AvailableRoles != null)
@@ -48,26 +43,23 @@
                      @for (int i = 0; i < Model.AvailableRoles.Count; i++)
                      {
                          var role = Model.AvailableRoles[i];
-                         // Sprawdzamy, czy bieżąca rola znajduje się na liście SelectedRoles użytkownika
                          var isSelected = Model.SelectedRoles != null && Model.SelectedRoles.Contains(role);
 
-                         @* Ważne: name="SelectedRoles" i value="@role". Dodajemy 'checked' jeśli rola jest już przypisana *@
                          <div class="form-check form-check-inline">
                               <input type="checkbox"
                                      name="SelectedRoles"
                                      value="@role"
-                                     id="role_edit_@i" @* Unikalne ID dla każdej etykiety *@
+                                     id="role_edit_@i"
                                      class="form-check-input"
-                                     @(isSelected ? "checked" : "") /> @* Oznacz checkbox jako zaznaczony jeśli użytkownik ma tę rolę *@
+                                     @(isSelected ? "checked" : "") />
                               <label class="form-check-label" for="role_edit_@i">@role</label>
                          </div>
                      }
                  }
-                 @* Błąd walidacji dla SelectedRoles (np. Required - choć rzadko używane dla listy) *@
                  <span asp-validation-for="SelectedRoles" class="text-danger"></span>
              </div>
 
-            @* TODO: Dodaj pola do zmiany hasła, jeśli chcesz to umożliwić tutaj *@
+            @* TODO: Dodać dla implementacji zmiany hasła *@
             @* ...
              <div class="form-group mb-3">
                  <label asp-for="NewPassword" class="form-label"></label>
@@ -80,12 +72,9 @@
                  <span asp-validation-for="ConfirmNewPassword" class="text-danger"></span>
              </div>
             *@
-
-
-            @* Przyciski akcji *@
+            
             <div class="form-group mt-3">
                 <button type="submit" class="btn btn-primary">Zapisz Zmiany</button>
-                 @* Link powrotny do listy użytkowników *@
                  <a asp-area="Admin" asp-controller="Users" asp-action="Index" class="btn btn-secondary">Anuluj</a>
             </div>
         </form>
@@ -93,6 +82,5 @@
 </div>
 
 @section Scripts {
-    @* Włączenie walidacji po stronie klienta *@
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 }
