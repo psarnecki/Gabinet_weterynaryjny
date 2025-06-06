@@ -31,22 +31,36 @@ public class VisitUpdateService : IVisitUpdateService
 
     public async Task<VisitUpdate> CreateVisitUpdateAsync(VisitUpdateCreateDto createDto, string vetId)
     {
+        // Pobieramy pełne obiekty z bazy
+        var visit = await _context.Visits.FindAsync(createDto.VisitId);
+        var vet = await _context.Users.FindAsync(vetId);
+
+        if (visit == null || vet == null)
+        {
+            throw new ArgumentException("Nie znaleziono wizyty lub weterynarza");
+        }
+
         var visitUpdate = new VisitUpdate
         {
             Notes = createDto.Notes,
-            UpdateDate = DateTime.UtcNow,
             ImageUrl = createDto.ImageUrl,
             PrescribedMedications = createDto.PrescribedMedications,
             VisitId = createDto.VisitId,
+            Visit = visit, // Ustawiamy automatycznie
             UpdatedByVetId = vetId,
-            AnimalMedications = createDto.AnimalMedications
+            UpdatedBy = vet, // Ustawiamy automatycznie
+            UpdateDate = DateTime.UtcNow
         };
 
         _context.VisitUpdates.Add(visitUpdate);
         await _context.SaveChangesAsync();
-        return visitUpdate;
+    
+        // Zwracamy z pełnymi danymi nawigacyjnymi
+        return await _context.VisitUpdates
+            .Include(vu => vu.Visit)
+            .Include(vu => vu.UpdatedBy)
+            .FirstAsync(vu => vu.Id == visitUpdate.Id);
     }
-
     public async Task<VisitUpdate> UpdateVisitUpdateAsync(int id, VisitUpdateEditVetDto updateDto, string vetId)
     {
         var existingUpdate = await _context.VisitUpdates.FindAsync(id);

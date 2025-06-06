@@ -3,7 +3,7 @@
 @{
     ViewData["Title"] = "Add Visit Update";
 }
-
+<div asp-validation-summary="All" class="text-danger"></div>
 <div class="card">
     <div class="card-header bg-primary text-white">
         <h2>@ViewData["Title"]</h2>
@@ -15,6 +15,7 @@
     </div>
     <div class="card-body">
         <form asp-action="Create">
+            @Html.AntiForgeryToken()
             <input type="hidden" asp-for="VisitId" />
             
             <div class="form-group">

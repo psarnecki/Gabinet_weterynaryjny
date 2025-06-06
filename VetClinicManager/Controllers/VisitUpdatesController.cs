@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Security.Claims;
+using Microsoft.EntityFrameworkCore;
 using VetClinicManager.Data;
 using VetClinicManager.DTOs.VisitUpdateDTOs;
 using VetClinicManager.Interfaces;
@@ -79,23 +80,32 @@ namespace VetClinicManager.Controllers
         [Authorize(Roles = "Vet")]
         public async Task<IActionResult> Create(VisitUpdateCreateDto createDto)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                try
-                {
-                    var vetId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                    await _visitUpdateService.CreateVisitUpdateAsync(createDto, vetId);
-                    return RedirectToAction("Details", "Visits", new { id = createDto.VisitId });
-                }
-                catch (Exception ex)
-                {
-                    ModelState.AddModelError("", $"Error creating visit update: {ex.Message}");
-                }
+                // Ponowne załadowanie danych do widoku
+                var visit = await _context.Visits
+                    .Include(v => v.Animal)
+                    .FirstOrDefaultAsync(v => v.Id == createDto.VisitId);
+        
+                ViewBag.VisitTitle = visit?.Title;
+                ViewBag.AnimalName = visit?.Animal?.Name;
+        
+                return View(createDto);
             }
-    
-            return View(createDto);
-        }
 
+            try
+            {
+                var vetId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var result = await _visitUpdateService.CreateVisitUpdateAsync(createDto, vetId);
+                return RedirectToAction("Details", "Visits", new { id = createDto.VisitId });
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", ex.Message);
+                return View(createDto);
+            }
+        }
+        
         // GET: VisitUpdates/Edit/5
         [Authorize(Roles = "Vet")]
         public async Task<IActionResult> Edit(int? id)
