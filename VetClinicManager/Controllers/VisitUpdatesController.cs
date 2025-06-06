@@ -1,29 +1,33 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 using VetClinicManager.Data;
+using VetClinicManager.DTOs.VisitUpdateDTOs;
+using VetClinicManager.Interfaces;
 using VetClinicManager.Models;
 
 namespace VetClinicManager.Controllers
 {
+    [Authorize]
     public class VisitUpdatesController : Controller
     {
+        private readonly IVisitUpdateService _visitUpdateService;
         private readonly ApplicationDbContext _context;
 
-        public VisitUpdatesController(ApplicationDbContext context)
+        public VisitUpdatesController(
+            IVisitUpdateService visitUpdateService,
+            ApplicationDbContext context)
         {
+            _visitUpdateService = visitUpdateService;
             _context = context;
         }
 
         // GET: VisitUpdates
         public async Task<IActionResult> Index()
         {
-            var applicationDbContext = _context.VisitUpdates.Include(v => v.Visit);
-            return View(await applicationDbContext.ToListAsync());
+            var visitUpdates = await _visitUpdateService.GetVisitUpdatesAsync();
+            return View(visitUpdates);
         }
 
         // GET: VisitUpdates/Details/5
@@ -34,9 +38,7 @@ namespace VetClinicManager.Controllers
                 return NotFound();
             }
 
-            var visitUpdate = await _context.VisitUpdates
-                .Include(v => v.Visit)
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var visitUpdate = await _visitUpdateService.GetVisitUpdateByIdAsync(id.Value);
             if (visitUpdate == null)
             {
                 return NotFound();
@@ -46,30 +48,56 @@ namespace VetClinicManager.Controllers
         }
 
         // GET: VisitUpdates/Create
-        public IActionResult Create()
+        [Authorize(Roles = "Vet")]
+        public IActionResult Create(int visitId)
         {
-            ViewData["VisitId"] = new SelectList(_context.Visits, "Id", "Id");
-            return View();
+            // Pobierz tytuł wizyty i nazwę zwierzęcia
+            var visitInfo = _context.Visits
+                .Where(v => v.Id == visitId)
+                .Select(v => new { v.Title, AnimalName = v.Animal.Name })
+                .FirstOrDefault();
+
+            if (visitInfo == null)
+            {
+                return NotFound();
+            }
+
+            ViewBag.VisitTitle = visitInfo.Title;
+            ViewBag.AnimalName = visitInfo.AnimalName;
+
+            var model = new VisitUpdateCreateDto
+            {
+                VisitId = visitId
+            };
+
+            return View(model);
         }
 
         // POST: VisitUpdates/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Notes,UpdateDate,ImageUrl,PrescribedMedications,VisitId,UpdatedByVetId")] VisitUpdate visitUpdate)
+        [Authorize(Roles = "Vet")]
+        public async Task<IActionResult> Create(VisitUpdateCreateDto createDto)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(visitUpdate);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                try
+                {
+                    var vetId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                    await _visitUpdateService.CreateVisitUpdateAsync(createDto, vetId);
+                    return RedirectToAction("Details", "Visits", new { id = createDto.VisitId });
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", $"Error creating visit update: {ex.Message}");
+                }
             }
-            ViewData["VisitId"] = new SelectList(_context.Visits, "Id", "Id", visitUpdate.VisitId);
-            return View(visitUpdate);
+    
+            return View(createDto);
         }
 
         // GET: VisitUpdates/Edit/5
+        [Authorize(Roles = "Vet")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -77,23 +105,38 @@ namespace VetClinicManager.Controllers
                 return NotFound();
             }
 
-            var visitUpdate = await _context.VisitUpdates.FindAsync(id);
+            var visitUpdate = await _visitUpdateService.GetVisitUpdateByIdAsync(id.Value);
             if (visitUpdate == null)
             {
                 return NotFound();
             }
+
+            var currentVetId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (visitUpdate.UpdatedByVetId != currentVetId)
+            {
+                return Forbid();
+            }
+
+            var editDto = new VisitUpdateEditVetDto
+            {
+                Id = visitUpdate.Id,
+                Notes = visitUpdate.Notes,
+                ImageUrl = visitUpdate.ImageUrl,
+                PrescribedMedications = visitUpdate.PrescribedMedications,
+                AnimalMedications = visitUpdate.AnimalMedications
+            };
+
             ViewData["VisitId"] = new SelectList(_context.Visits, "Id", "Id", visitUpdate.VisitId);
-            return View(visitUpdate);
+            return View("Edit", editDto);
         }
 
         // POST: VisitUpdates/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Notes,UpdateDate,ImageUrl,PrescribedMedications,VisitId,UpdatedByVetId")] VisitUpdate visitUpdate)
+        [Authorize(Roles = "Vet")]
+        public async Task<IActionResult> Edit(int id, VisitUpdateEditVetDto editDto)
         {
-            if (id != visitUpdate.Id)
+            if (id != editDto.Id)
             {
                 return NotFound();
             }
@@ -102,24 +145,28 @@ namespace VetClinicManager.Controllers
             {
                 try
                 {
-                    _context.Update(visitUpdate);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!VisitUpdateExists(visitUpdate.Id))
+                    var currentVetId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                    var result = await _visitUpdateService.UpdateVisitUpdateAsync(id, editDto, currentVetId);
+                    
+                    if (result == null)
                     {
                         return NotFound();
                     }
-                    else
-                    {
-                        throw;
-                    }
+                    
+                    return RedirectToAction(nameof(Index));
                 }
-                return RedirectToAction(nameof(Index));
+                catch (UnauthorizedAccessException)
+                {
+                    return Forbid();
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", $"Error updating visit update: {ex.Message}");
+                }
             }
-            ViewData["VisitId"] = new SelectList(_context.Visits, "Id", "Id", visitUpdate.VisitId);
-            return View(visitUpdate);
+
+            ViewData["VisitId"] = new SelectList(_context.Visits, "Id", "Id");
+            return View("Edit",editDto);
         }
 
         // GET: VisitUpdates/Delete/5
@@ -130,9 +177,7 @@ namespace VetClinicManager.Controllers
                 return NotFound();
             }
 
-            var visitUpdate = await _context.VisitUpdates
-                .Include(v => v.Visit)
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var visitUpdate = await _visitUpdateService.GetVisitUpdateByIdAsync(id.Value);
             if (visitUpdate == null)
             {
                 return NotFound();
@@ -146,19 +191,8 @@ namespace VetClinicManager.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var visitUpdate = await _context.VisitUpdates.FindAsync(id);
-            if (visitUpdate != null)
-            {
-                _context.VisitUpdates.Remove(visitUpdate);
-            }
-
-            await _context.SaveChangesAsync();
+            await _visitUpdateService.DeleteVisitUpdateAsync(id);
             return RedirectToAction(nameof(Index));
-        }
-
-        private bool VisitUpdateExists(int id)
-        {
-            return _context.VisitUpdates.Any(e => e.Id == id);
         }
     }
 }

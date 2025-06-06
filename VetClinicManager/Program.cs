@@ -6,6 +6,7 @@ using VetClinicManager.Models;
 using VetClinicManager.Services;
 using VetClinicManager.Mappers;
 using VetClinicManager.Areas.Admin.Mappers;
+using VetClinicManager.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -45,6 +46,7 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IMedicationService, MedicationService>();
 builder.Services.AddScoped<IAnimalService, AnimalService>();
 builder.Services.AddScoped<IVisitService, VisitService>();
+builder.Services.AddScoped<IVisitUpdateService, VisitUpdateService>();
 builder.Services.AddTransient<IEmailSender, DummyEmailSender>();
 builder.Services.AddSingleton<UserMapper>();
 builder.Services.AddSingleton<MedicationMapper>();

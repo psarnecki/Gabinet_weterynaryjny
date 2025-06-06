@@ -120,7 +120,6 @@ namespace VetClinicManager.Services
                 Id = visit.Id,
                 Title = visit.Title,
                 Description = visit.Description,
-                CreatedDate = visit.CreatedDate,
                 Status = visit.Status,
                 Priority = visit.Priority,
                 AssignedVetId = visit.AssignedVetId,
