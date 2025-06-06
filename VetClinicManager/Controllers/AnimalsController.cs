@@ -32,7 +32,7 @@ namespace VetClinicManager.Controllers
             try
             {
                 var animalDtos = await _animalService.GetAnimalsForPersonnelAsync();
-                return View(animalDtos);
+                return View("IndexVetRec", animalDtos);
             }
             catch (Exception ex)
             {
@@ -53,12 +53,12 @@ namespace VetClinicManager.Controllers
                 if (await IsPersonnelAsync(currentUser))
                 {
                     var dto = await _animalService.GetAnimalDetailsForPersonnelAsync(id.Value);
-                    return View(dto);
+                    return View("DetailsVetRec", dto);
                 }
                 else if (await _animalService.IsAnimalOwnerAsync(id.Value, currentUserId))
                 {
                     var dto = await _animalService.GetAnimalDetailsForOwnerAsync(id.Value, currentUserId);
-                    return View(dto);
+                    return View("DetailsUser", dto);
                 }
 
                 return Forbid();

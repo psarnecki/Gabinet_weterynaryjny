@@ -1,0 +1,49 @@
+﻿@model IEnumerable<VetClinicManager.DTOs.VisitDTOs.VisitListUserDto>
+
+@{
+    ViewData["Title"] = "Moje wizyty";
+}
+
+<h1>Moje wizyty</h1>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Title)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.CreatedDate)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Status)
+            </th>
+            <th>
+                Zwierzę
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Title)
+            </td>
+            <td>
+                @item.CreatedDate.ToString("dd.MM.yyyy HH:mm")
+            </td>
+            <td>
+                @if (item.Animal != null)
+                {
+                    <span>@item.Animal.Name (@item.Animal.Breed)</span>
+                }
+                else
+                {
+                    <span class="text-muted">Brak danych</span>
+                }
+            </td>
+        </tr>
+}
+    </tbody>
+</table>
