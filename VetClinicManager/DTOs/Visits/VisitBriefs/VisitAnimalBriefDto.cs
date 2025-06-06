@@ -3,6 +3,7 @@
 public class VisitAnimalBriefDto
 {
     public int Id { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public string Breed { get; set; } = string.Empty;
+    public string Name { get; set; }
+    public string? Species { get; set; }
+    public string? Breed { get; set; }
 }

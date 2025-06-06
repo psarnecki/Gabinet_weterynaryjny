@@ -1,5 +1,7 @@
-﻿namespace VetClinicManager.DTOs.AnimalDTOs;
+﻿using VetClinicManager.DTOs.UserDTOs.UserBriefs;
 using VetClinicManager.Models.Enums;
+
+namespace VetClinicManager.DTOs.AnimalDTOs;
 
 public class AnimalListVetRecDto
 {
@@ -12,6 +14,6 @@ public class AnimalListVetRecDto
     public float BodyWeight { get; set; }
     public Gender Gender { get; set; }
     public string? ImageUrl { get; set; }
-    public string? UserId { get; set; }
     public DateTime? LastVisitDate { get; set; }
+    public UserBriefDto? Owner { get; set; }
 }

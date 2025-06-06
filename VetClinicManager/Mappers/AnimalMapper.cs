@@ -1,5 +1,6 @@
 ﻿using Riok.Mapperly.Abstractions;
 using VetClinicManager.DTOs.AnimalDTOs;
+using VetClinicManager.DTOs.Visits.VisitBriefs;
 using VetClinicManager.Models;
 using VetClinicManager.Models.Enums;
 
@@ -31,15 +32,11 @@ public partial class AnimalMapper
     
     // Mapowanie kolekcji Animal na AnimalListUserDto
     public partial IEnumerable<AnimalListUserDto> ToUserDtos(IEnumerable<Animal> animals);
-
-    // Metody pomocnicze dla specjalnych przypadków
-    private string? MapMicrochipId(string? microchipId) => microchipId;
-    private string? MapSpecies(string? species) => species;
-    private string? MapBreed(string? breed) => breed;
-    private string? MapImageUrl(string? imageUrl) => imageUrl;
-    private string? MapUserId(string? userId) => userId;
-    private Gender MapGender(Gender gender) => gender;
     
-    // Metoda dla LastVisitDate - można dodać logikę jeśli potrzebna
-    private DateTime? MapLastVisitDate(DateTime? date) => date;
+    // Mapowanie z Animal na VisitAnimalBriefDto
+    public partial VisitAnimalBriefDto ToVisitAnimalBriefDto(Animal animal);
+    
+    public partial AnimalDetailsVetRecDto ToAnimalDetailsVetRecDto(Animal animal);
+    
+    public partial AnimalDetailsUserDto ToAnimalDetailsUserDto(Animal animal);
 }

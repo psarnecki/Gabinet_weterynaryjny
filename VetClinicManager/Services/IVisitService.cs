@@ -1,4 +1,4 @@
-﻿using VetClinicManager.DTOs.VisitDTOs;
+﻿using VetClinicManager.DTOs.Visits;
 using VetClinicManager.Models;
 
 namespace VetClinicManager.Services
@@ -7,6 +7,7 @@ namespace VetClinicManager.Services
     {
         Task<IEnumerable<VisitListReceptionistDto>> GetVisitsForReceptionistAsync();
         Task<IEnumerable<VisitListVetDto>> GetVisitsForVetAsync(string userId);
+        Task<IEnumerable<VisitListUserDto>> GetVisitsForOwnerAnimalsAsync(string ownerUserId);
         Task<VisitListReceptionistDto> GetVisitDetailsForReceptionistAsync(int id);
         Task<VisitListVetDto> GetVisitDetailsForVetAsync(int id, string userId);
         Task<VisitListUserDto> GetVisitDetailsForUserAsync(int id, string userId);

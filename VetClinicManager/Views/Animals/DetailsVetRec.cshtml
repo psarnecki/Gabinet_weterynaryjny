@@ -1,13 +1,13 @@
 @model VetClinicManager.DTOs.AnimalDTOs.AnimalListVetRecDto
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Szczegóły Zwierzęcia (Personel)";
 }
 
-<h1>Details</h1>
+<h1>Szczegóły Zwierzęcia</h1>
 
 <div>
-    <h4>Animal</h4>
+    <h4>Informacje o zwierzęciu</h4>
     <hr />
     <dl class="row">
         <dt class = "col-sm-2">
@@ -56,23 +56,36 @@
             @Html.DisplayNameFor(model => model.ImageUrl)
         </dt>
         <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.ImageUrl)
+             @if (!string.IsNullOrEmpty(Model.ImageUrl))
+             {
+                 <img src="@Model.ImageUrl" alt="@Model.Name" style="max-width: 200px; max-height: 200px;" />
+             }
+             else
+             {
+                 @:Brak zdjęcia
+             }
         </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.UserId)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.UserId)
-        </dd>
-        <dt class = "col-sm-2">
+         <dt class = "col-sm-2">
             @Html.DisplayNameFor(model => model.LastVisitDate)
         </dt>
         <dd class = "col-sm-10">
             @Html.DisplayFor(model => model.LastVisitDate)
         </dd>
-    </dl>
+
+        <dt class = "col-sm-2">
+             Właściciel
+        </dt>
+        <dd class = "col-sm-10">
+            @(Model.Owner?.FirstName + " " + Model.Owner?.LastName)
+             @if (Model.Owner != null)
+             {
+                  <a asp-controller="User" asp-action="Details" asp-route-id="@Model.Owner.Id">@(Model.Owner.FirstName + " " + Model.Owner.LastName)</a>
+             }
+        </dd>
+    </dl> 
 </div>
+
 <div>
-    <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+    <a asp-action="Edit" asp-route-id="@Model?.Id">Edytuj</a> | 
+    <a asp-action="Index">Powrót do listy</a>
 </div>

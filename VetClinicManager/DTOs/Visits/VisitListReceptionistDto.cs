@@ -1,9 +1,10 @@
 ﻿using VetClinicManager.Models.Enums;
 using VetClinicManager.DTOs.Visits.VisitBriefs;
 
-namespace VetClinicManager.DTOs.VisitDTOs;
 
-public class VisitEditDto
+namespace VetClinicManager.DTOs.Visits;
+
+public class VisitListReceptionistDto
 {
     public int Id { get; set; }
     public string Title { get; set; } = string.Empty;
@@ -11,6 +12,7 @@ public class VisitEditDto
     public DateTime CreatedDate { get; set; }
     public VisitStatus Status { get; set; }
     public VisitPriority Priority { get; set; }
+    public int AnimalId { get; set; }
     public VisitAnimalBriefDto? Animal { get; set; }
     public string? AssignedVetId { get; set; }
     public VisitVetBriefDto? AssignedVet { get; set; }

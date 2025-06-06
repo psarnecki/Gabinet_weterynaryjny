@@ -1,5 +1,5 @@
 ﻿using Riok.Mapperly.Abstractions;
-using VetClinicManager.DTOs.VisitDTOs;
+using VetClinicManager.DTOs.Visits;
 using VetClinicManager.DTOs.Visits.VisitBriefs;
 using VetClinicManager.Models;
 
@@ -23,22 +23,9 @@ public partial class VisitMapper
     // Map from Visit to VisitDtoUser
     public partial VisitListUserDto ToUserDto(Visit visit);
     
-    // Helper mappings for nested objects
-    private VisitAnimalBriefDto Map(Animal? animal)
-        => animal == null 
-            ? new VisitAnimalBriefDto { Id = 0, Name = string.Empty, Breed = string.Empty }
-            : new VisitAnimalBriefDto { Id = animal.Id, Name = animal.Name, Breed = animal.Breed ?? string.Empty };
-    
-    private VisitVetBriefDto? Map(User? user)
-        => user == null 
-            ? null 
-            : new VisitVetBriefDto 
-            { 
-                Id = user.Id, 
-                FirstName = user.FirstName ?? string.Empty, 
-                LastName = user.LastName ?? string.Empty, 
-                Email = user.Email ?? string.Empty 
-            };
+    public partial IEnumerable<VisitListVetDto> ToVetDtos(IEnumerable<Visit> visits);
+    public partial IEnumerable<VisitListUserDto> ToUserDtos(IEnumerable<Visit> visits);
+    public partial IEnumerable<VisitListReceptionistDto> ToReceptionistDtos(IEnumerable<Visit> visits);
     
     private List<VisitUpdateBriefDto> Map(ICollection<VisitUpdate>? updates)
         => updates == null 

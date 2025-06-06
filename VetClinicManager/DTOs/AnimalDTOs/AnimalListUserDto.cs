@@ -1,5 +1,6 @@
-﻿namespace VetClinicManager.DTOs.AnimalDTOs;
-using VetClinicManager.Models.Enums;
+﻿using VetClinicManager.Models.Enums;
+
+namespace VetClinicManager.DTOs.AnimalDTOs;
 
 public class AnimalListUserDto
 {

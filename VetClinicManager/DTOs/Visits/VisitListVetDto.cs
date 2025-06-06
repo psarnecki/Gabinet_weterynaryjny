@@ -1,7 +1,8 @@
-﻿using VetClinicManager.Models.Enums;
+﻿using VetClinicManager.DTOs.UserDTOs.UserBriefs;
 using VetClinicManager.DTOs.Visits.VisitBriefs;
+using VetClinicManager.Models.Enums;
 
-namespace VetClinicManager.DTOs.VisitDTOs;
+namespace VetClinicManager.DTOs.Visits;
 
 public class VisitListVetDto
 {
@@ -11,7 +12,6 @@ public class VisitListVetDto
     public DateTime CreatedDate { get; set; }
     public VisitStatus Status { get; set; }
     public VisitPriority Priority { get; set; }
-    public int AnimalId { get; set; }
-    public VisitAnimalBriefDto? Animal { get; set; }
-    public List<VisitUpdateBriefDto> Updates { get; set; } = new();
+    public UserBriefDto? Owner { get; set; }
+    public VisitAnimalBriefDto Animal { get; set; }
 }

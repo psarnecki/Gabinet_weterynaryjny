@@ -1,4 +1,5 @@
 ﻿using VetClinicManager.Models.Enums;
+
 namespace VetClinicManager.DTOs.AnimalDTOs;
 
 public class CreateAnimalDto

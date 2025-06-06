@@ -1,59 +1,44 @@
-﻿@model IEnumerable<VetClinicManager.DTOs.VisitDTOs.VisitListVetDto>
+﻿@model IEnumerable<VetClinicManager.DTOs.Visits.VisitListVetDto> 
 
 @{
-    ViewData["Title"] = "Moje Wizyty";
+    ViewData["Title"] = "Moje Wizyty (Weterynarz)";
 }
 
 <h1>Moje Wizyty</h1>
 
 <table class="table">
     <thead>
-    <tr>
-        <th>
-            @Html.DisplayNameFor(model => model.Title)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.Animal)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.Status)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.Priority)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.CreatedDate)
-        </th>
-        <th>Akcje</th>
-    </tr>
+        <tr>
+            <th>@Html.DisplayNameFor(model => model.Title)</th>
+             <th>@Html.DisplayNameFor(model => model.Description)</th> 
+            <th>@Html.DisplayNameFor(model => model.CreatedDate)</th>
+            <th>@Html.DisplayNameFor(model => model.Status)</th>
+            <th>@Html.DisplayNameFor(model => model.Priority)</th>
+            <th>Zwierzę</th> 
+            <th>Właściciel</th>
+            <th></th>
+        </tr>
     </thead>
     <tbody>
-    @foreach (var item in Model)
-    {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Title)
-            </td>
-            <td>
-                @if (item.Animal != null)
-                {
-                    <span>@item.Animal.Name (@item.Animal.Breed)</span>
-                }
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Status)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Priority)
-            </td>
-            <td>
-                @item.CreatedDate.ToString("g")
-            </td>
-            <td>
-                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-info btn-sm">Szczegóły</a>
-                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-warning btn-sm">Edytuj</a>
-            </td>
-        </tr>
-    }
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@Html.DisplayFor(modelItem => item.Title)</td>
+                 <td>@Html.DisplayFor(modelItem => item.Description)</td> 
+                <td>@Html.DisplayFor(modelItem => item.CreatedDate)</td>
+                <td>@Html.DisplayFor(modelItem => item.Status)</td>
+                <td>@Html.DisplayFor(modelItem => item.Priority)</td>
+                 <td>
+                    @(item.Animal?.Name)
+                </td>
+                <td>
+                    @(item.Owner?.FirstName + " " + item.Owner?.LastName)
+                </td>
+                 <td>
+                     <a asp-action="Details" asp-route-id="@item.Id">Szczegóły</a> |
+                     <a asp-action="Edit" asp-route-id="@item.Id">Edytuj</a>
+                 </td>
+            </tr>
+        }
     </tbody>
 </table>
