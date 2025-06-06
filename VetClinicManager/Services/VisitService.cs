@@ -24,6 +24,8 @@ namespace VetClinicManager.Services
                 .Include(v => v.Animal)
                 .Include(v => v.AssignedVet)
                 .Include(v => v.Updates)
+                    .ThenInclude(u => u.AnimalMedications)
+                        .ThenInclude(am => am.Medication)
                 .ToListAsync();
 
             return visits.Select(v => _visitMapper.ToReceptionistDto(v));
@@ -35,6 +37,8 @@ namespace VetClinicManager.Services
                 .Include(v => v.Animal)
                 .Include(v => v.AssignedVet)
                 .Include(v => v.Updates)
+                    .ThenInclude(u => u.AnimalMedications)
+                        .ThenInclude(am => am.Medication)
                 .Where(v => v.AssignedVetId == userId)
                 .ToListAsync();
 
@@ -67,6 +71,7 @@ namespace VetClinicManager.Services
             return _visitMapper.ToUserDto(visit);
         }
 
+        // Pozostałe metody pozostają bez zmian (Create/Update/Delete nie wymagają modyfikacji)
         public async Task CreateVisitAsync(VisitCreateDto createVisitDto)
         {
             var visit = _visitMapper.ToEntity(createVisitDto);
@@ -143,6 +148,8 @@ namespace VetClinicManager.Services
                 .Include(v => v.Animal)
                 .Include(v => v.AssignedVet)
                 .Include(v => v.Updates)
+                    .ThenInclude(u => u.AnimalMedications)
+                        .ThenInclude(am => am.Medication)
                 .FirstOrDefaultAsync(v => v.Id == id);
 
             if (visit == null)

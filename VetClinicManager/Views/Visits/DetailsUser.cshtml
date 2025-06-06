@@ -1,48 +1,93 @@
 ﻿@model VetClinicManager.DTOs.VisitDTOs.VisitListUserDto
 
-@{
-    ViewData["Title"] = "Szczegóły wizyty";
-}
+<div class="container">
+    <h2>@Model.Title</h2>
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    Visit Summary
+                </div>
+                <div class="card-body">
+                    <p><strong>Status:</strong> <span class="badge bg-info">@Model.Status</span></p>
+                    <p><strong>Date:</strong> @Model.CreatedDate.ToString("g")</p>
+                    <p><strong>Animal:</strong> @Model.Animal?.Name (@Model.Animal?.Breed)</p>
+                    <p><strong>Veterinarian:</strong> 
+                        @if (Model.AssignedVet != null) {
+                            @Model.AssignedVet.FirstName @Model.AssignedVet.LastName
+                        } else {
+                            <span class="text-muted">Not assigned</span>
+                        }
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        @if (!string.IsNullOrEmpty(Model.Description))
+        {
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-secondary text-white">
+                        Visit Purpose
+                    </div>
+                    <div class="card-body">
+                        <p>@Model.Description</p>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
 
-<h1>Szczegóły wizyty</h1>
+    <h3>Visit Reports</h3>
+    @if (Model.Updates.Any())
+    {
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Date</th>
+                        <th>Veterinarian</th>
+                        <th>Summary</th>
+                        <th>Recommendations</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var update in Model.Updates.OrderByDescending(u => u.UpdateDate))
+                    {
+                        <tr>
+                            <td>@update.UpdateDate.ToString("g")</td>
+                            <td>@update.UpdatedByVetName</td>
+                            <td>@update.Notes</td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(update.PrescribedMedications))
+                                {
+                                    <p>@update.PrescribedMedications</p>
+                                }
+                                @if (update.Medications.Any())
+                                {
+                                    <ul class="list-unstyled">
+                                        @foreach (var med in update.Medications)
+                                        {
+                                            <li>
+                                                <strong>@med.Name</strong> - 
+                                                (since @med.StartDate.ToString("d") - @(med.EndDate?.ToString("d") ?? "ongoing"))
+                                            </li>
+                                        }
+                                    </ul>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info">No reports available yet.</div>
+    }
 
-<div>
-    <h4>Wizyta</h4>
-    <hr />
-    <dl class="row">
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Title)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Title)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Description)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Description)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.CreatedDate)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.CreatedDate)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Status)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Status)
-        </dd>
-        <dt class="col-sm-2">
-            Zwierzę
-        </dt>
-        <dd class="col-sm-10">
-            @Model.Animal?.Name (@Model.Animal?.Breed)
-        </dd>
-    </dl>
-</div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">Edytuj</a>
-    <a asp-action="Index" class="btn btn-secondary">Powrót do listy</a>
+    <div class="mt-3">
+        <a asp-action="Index" class="btn btn-outline-secondary">Back to List</a>
+    </div>
 </div>

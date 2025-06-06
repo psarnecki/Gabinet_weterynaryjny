@@ -1,4 +1,5 @@
 ﻿using VetClinicManager.Models.Enums;
+using VetClinicManager.Models;
 using VetClinicManager.DTOs.Visits.VisitBriefs;
 
 
