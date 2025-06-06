@@ -1,6 +1,6 @@
 ﻿using Riok.Mapperly.Abstractions;
-using VetClinicManager.DTOs.VisitDTOs;
-using VetClinicManager.DTOs.VisitDTOs.VisitBriefDTOs;
+using VetClinicManager.DTOs.Visits;
+using VetClinicManager.DTOs.Visits.VisitBriefs;
 using VetClinicManager.Models;
 
 namespace VetClinicManager.Mappers;
