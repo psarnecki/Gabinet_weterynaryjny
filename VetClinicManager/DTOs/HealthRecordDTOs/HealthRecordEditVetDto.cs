@@ -7,6 +7,8 @@ public class HealthRecordEditVetDto
 {
     public int Id { get; set; }
     
+    public bool IsSterilized { get; set; }
+    
     public string? ChronicDiseases { get; set; }
     
     public string? Allergies { get; set; }
