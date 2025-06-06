@@ -1,7 +1,7 @@
 ﻿using VetClinicManager.Models.Enums;
 using VetClinicManager.DTOs.Visits.VisitBriefs;
 
-namespace VetClinicManager.DTOs.Visits;
+namespace VetClinicManager.DTOs.VisitDTOs;
 
 public class VisitEditDto
 {

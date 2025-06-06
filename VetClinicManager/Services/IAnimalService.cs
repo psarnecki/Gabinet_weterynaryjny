@@ -1,4 +1,4 @@
-﻿using VetClinicManager.DTOs.Animals;
+﻿using VetClinicManager.DTOs.AnimalDTOs;
 using VetClinicManager.Models;
 
 namespace VetClinicManager.Services

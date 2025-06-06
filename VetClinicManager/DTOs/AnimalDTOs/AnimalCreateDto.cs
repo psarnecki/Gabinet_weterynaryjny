@@ -1,11 +1,11 @@
-﻿namespace VetClinicManager.DTOs.Animals;
-using VetClinicManager.Models.Enums;
+﻿using VetClinicManager.Models.Enums;
+namespace VetClinicManager.DTOs.AnimalDTOs;
 
-public class AnimalEditDto
+public class CreateAnimalDto
 {
     public int Id { get; set; }
     public string Name { get; set; }
-    public string? MicrochipId { get; set; }        
+    public string? MicrochipId { get; set; }
     public string? Species { get; set; }
     public string? Breed { get; set; }
     public DateTime? DateOfBirth { get; set; }
@@ -13,5 +13,4 @@ public class AnimalEditDto
     public Gender Gender { get; set; }
     public string? ImageUrl { get; set; }
     public string? UserId { get; set; }
-    public DateTime? LastVisitDate { get; set; }
 }

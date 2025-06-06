@@ -1,4 +1,4 @@
-﻿namespace VetClinicManager.DTOs.Animals;
+﻿namespace VetClinicManager.DTOs.AnimalDTOs;
 using VetClinicManager.Models.Enums;
 
 public class AnimalListVetRecDto

@@ -1,7 +1,7 @@
-﻿using VetClinicManager.Models.Enums;
-namespace VetClinicManager.DTOs.Animals;
+﻿namespace VetClinicManager.DTOs.AnimalDTOs;
+using VetClinicManager.Models.Enums;
 
-public class CreateAnimalDto
+public class AnimalListUserDto
 {
     public int Id { get; set; }
     public string Name { get; set; }
@@ -12,5 +12,5 @@ public class CreateAnimalDto
     public float BodyWeight { get; set; }
     public Gender Gender { get; set; }
     public string? ImageUrl { get; set; }
-    public string? UserId { get; set; }
+    public DateTime? LastVisitDate { get; set; }
 }

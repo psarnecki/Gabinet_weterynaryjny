@@ -1,9 +1,9 @@
 ﻿using VetClinicManager.Models.Enums;
 using VetClinicManager.DTOs.Visits.VisitBriefs;
 
-namespace VetClinicManager.DTOs.Visits;
+namespace VetClinicManager.DTOs.VisitDTOs;
 
-public class VisitListVetDto
+public class VisitCreateDto
 {
     public int Id { get; set; }
     public string Title { get; set; } = string.Empty;
@@ -13,5 +13,7 @@ public class VisitListVetDto
     public VisitPriority Priority { get; set; }
     public int AnimalId { get; set; }
     public VisitAnimalBriefDto? Animal { get; set; }
+    public string? AssignedVetId { get; set; }
+    public VisitVetBriefDto? AssignedVet { get; set; }
     public List<VisitUpdateBriefDto> Updates { get; set; } = new();
 }

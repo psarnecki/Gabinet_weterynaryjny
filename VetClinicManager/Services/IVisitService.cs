@@ -1,4 +1,4 @@
-﻿using VetClinicManager.DTOs.Visits;
+﻿using VetClinicManager.DTOs.VisitDTOs;
 using VetClinicManager.Models;
 
 namespace VetClinicManager.Services

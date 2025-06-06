@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using VetClinicManager.Data;
-using VetClinicManager.DTOs.Visits;
+using VetClinicManager.DTOs.VisitDTOs;
 using VetClinicManager.DTOs.Visits.VisitBriefs;
 using VetClinicManager.Mappers;
 using VetClinicManager.Models;
