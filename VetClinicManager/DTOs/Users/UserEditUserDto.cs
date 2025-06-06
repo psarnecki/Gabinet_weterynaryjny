@@ -1,4 +1,4 @@
-﻿namespace VetClinicManager.DTOs.UserDTOs;
+﻿namespace VetClinicManager.DTOs.Users;
 
 public class UserEditUserDto
 {

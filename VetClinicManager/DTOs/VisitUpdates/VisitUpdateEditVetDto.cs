@@ -1,5 +1,5 @@
 ﻿using VetClinicManager.Models;
-namespace VetClinicManager.DTOs.VisitUpdateDTOs;
+namespace VetClinicManager.DTOs.VisitUpdates;
 
 public class VisitUpdateEditVetDto
 {

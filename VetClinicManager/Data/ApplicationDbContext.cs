@@ -64,12 +64,17 @@ namespace VetClinicManager.Data
                 .HasForeignKey(vu => vu.VisitId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // VisitUpdate -> AnimalMedications (1:N) (opcjonalna relacja)
             modelBuilder.Entity<VisitUpdate>()
-                .HasMany(vu => vu.AnimalMedications)
-                .WithOne(am => am.VisitUpdate)
-                .HasForeignKey(am => am.VisitUpdateId)
-                .OnDelete(DeleteBehavior.SetNull);
+                .HasOne(vu => vu.Visit)
+                .WithMany(v => v.Updates)
+                .HasForeignKey(vu => vu.VisitId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<VisitUpdate>()
+                .HasOne(vu => vu.UpdatedBy)
+                .WithMany()
+                .HasForeignKey(vu => vu.UpdatedByVetId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             // Medication -> AnimalMedications (1:N)
             modelBuilder.Entity<Medication>()

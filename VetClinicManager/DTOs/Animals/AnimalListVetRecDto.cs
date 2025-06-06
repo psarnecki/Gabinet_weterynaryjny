@@ -1,8 +1,9 @@
-﻿using VetClinicManager.Models.Enums;
+﻿using VetClinicManager.DTOs.Users.UserBriefs;
+using VetClinicManager.Models.Enums;
 
-namespace VetClinicManager.DTOs.AnimalDTOs;
+namespace VetClinicManager.DTOs.Animals;
 
-public class AnimalDetailsUserDto
+public class AnimalListVetRecDto
 {
     public int Id { get; set; }
     public string Name { get; set; }
@@ -14,4 +15,5 @@ public class AnimalDetailsUserDto
     public Gender Gender { get; set; }
     public string? ImageUrl { get; set; }
     public DateTime? LastVisitDate { get; set; }
+    public UserBriefDto? Owner { get; set; }
 }

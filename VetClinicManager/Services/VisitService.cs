@@ -1,8 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using VetClinicManager.Data;
 using VetClinicManager.Mappers;
 using VetClinicManager.Models;
 using VetClinicManager.DTOs.Visits;
+using VetClinicManager.DTOs.Visits.VisitBriefs;
 
 namespace VetClinicManager.Services
 {
@@ -10,11 +12,13 @@ namespace VetClinicManager.Services
     {
         private readonly ApplicationDbContext _context;
         private readonly VisitMapper _visitMapper;
+        private readonly UserManager<User> _userManager;
 
-        public VisitService(ApplicationDbContext context, VisitMapper visitMapper)
+        public VisitService(ApplicationDbContext context, VisitMapper visitMapper, UserManager<User> userManager)
         {
             _context = context;
             _visitMapper = visitMapper;
+            _userManager = userManager;
         }
 
         public async Task<IEnumerable<VisitListReceptionistDto>> GetVisitsForReceptionistAsync()
@@ -22,6 +26,9 @@ namespace VetClinicManager.Services
             var visits = await _context.Visits
                 .Include(v => v.Animal)
                 .Include(v => v.AssignedVet)
+                .Include(v => v.Updates)
+                    .ThenInclude(u => u.AnimalMedications)
+                        .ThenInclude(am => am.Medication)
                 .ToListAsync();
 
             return _visitMapper.ToReceptionistDtos(visits);
@@ -33,6 +40,10 @@ namespace VetClinicManager.Services
                 .Where(v => v.AssignedVetId == vetUserId)
                 .Include(v => v.Animal)
                     .ThenInclude(a => a.User)
+                .Include(v => v.AssignedVet)
+                .Include(v => v.Updates)
+                    .ThenInclude(u => u.AnimalMedications)
+                        .ThenInclude(am => am.Medication)
                 .ToListAsync();
 
             return _visitMapper.ToVetDtos(visits);
@@ -44,59 +55,133 @@ namespace VetClinicManager.Services
                 .Where(v => v.Animal.UserId == ownerUserId)
                 .Include(v => v.Animal)
                 .Include(v => v.AssignedVet)
+                .Include(v => v.Updates)
+                    .ThenInclude(u => u.AnimalMedications)
+                        .ThenInclude(am => am.Medication)
                 .ToListAsync();
 
             return _visitMapper.ToUserDtos(visits);
         }
-        
-        // To nie są pełne DTOs szczegółów i brakuje w nich wielu danych (np. pełnych aktualizacji)
 
-        public async Task<VisitListReceptionistDto?> GetVisitDetailsForReceptionistAsync(int id)
+        public async Task<VisitListReceptionistDto> GetVisitDetailsForReceptionistAsync(int id)
         {
-             var visit = await _context.Visits
-                 .Include(v => v.Animal)
-                 .Include(v => v.AssignedVet)
-                 .FirstOrDefaultAsync(v => v.Id == id);
-
-             if (visit == null) return null;
-
-             return _visitMapper.ToReceptionistDto(visit);
+            var visit = await GetVisitByIdAsync(id);
+            return _visitMapper.ToReceptionistDto(visit);
         }
 
-        public async Task<VisitListVetDto?> GetVisitDetailsForVetAsync(int id, string userId)
+        public async Task<VisitListVetDto> GetVisitDetailsForVetAsync(int id, string userId)
         {
-             var visit = await _context.Visits
-                 .Include(v => v.Animal)
-                     .ThenInclude(a => a.User)
-                 // TODO: Dodaj filtr WHERE jeśli Weterynarz widzi tylko szczegóły WIZYT DO KTÓRYCH JEST PRZYPISANY
-                 .FirstOrDefaultAsync(v => v.Id == id /* && v.AssignedVetId == userId */);
+            var visit = await GetVisitByIdAsync(id);
+            
+            if (visit.AssignedVetId != userId)
+                throw new UnauthorizedAccessException("You are not assigned to this visit");
 
-             if (visit == null) return null;
-
-             return _visitMapper.ToVetDto(visit);
+            return _visitMapper.ToVetDto(visit);
         }
 
-        public async Task<VisitListUserDto?> GetVisitDetailsForUserAsync(int id, string userId)
+        public async Task<VisitListUserDto> GetVisitDetailsForUserAsync(int id, string userId)
         {
-             var visit = await _context.Visits
-                 .Include(v => v.Animal)
-                 .Include(v => v.AssignedVet)
-                 .FirstOrDefaultAsync(v => v.Id == id && v.Animal.UserId == userId);
+            var visit = await GetVisitByIdAsync(id);
+            
+            if (visit.Animal?.UserId != userId)
+                throw new UnauthorizedAccessException("This is not your animal's visit");
 
-             if (visit == null) return null;
-
-             return _visitMapper.ToUserDto(visit);
+            return _visitMapper.ToUserDto(visit);
         }
 
-        // TODO: Nadal wymagają uzupełnienia implementacji i przemyślenia logiki uprawnień
-        public async Task CreateVisitAsync(VisitCreateDto createVisitDto) { throw new NotImplementedException(); }
-        public async Task UpdateVisitAsync(int id, VisitEditDto visitEditDto, string currentUserId, bool isVet) { throw new NotImplementedException(); }
-        public async Task DeleteVisitAsync(int id) { throw new NotImplementedException(); }
-        public async Task<VisitEditDto> GetVisitForEditAsync(int id, string currentUserId) { throw new NotImplementedException(); }
+        public async Task CreateVisitAsync(VisitCreateDto createVisitDto)
+        {
+            var visit = _visitMapper.ToEntity(createVisitDto);
+            _context.Add(visit);
+            await _context.SaveChangesAsync();
+        }
 
-        // TODO: Przenieś GetVetUsersAsync do dedykowanego serwisu użytkowników (IUserService)
-        public async Task<IEnumerable<User>> GetVetUsersAsync() { throw new NotImplementedException(); }
-        // private async Task<bool> IsUserVetAsync(string userId) { throw new NotImplementedException(); }
-        // TODO: Dodaj helper IsUserInRoleAsync jeśli potrzebujesz
+        public async Task UpdateVisitAsync(int id, VisitEditDto visitEditDto, string currentUserId, bool isVet)
+        {
+            var visit = await GetVisitByIdAsync(id);
+
+            if (isVet && visit.AssignedVetId != currentUserId)
+                throw new UnauthorizedAccessException("You are not assigned to this visit");
+
+            if (isVet)
+            {
+                visit.Description = visitEditDto.Description;
+                visit.Status = visitEditDto.Status;
+            }
+            else
+            {
+                _visitMapper.ToEntity(visitEditDto, visit);
+            }
+
+            _context.Update(visit);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task DeleteVisitAsync(int id)
+        {
+            var visit = await GetVisitByIdAsync(id);
+            _context.Visits.Remove(visit);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<VisitEditDto> GetVisitForEditAsync(int id, string currentUserId)
+        {
+            var visit = await GetVisitByIdAsync(id);
+            
+            var isAssignedVet = visit.AssignedVetId == currentUserId;
+            if (await IsUserVetAsync(currentUserId) && !isAssignedVet)
+                throw new UnauthorizedAccessException("You are not assigned to this visit");
+
+            return new VisitEditDto
+            {
+                Id = visit.Id,
+                Title = visit.Title,
+                Description = visit.Description,
+                Status = visit.Status,
+                Priority = visit.Priority,
+                AssignedVetId = visit.AssignedVetId,
+                Animal = new VisitAnimalBriefDto
+                {
+                    Id = visit.AnimalId,
+                    Name = visit.Animal?.Name ?? string.Empty,
+                    Breed = visit.Animal?.Breed ?? string.Empty
+                }
+            };
+        }
+
+        public async Task<IEnumerable<User>> GetVetUsersAsync()
+        {
+            return await (from user in _context.Users
+                        join userRole in _context.UserRoles on user.Id equals userRole.UserId
+                        join role in _context.Roles on userRole.RoleId equals role.Id
+                        where role.Name == "Vet"
+                        select user).ToListAsync();
+        }
+
+        private async Task<Visit> GetVisitByIdAsync(int id)
+        {
+            var visit = await _context.Visits
+                .Include(v => v.Animal)
+                .Include(v => v.AssignedVet)
+                .Include(v => v.Updates)
+                    .ThenInclude(u => u.AnimalMedications)
+                        .ThenInclude(am => am.Medication)
+                .FirstOrDefaultAsync(v => v.Id == id);
+
+            if (visit == null)
+                throw new KeyNotFoundException("Visit not found");
+
+            return visit;
+        }
+
+        private async Task<bool> IsUserVetAsync(string userId)
+        {
+            return await _context.UserRoles
+                .Join(_context.Roles,
+                    ur => ur.RoleId,
+                    r => r.Id,
+                    (ur, r) => new { ur.UserId, RoleName = r.Name })
+                .AnyAsync(x => x.UserId == userId && x.RoleName == "Vet");
+        }
     }
 }

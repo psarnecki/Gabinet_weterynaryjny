@@ -1,11 +1,9 @@
-﻿using VetClinicManager.DTOs.UserDTOs.UserBriefs;
-using VetClinicManager.Models.Enums;
+﻿using VetClinicManager.Models.Enums;
 
-namespace VetClinicManager.DTOs.AnimalDTOs;
+namespace VetClinicManager.DTOs.Animals;
 
-public class AnimalDetailsVetRecDto
+public class CreateAnimalDto
 {
-    public int Id { get; set; }
     public string Name { get; set; }
     public string? MicrochipId { get; set; }
     public string? Species { get; set; }
@@ -14,6 +12,5 @@ public class AnimalDetailsVetRecDto
     public float BodyWeight { get; set; }
     public Gender Gender { get; set; }
     public string? ImageUrl { get; set; }
-    public DateTime? LastVisitDate { get; set; }
-    public UserBriefDto? Owner { get; set; }
+    public string? UserId { get; set; }
 }

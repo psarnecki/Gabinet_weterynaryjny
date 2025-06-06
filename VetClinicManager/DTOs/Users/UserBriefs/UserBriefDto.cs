@@ -1,4 +1,4 @@
-﻿namespace VetClinicManager.DTOs.UserDTOs.UserBriefs;
+﻿namespace VetClinicManager.DTOs.Users.UserBriefs;
 
 public class UserBriefDto
 {

@@ -1,66 +1,96 @@
-﻿@model VetClinicManager.DTOs.Visits.VisitListVetDto 
+﻿@model VetClinicManager.DTOs.Visits.VisitListVetDto
 
-@{
-    ViewData["Title"] = "Szczegóły Wizyty (Weterynarz)";
-}
+<div class="container">
+    <h2>@Model.Title</h2>
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    Visit Details
+                </div>
+                <div class="card-body">
+                    <p><strong>Status:</strong> <span class="badge bg-info">@Model.Status</span></p>
+                    <p><strong>Priority:</strong> <span class="badge bg-warning">@Model.Priority</span></p>
+                    <p><strong>Created:</strong> @Model.CreatedDate.ToString("g")</p>
+                    <p><strong>Animal:</strong> @Model.Animal?.Name (@Model.Animal?.Breed)</p>
+                </div>
+            </div>
+        </div>
+        
+        @if (!string.IsNullOrEmpty(Model.Description))
+        {
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-secondary text-white">
+                        Description
+                    </div>
+                    <div class="card-body">
+                        <p>@Model.Description</p>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
 
-<h1>Szczegóły Wizyty</h1>
+    <h3>Visit History</h3>
+    @if (Model.Updates.Any())
+    {
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Date</th>
+                        <th>Notes</th>
+                        <th>Medications</th>
+                        <th>Attachments</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var update in Model.Updates.OrderByDescending(u => u.UpdateDate))
+                    {
+                        <tr>
+                            <td>@update.UpdateDate.ToString("g")</td>
+                            <td>@update.Notes</td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(update.PrescribedMedications))
+                                {
+                                    <p>@update.PrescribedMedications</p>
+                                }
+                                @if (update.Medications.Any())
+                                {
+                                    <ul class="list-unstyled">
+                                        @foreach (var med in update.Medications)
+                                        {
+                                            <li>
+                                                <strong>@med.Name</strong> - 
+                                                (@med.StartDate.ToString("d") - @(med.EndDate?.ToString("d") ?? "until further notice"))
+                                            </li>
+                                        }
+                                    </ul>
+                                }
+                            </td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(update.ImageUrl))
+                                {
+                                    <a href="@update.ImageUrl" target="_blank" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-image"></i> View
+                                    </a>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info">No updates recorded yet.</div>
+    }
 
-<div>
-    <h4>Informacje o wizycie</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Title)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Title)
-        </dd>
-        <dt class = "col-sm-2">
-             @Html.DisplayNameFor(model => model.Description)
-        </dt>
-        <dd class = "col-sm-10">
-             @Html.DisplayFor(model => model.Description)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.CreatedDate)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.CreatedDate)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Status)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Status)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Priority)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Priority)
-        </dd>
-        <dt class = "col-sm-2">
-            Zwierzę 
-        </dt>
-        <dd class = "col-sm-10">
-            @(Model.Animal?.Name)
-             @if (Model.Animal != null) {
-                 <a asp-controller="Animals" asp-action="Details" asp-route-id="@Model.Animal.Id">@(Model.Animal.Name)</a>
-             }
-        </dd>
-        <dt class = "col-sm-2">
-            Właściciel 
-        </dt>
-        <dd class = "col-sm-10">
-            @(Model.Owner?.FirstName + " " + Model.Owner?.LastName)
-             @if (Model.Owner != null) {
-                 <a asp-controller="User" asp-action="Details" asp-route-id="@Model.Owner.Id">@(Model.Owner.FirstName + " " + Model.Owner.LastName)</a>
-             }
-        </dd>
-    </dl>
-</div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.Id">Edytuj</a> |
-    <a asp-action="Index">Powrót do listy moich wizyt</a>
+    <div class="mt-3">
+        <a asp-action="Index" class="btn btn-outline-secondary">Back to List</a>
+        <a asp-controller="Visits" asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">Edit Visit</a>
+        <a asp-controller="VisitUpdates" asp-action="Create" asp-route-visitId="@Model.Id" class="btn btn-primary">Add Update</a>
+    </div>
 </div>

@@ -1,7 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-using VetClinicManager.Models;
+﻿using VetClinicManager.Models;
 
-namespace VetClinicManager.DTOs.AnimalMedicationDTOs;
+namespace VetClinicManager.DTOs.AnimalMedications;
 
 public class AnimalMedicationEditVetDto
 {

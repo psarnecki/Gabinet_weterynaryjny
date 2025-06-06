@@ -1,7 +1,6 @@
 ﻿using VetClinicManager.Models.Enums;
 using VetClinicManager.DTOs.Visits.VisitBriefs;
 
-
 namespace VetClinicManager.DTOs.Visits;
 
 public class VisitListReceptionistDto

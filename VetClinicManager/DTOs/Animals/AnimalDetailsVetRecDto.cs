@@ -1,9 +1,9 @@
-﻿using VetClinicManager.DTOs.UserDTOs.UserBriefs;
+﻿using VetClinicManager.DTOs.Users.UserBriefs;
 using VetClinicManager.Models.Enums;
 
-namespace VetClinicManager.DTOs.AnimalDTOs;
+namespace VetClinicManager.DTOs.Animals;
 
-public class AnimalListVetRecDto
+public class AnimalDetailsVetRecDto
 {
     public int Id { get; set; }
     public string Name { get; set; }

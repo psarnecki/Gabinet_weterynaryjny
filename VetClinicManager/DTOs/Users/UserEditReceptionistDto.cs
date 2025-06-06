@@ -1,4 +1,4 @@
-﻿namespace VetClinicManager.DTOs.UserDTOs;
+﻿namespace VetClinicManager.DTOs.Users;
 using VetClinicManager.Models;
 
 public class UserEditReceptionistDto

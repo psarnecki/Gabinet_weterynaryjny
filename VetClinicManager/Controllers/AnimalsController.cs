@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using VetClinicManager.DTOs.AnimalDTOs;
+using VetClinicManager.DTOs.Animals;
 using VetClinicManager.Models;
 using VetClinicManager.Services;
 

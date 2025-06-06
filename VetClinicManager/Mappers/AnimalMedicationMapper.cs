@@ -1,6 +1,6 @@
 ﻿using Riok.Mapperly.Abstractions;
 using VetClinicManager.Models;
-using VetClinicManager.DTOs.AnimalMedicationDTOs;
+using VetClinicManager.DTOs.AnimalMedications;
 
 namespace VetClinicManager.Mappers;
 

@@ -1,7 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-using VetClinicManager.Models;
-
-namespace VetClinicManager.DTOs.HealthRecordDTOs;
+﻿namespace VetClinicManager.DTOs.HealthRecords;
 
 public class HealthRecordEditVetDto
 {

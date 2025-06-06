@@ -1,5 +1,5 @@
 ﻿using Riok.Mapperly.Abstractions;
-using VetClinicManager.DTOs.AnimalDTOs;
+using VetClinicManager.DTOs.Animals;
 using VetClinicManager.DTOs.Visits.VisitBriefs;
 using VetClinicManager.Models;
 using VetClinicManager.Models.Enums;
