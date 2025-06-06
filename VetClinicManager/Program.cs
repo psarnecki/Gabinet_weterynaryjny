@@ -1,5 +1,3 @@
-using System.Reflection;
-using Riok.Mapperly.Abstractions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
@@ -7,6 +5,7 @@ using VetClinicManager.Data;
 using VetClinicManager.Models;
 using VetClinicManager.Services;
 using VetClinicManager.Mappers;
+using VetClinicManager.Areas.Admin.Mappers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -32,16 +31,28 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.AccessDeniedPath = "/Identity/Account/AccessDenied";
 
     options.LogoutPath = "/Identity/Account/Logout";
+    
+    options.Events.OnSignedIn = async context =>
+    {
+        if (context.Principal.IsInRole("Admin"))
+        {
+            context.Response.Redirect("/Admin");
+        }
+    };
 });
 
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IMedicationService, MedicationService>();
+builder.Services.AddScoped<IAnimalService, AnimalService>();
+builder.Services.AddScoped<IVisitService, VisitService>();
 builder.Services.AddTransient<IEmailSender, DummyEmailSender>();
+builder.Services.AddSingleton<UserMapper>();
+builder.Services.AddSingleton<MedicationMapper>();
+builder.Services.AddSingleton<VisitMapper>();
+builder.Services.AddSingleton<AnimalMapper>();
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 builder.Services.AddTransient<SeedData>();
-builder.Services.AddSingleton<VisitMapper>();
-builder.Services.AddSingleton<AnimalMapper>();
-builder.Services.AddScoped<IAnimalService, AnimalService>();
-builder.Services.AddScoped<IVisitService, VisitService>();
 
 var app = builder.Build();
 
@@ -92,12 +103,17 @@ app.UseStaticFiles();
 app.UseRouting();
 
 app.UseAuthentication();
-
 app.UseAuthorization();
+
+app.MapAreaControllerRoute(
+    name: "Admin",
+    areaName: "Admin",
+    pattern: "Admin/{controller=Users}/{action=Index}/{id?}");
 
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
 app.MapRazorPages();
 
 app.Run();

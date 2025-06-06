@@ -1,0 +1,25 @@
+@model VetClinicManager.Areas.Admin.DTOs.Medications.MedicationDeleteDto
+
+@{
+    ViewData["Title"] = "Szczegóły leku/materiału";
+    Layout = "_Layout";
+}
+
+<h1>Szczegóły leku/materiału</h1>
+
+<div>
+    <h4>Lek/materiał</h4>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Name)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Name)
+        </dd>
+    </dl>
+</div>
+<div>
+    <a asp-area="Admin" asp-controller="Medications" asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-secondary">Edytuj</a> |
+    <a asp-area="Admin" asp-controller="Medications" asp-action="Index" class="btn btn-secondary">Powrót do listy</a>
+</div>
