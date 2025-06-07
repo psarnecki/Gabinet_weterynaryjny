@@ -1,9 +1,11 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using VetClinicManager.Models.Enums;
+using Microsoft.EntityFrameworkCore;
 
 namespace VetClinicManager.Models;
 
+[Index(nameof(UserId))] 
 public class Animal {
     
     [Key] 

@@ -1,9 +1,11 @@
 ﻿using VetClinicManager.Models.Enums;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
 namespace VetClinicManager.Models;
 
+[Index(nameof(AssignedVetId))] 
 public class Visit {
     
     [Key] 

@@ -1,8 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
 namespace VetClinicManager.Models;
 
+[Index(nameof(VisitUpdateId))]
 public class AnimalMedication
 {
     [Key]
