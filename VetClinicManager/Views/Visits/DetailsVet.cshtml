@@ -84,9 +84,15 @@
                                 </a>
                                 @if (User.IsInRole("Vet"))
                                 {
-                                    <form asp-controller="VisitUpdates" asp-action="Delete" asp-route-id="@update.Id" 
-                                          method="post" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this update?');">
+                                    <form asp-controller="VisitUpdates" asp-action="Delete" method="post" class="d-inline"
+                                          onsubmit="return confirm('Are you sure you want to delete this update? This action cannot be undone.');">
+      
+                                        <input type="hidden" name="id" value="@update.Id" />
+    
+                                        @Html.AntiForgeryToken()
+
                                         <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete this update">
+                                            <i class="bi bi-trash"></i>
                                         </button>
                                     </form>
                                 }

@@ -531,8 +531,7 @@ namespace VetClinicManager.Migrations
 
                     b.HasOne("VetClinicManager.Models.VisitUpdate", "VisitUpdate")
                         .WithMany("AnimalMedications")
-                        .HasForeignKey("VisitUpdateId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .HasForeignKey("VisitUpdateId");
 
                     b.Navigation("Animal");
 
@@ -575,13 +574,13 @@ namespace VetClinicManager.Migrations
                     b.HasOne("VetClinicManager.Models.User", "UpdatedBy")
                         .WithMany()
                         .HasForeignKey("UpdatedByVetId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("VetClinicManager.Models.Visit", "Visit")
                         .WithMany("Updates")
                         .HasForeignKey("VisitId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("UpdatedBy");

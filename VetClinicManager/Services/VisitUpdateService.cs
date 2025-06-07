@@ -1,177 +1,168 @@
-﻿// Plik: VetClinicManager/Services/VisitUpdateService.cs
-
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using VetClinicManager.Data;
 using VetClinicManager.DTOs.VisitUpdates;
 using VetClinicManager.Interfaces;
 using VetClinicManager.Models;
 
-namespace VetClinicManager.Services;
-
-public class VisitUpdateService : IVisitUpdateService
+namespace VetClinicManager.Services
 {
-    private readonly ApplicationDbContext _context;
-
-    public VisitUpdateService(ApplicationDbContext context)
+    public class VisitUpdateService : IVisitUpdateService
     {
-        _context = context;
-    }
+        private readonly ApplicationDbContext _context;
 
-    public async Task<IEnumerable<VisitUpdate>> GetVisitUpdatesAsync()
-    {
-        return await _context.VisitUpdates
-            .Include(v => v.Visit)
-            .AsSplitQuery() // Opcjonalna optymalizacja
-            .ToListAsync();
-    }
-
-    public async Task<VisitUpdate> GetVisitUpdateByIdAsync(int id)
-    {
-        return await _context.VisitUpdates
-            .Include(v => v.Visit)
-            .Include(v => v.AnimalMedications)
-            .AsSplitQuery() // Opcjonalna optymalizacja
-            .FirstOrDefaultAsync(m => m.Id == id);
-    }
-
-    public async Task<VisitUpdate> CreateVisitUpdateAsync(VisitUpdateCreateDto createDto, string vetId)
-    {
-        var visit = await _context.Visits.FindAsync(createDto.VisitId);
-        var vet = await _context.Users.FindAsync(vetId);
-
-        if (visit == null || vet == null)
+        public VisitUpdateService(ApplicationDbContext context)
         {
-            throw new ArgumentException("Nie znaleziono wizyty lub weterynarza");
+            _context = context;
         }
 
-        var visitUpdate = new VisitUpdate
+        public async Task<IEnumerable<VisitUpdate>> GetVisitUpdatesAsync()
         {
-            Notes = createDto.Notes,
-            ImageUrl = createDto.ImageUrl,
-            PrescribedMedications = createDto.PrescribedMedications,
-            VisitId = createDto.VisitId,
-            UpdatedByVetId = vetId,
-            UpdateDate = DateTime.UtcNow
-        };
-        // Nie musisz ustawiać właściwości nawigacyjnych 'Visit' i 'UpdatedBy'
-        // Entity Framework zrobi to automatycznie na podstawie kluczy obcych
+            return await _context.VisitUpdates
+                .AsNoTracking()
+                .Include(v => v.Visit)
+                .ToListAsync();
+        }
 
-        _context.VisitUpdates.Add(visitUpdate);
-        await _context.SaveChangesAsync();
-    
-        // Zwracamy z pełnymi danymi nawigacyjnymi
-        return await _context.VisitUpdates
-            .Include(vu => vu.Visit)
-            .Include(vu => vu.UpdatedBy)
-            .FirstAsync(vu => vu.Id == visitUpdate.Id);
-    }
-
-
-    public async Task<VisitUpdate> UpdateVisitUpdateAsync(int id, VisitUpdateEditVetDto updateDto, string vetId)
-    {
-        using var transaction = await _context.Database.BeginTransactionAsync();
-        try
+        public async Task<VisitUpdate> GetVisitUpdateByIdAsync(int id)
         {
-            var existingUpdate = await _context.VisitUpdates
-                .Include(vu => vu.Visit)
-                .Include(vu => vu.AnimalMedications)
+            return await _context.VisitUpdates
+                .AsNoTracking()
+                .Include(v => v.Visit)
+                .Include(v => v.AnimalMedications)
+                .FirstOrDefaultAsync(m => m.Id == id);
+        }
+
+        public async Task<VisitUpdate> CreateVisitUpdateAsync(VisitUpdateCreateDto createDto, string vetId)
+        {
+            var visitUpdate = new VisitUpdate
+            {
+                Notes = createDto.Notes,
+                ImageUrl = createDto.ImageUrl,
+                PrescribedMedications = createDto.PrescribedMedications,
+                VisitId = createDto.VisitId,
+                UpdatedByVetId = vetId,
+                UpdateDate = DateTime.UtcNow
+            };
+            
+            _context.VisitUpdates.Add(visitUpdate);
+            await _context.SaveChangesAsync();
+            return visitUpdate;
+        }
+
+        public async Task<VisitUpdate> UpdateVisitUpdateAsync(int id, VisitUpdateEditVetDto updateDto, string vetId)
+        {
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var existingUpdate = await _context.VisitUpdates
+                    .Include(vu => vu.AnimalMedications)
+                    .FirstOrDefaultAsync(vu => vu.Id == id);
+
+                if (existingUpdate == null) return null;
+                
+                if (existingUpdate.UpdatedByVetId != vetId)
+                {
+                    throw new UnauthorizedAccessException("Tylko weterynarz, który stworzył aktualizację, może ją modyfikować.");
+                }
+
+                // 1. Aktualizuj właściwości podstawowe
+                existingUpdate.Notes = updateDto.Notes;
+                existingUpdate.ImageUrl = updateDto.ImageUrl;
+                existingUpdate.PrescribedMedications = updateDto.PrescribedMedications;
+                existingUpdate.UpdateDate = DateTime.UtcNow;
+
+                // 2. Usuń leki
+                if (updateDto.RemovedMedicationIds != null && updateDto.RemovedMedicationIds.Any())
+                {
+                    var medicationsToRemove = existingUpdate.AnimalMedications
+                        .Where(am => updateDto.RemovedMedicationIds.Contains(am.Id)).ToList();
+                    _context.AnimalMedications.RemoveRange(medicationsToRemove);
+                }
+
+                // 3. Zaktualizuj istniejące leki
+                if (updateDto.ExistingAnimalMedications != null)
+                {
+                    foreach (var medicationDto in updateDto.ExistingAnimalMedications)
+                    {
+                        var existingMedication = existingUpdate.AnimalMedications.FirstOrDefault(am => am.Id == medicationDto.Id);
+                        if (existingMedication != null)
+                        {
+                            existingMedication.MedicationId = medicationDto.MedicationId;
+                            existingMedication.StartDate = medicationDto.StartDate;
+                            existingMedication.EndDate = medicationDto.EndDate;
+                        }
+                    }
+                }
+
+                // 4. Dodaj nowe leki - użyj AnimalId z DTO ustawionego w kontrolerze
+                if (updateDto.NewAnimalMedications != null)
+                {
+                    foreach (var newMedDto in updateDto.NewAnimalMedications.Where(m => m.MedicationId > 0))
+                    {
+                        if (newMedDto.AnimalId <= 0)
+                        {
+                            throw new InvalidOperationException("AnimalId nie zostało poprawnie ustawione dla nowego leku.");
+                        }
+
+                        var newAnimalMedication = new AnimalMedication
+                        {
+                            MedicationId = newMedDto.MedicationId,
+                            StartDate = newMedDto.StartDate,
+                            EndDate = newMedDto.EndDate,
+                            VisitUpdateId = existingUpdate.Id,
+                            AnimalId = newMedDto.AnimalId // Używamy wartości z DTO
+                        };
+                        _context.AnimalMedications.Add(newAnimalMedication);
+                    }
+                }
+                
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                // Zwróć świeżo pobrany obiekt dla pewności
+                return await _context.VisitUpdates
+                    .AsNoTracking()
+                    .Include(vu => vu.Visit)
+                    .FirstOrDefaultAsync(vu => vu.Id == id);
+            }
+            catch (Exception)
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        }
+
+        // W pliku VetClinicManager/Services/VisitUpdateService.cs
+
+        public async Task DeleteVisitUpdateAsync(int id)
+        {
+            // Znajdź VisitUpdate do usunięcia, ale dołącz też powiązane leki.
+            var visitUpdateToDelete = await _context.VisitUpdates
+                .Include(vu => vu.AnimalMedications) // <-- Kluczowy dodatek
                 .FirstOrDefaultAsync(vu => vu.Id == id);
 
-            if (existingUpdate == null) return null;
-            if (existingUpdate.Visit == null)
+            if (visitUpdateToDelete != null)
             {
-                throw new InvalidOperationException($"Wizyta dla aktualizacji o ID {id} nie została znaleziona.");
-            }
-            if (existingUpdate.UpdatedByVetId != vetId)
-            {
-                throw new UnauthorizedAccessException("Tylko weterynarz, który stworzył aktualizację, może ją modyfikować.");
-            }
-
-                  // 2. Aktualizuj właściwości podstawowe
-        existingUpdate.Notes = updateDto.Notes;
-        existingUpdate.ImageUrl = updateDto.ImageUrl;
-        existingUpdate.PrescribedMedications = updateDto.PrescribedMedications;
-        existingUpdate.UpdateDate = DateTime.UtcNow;
-
-        // 3. Usuń leki
-        if (updateDto.RemovedMedicationIds != null && updateDto.RemovedMedicationIds.Any())
-        {
-            var medicationsToRemove = existingUpdate.AnimalMedications
-                .Where(am => updateDto.RemovedMedicationIds.Contains(am.Id)).ToList();
-            _context.AnimalMedications.RemoveRange(medicationsToRemove);
-        }
-
-        // 4. Zaktualizuj istniejące leki
-        if (updateDto.ExistingAnimalMedications != null)
-        {
-            foreach (var medicationDto in updateDto.ExistingAnimalMedications)
-            {
-                var existingMedication = existingUpdate.AnimalMedications.FirstOrDefault(am => am.Id == medicationDto.Id);
-                if (existingMedication != null)
+                // Jeśli istnieją powiązane leki, usuń je najpierw.
+                // EF jest na tyle sprytny, że jeśli usuniesz rodzica,
+                // a dzieci są załadowane, to usunie też dzieci.
+                // Ale dla pewności możemy zrobić to jawnie:
+                if (visitUpdateToDelete.AnimalMedications.Any())
                 {
-                    existingMedication.MedicationId = medicationDto.MedicationId;
-                    existingMedication.StartDate = medicationDto.StartDate;
-                    existingMedication.EndDate = medicationDto.EndDate;
+                    _context.AnimalMedications.RemoveRange(visitUpdateToDelete.AnimalMedications);
                 }
+
+                // Teraz usuń samego rodzica - VisitUpdate
+                _context.VisitUpdates.Remove(visitUpdateToDelete);
+
+                // Zapisz wszystkie zmiany (usunięcie leków i aktualizacji) w jednej transakcji.
+                await _context.SaveChangesAsync();
             }
         }
 
-        // 5. Dodaj nowe leki
-        if (updateDto.NewAnimalMedications != null && updateDto.NewAnimalMedications.Any())
+        public async Task<bool> VisitUpdateExistsAsync(int id)
         {
-            var animalId = existingUpdate.Visit.AnimalId; 
-            foreach (var newMedicationDto in updateDto.NewAnimalMedications)
-            {
-                if (newMedicationDto.MedicationId > 0)
-                {
-                    var newAnimalMedication = new AnimalMedication
-                    {
-                        MedicationId = newMedicationDto.MedicationId,
-                        StartDate = newMedicationDto.StartDate,
-                        EndDate = newMedicationDto.EndDate,
-                        VisitUpdateId = existingUpdate.Id,
-                        AnimalId = animalId
-                    };
-                    _context.AnimalMedications.Add(newAnimalMedication);
-                }
-            }
+            return await _context.VisitUpdates.AnyAsync(e => e.Id == id);
         }
-        
-        // --- ZMIANA ZACZYNA SIĘ TUTAJ ---
-        
-        await _context.SaveChangesAsync();
-        await transaction.CommitAsync();
-
-        // Zamiast zwracać "stary" obiekt `existingUpdate`,
-        // pobierz go ponownie z bazy, aby mieć pewność, że jest kompletny.
-        // Użyj `AsNoTracking`, bo nie będziemy go już modyfikować.
-        return await _context.VisitUpdates
-            .AsNoTracking() // Dobra praktyka, gdy dane są tylko do odczytu
-            .Include(vu => vu.Visit)
-            .Include(vu => vu.UpdatedBy)
-            .Include(vu => vu.AnimalMedications)
-                .ThenInclude(am => am.Medication)
-            .FirstOrDefaultAsync(vu => vu.Id == id);
-    }
-    catch (Exception)
-    {
-        await transaction.RollbackAsync();
-        throw;
-    }
-}
-
-    public async Task DeleteVisitUpdateAsync(int id)
-    {
-        var visitUpdate = await _context.VisitUpdates.FindAsync(id);
-        if (visitUpdate != null)
-        {
-            _context.VisitUpdates.Remove(visitUpdate);
-            await _context.SaveChangesAsync();
-        }
-    }
-
-    public async Task<bool> VisitUpdateExistsAsync(int id)
-    {
-        return await _context.VisitUpdates.AnyAsync(e => e.Id == id);
     }
 }

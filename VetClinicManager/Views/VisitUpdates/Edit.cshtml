@@ -140,17 +140,19 @@
     <script>
         $(document).ready(function() {
             let newMedicationIndex = @Model.NewAnimalMedications.Count;
-            let removedMedications = [];
+            // Tablica `removedMedications` nie jest już potrzebna do budowania stringa
+            // Zostawmy ją, jeśli chcemy mieć logikę np. do cofania usunięcia
 
             // Add new medication form
             $('#add-medication').click(function() {
+                // ... (ta część kodu jest w porządku, bez zmian)
                 const newForm = $(`
                     <div class="medication-form mb-3 border p-3">
                         <div class="form-group">
                             <label class="control-label">Medication</label>
                             <select name="NewAnimalMedications[${newMedicationIndex}].MedicationId" class="form-control" required>
                                 <option value="">-- Select Medication --</option>
-                                @foreach (var med in ViewBag.Medications)
+                                @foreach (var med in (IEnumerable<SelectListItem>)ViewBag.Medications)
                                 {
                                     <option value="@med.Value">@med.Text</option>
                                 }
@@ -173,7 +175,6 @@
                 newMedicationIndex++;
             });
 
-            // Remove new medication form
             $(document).on('click', '.remove-medication', function() {
                 $(this).closest('.medication-form').remove();
             });
@@ -183,53 +184,19 @@
                 const medicationId = $(this).data('medication-id');
 
                 if (medicationId) {
-                    removedMedications.push(medicationId);
+                    const hiddenInput = $('<input>')
+                        .attr('type', 'hidden')
+                        .attr('name', 'RemovedMedicationIds')
+                        .val(medicationId);
 
-                    // Sprawdź, czy ukryte pole już istnieje. Jeśli nie, stwórz je.
-                    let hiddenInput = $('#removedMedications');
-                    if (hiddenInput.length === 0) {
-                        hiddenInput = $('<input>').attr({
-                            type: 'hidden',
-                            id: 'removedMedications',
-                            name: 'RemovedMedicationIds'
-                        }).appendTo('#visitUpdateForm'); // Dodaj do formularza
-                    }
-
-                    // Zawsze aktualizuj wartość
-                    hiddenInput.val(removedMedications.join(','));
+                    $('#visitUpdateForm').append(hiddenInput);
                 }
 
-                row.remove();
+                row.hide(); 
             });
 
-            // Walidacja przed wysłaniem formularza
-            $('#visitUpdateForm').submit(function(e) {
-                let isValid = true;
-                
-                // Sprawdź istniejące leki
-                $('select[name*="ExistingAnimalMedications"]').each(function() {
-                    if ($(this).is(':visible') && ($(this).val() === "" || $(this).val() === null)) {
-                        isValid = false;
-                        $(this).addClass('is-invalid');
-                        $(this).next('.text-danger').text('Please select a medication');
-                    }
-                });
-                
-                // Sprawdź nowe leki
-                $('select[name*="NewAnimalMedications"]').each(function() {
-                    if ($(this).val() === "" || $(this).val() === null) {
-                        isValid = false;
-                        $(this).addClass('is-invalid');
-                        $(this).closest('.form-group').find('.text-danger').text('Please select a medication');
-                    }
-                });
 
-                if (!isValid) {
-                    e.preventDefault();
-                    alert('Please fill all required medication fields');
-                    return false;
-                }
-                
+            $('#visitUpdateForm').submit(function(e) {
                 return true;
             });
         });
