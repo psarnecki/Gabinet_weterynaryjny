@@ -1,0 +1,95 @@
+﻿@model IEnumerable<VetClinicManager.DTOs.Animals.AnimalListVetRecDto>
+
+@{
+ViewData["Title"] = "Lista Zwierząt";
+}
+
+<div class="container mt-4">
+    <h1>@ViewData["Title"]</h1>
+
+    @if (Model == null || !Model.Any())
+    {
+    <div class="alert alert-info mt-3" role="alert">
+        Brak zwierząt w systemie.
+    </div>
+    }
+    else
+    {
+    <div class="table-responsive">
+        <table class="table table-striped table-hover align-middle">
+            <thead class="table-dark">
+            <tr>
+                <th></th>
+                <th>@Html.DisplayNameFor(model => model.Name)</th>
+                <th>@Html.DisplayNameFor(model => model.Species)</th>
+                <th>@Html.DisplayNameFor(model => model.Breed)</th>  
+                <th>@Html.DisplayNameFor(model => model.Owner)</th>
+            <th>@Html.DisplayNameFor(model => model.LastVisitDate)</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach (var item in Model)
+            {
+            <tr>
+                <td>
+                    @if (!string.IsNullOrEmpty(item.ImageUrl))
+                    {
+                    <img src="@item.ImageUrl" alt="@item.Name" class="img-thumbnail rounded" style="max-width: 50px; max-height: 50px; object-fit: cover;" />
+                    }
+                    else
+                    {
+                    <i class="bi bi-question-circle text-muted" style="font-size: 2rem;"></i>
+                    }
+                </td>
+                <td><strong>@Html.DisplayFor(modelItem => item.Name)</strong></td>
+                <td>@Html.DisplayFor(modelItem => item.Species)</td>
+                <td>@Html.DisplayFor(modelItem => item.Breed)</td>
+                <td>
+                    @if (item.Owner != null)
+                    {
+                    <span>@(item.Owner.FirstName) @(item.Owner.LastName)</span>
+                    }
+                    else
+                    {
+                    <span class="text-muted">Brak właściciela</span>
+                    }
+                </td>
+                <td>
+                    @if (item.LastVisitDate.HasValue)
+                    {
+                    @Html.DisplayFor(modelItem => item.LastVisitDate)
+                    }
+                    else
+                    {
+                    <span class="text-muted">Brak danych</span>
+                    }
+                </td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info" title="Szczegóły zwierzęcia">
+                        <i class="bi bi-info-circle"></i> Szczegóły
+                    </a>
+                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-primary ms-1" title="Edytuj zwierzę">
+                        <i class="bi bi-pencil"></i> Edytuj
+                    </a>
+                    @{
+                    string healthRecordButtonClass = item.HealthRecordId.HasValue ? "btn-success" : "btn-secondary";
+                    }
+                    <a asp-action="RedirectToHealthRecord" asp-controller="Animals" asp-route-id="@item.Id" class="btn btn-sm @healthRecordButtonClass ms-1" title="Karta Zdrowia">
+                        <i class="bi bi-journal-text"></i> Karta Zdrowia
+                    </a>
+                </td>
+            </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+    }
+
+</div>
+
+@section Scripts {
+    <script>
+        // Można dodać dodatkowe skrypty
+    </script>
+}

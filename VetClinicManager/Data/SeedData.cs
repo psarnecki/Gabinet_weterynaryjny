@@ -75,7 +75,7 @@ public class SeedData
             },
             new User
             {
-                UserName = "receptionist@vet.com",
+                    UserName = "receptionist@vet.com",
                 Email = "receptionist@vet.com",
                 FirstName = "Agata",
                 LastName = "Poloczek",
