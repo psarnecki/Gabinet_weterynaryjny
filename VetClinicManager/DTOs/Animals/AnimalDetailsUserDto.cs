@@ -36,4 +36,6 @@ public class AnimalDetailsUserDto
     [Display(Name = "Ostatnia Wizyta")]
     [DataType(DataType.Date)]
     public DateTime? LastVisitDate { get; set; }
+    
+    public int? HealthRecordId { get; set; }
 }

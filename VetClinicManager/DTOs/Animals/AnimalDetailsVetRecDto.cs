@@ -40,4 +40,6 @@ public class AnimalDetailsVetRecDto
     
     [Display(Name = "Właściciel")]
     public UserBriefDto? Owner { get; set; }
+    
+    public int? HealthRecordId { get; set; }
 }

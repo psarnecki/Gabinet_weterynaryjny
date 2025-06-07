@@ -25,7 +25,11 @@
                     </p>
 
                     <p><strong>Date:</strong> @Model.CreatedDate.ToString("g")</p>
-                    <p><strong>Animal:</strong> @Model.Animal?.Name (@Model.Animal?.Breed)</p>
+                    <p><strong>Animal:</strong>
+                        <a asp-controller="Animals" asp-action="Details" asp-route-id="@Model.Animal.Id">
+                            @Model.Animal.Name</a>
+                        <span>(@Model.Animal.Species @Model.Animal.Breed)</span>
+                    </p>
                     <p><strong>Veterinarian:</strong> 
                         @if (Model.AssignedVet != null) {
                             @Model.AssignedVet.FirstName @Model.AssignedVet.LastName

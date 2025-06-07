@@ -90,7 +90,7 @@
         else
         {
             <div class="col-md-12">
-                 <h4>Informacje o zwierzęciu</h4>
+                <h4>Informacje o zwierzęciu</h4>
                 <hr />
                 <dl class="row">
                     <dt class = "col-sm-3">
@@ -150,23 +150,32 @@
 
                     @if (Model.LastVisitDate.HasValue)
                     {
-                         <dt class = "col-sm-3">
+                        <dt class = "col-sm-3">
                             @Html.DisplayNameFor(model => model.LastVisitDate)
                         </dt>
                         <dd class = "col-sm-9">
                             @Html.DisplayFor(model => model.LastVisitDate)
                         </dd>
                     }
-                     @* TODO: Add sections for Visits and AnimalMedications here if they are in the DTO *@
+                    @* TODO: Add sections for Visits and AnimalMedications here if they are in the DTO *@
+                    
                 </dl>
             </div>
+            
         }
     </div>
 
     <div class="mt-4">
         @* TODO: If Client can edit their animal (via EditOwnerAnimal action) *@
-         @* <a asp-action="EditOwnerAnimal" asp-route-id="@Model?.Id" class="btn btn-primary">Edytuj</a> *@
-         @* <span class="ms-2"></span> *@
+        @* <a asp-action="EditOwnerAnimal" asp-route-id="@Model?.Id" class="btn btn-primary">Edytuj</a> *@
+        @* <span class="ms-2"></span> *@
+        @{
+            var buttonClass = Model.HealthRecordId.HasValue ? "btn-info" : "btn-success";
+            var buttonText = Model.HealthRecordId.HasValue ? "Zobacz Kartę Zdrowia" : "Utwórz Kartę Zdrowia";
+        }
+        <a asp-controller="Animals" asp-action="RedirectToHealthRecord" asp-route-id="@Model.Id" class="btn @buttonClass">
+            @buttonText
+        </a>
         <a asp-action="Index" class="btn btn-outline-secondary">Powrót do Listy</a>
     </div>
 

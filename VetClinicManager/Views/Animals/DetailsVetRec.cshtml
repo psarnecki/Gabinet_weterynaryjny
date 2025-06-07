@@ -111,7 +111,7 @@
         else
         {
             <div class="col-md-12">
-                 <h4>Informacje o zwierzęciu</h4>
+                <h4>Informacje o zwierzęciu</h4>
                 <hr />
                 <dl class="row">
                     <dt class = "col-sm-3">
@@ -171,7 +171,7 @@
 
                     @if (Model.LastVisitDate.HasValue)
                     {
-                         <dt class = "col-sm-3">
+                        <dt class = "col-sm-3">
                             @Html.DisplayNameFor(model => model.LastVisitDate)
                         </dt>
                         <dd class = "col-sm-9">
@@ -180,14 +180,14 @@
                     }
 
                     <dt class = "col-sm-3">
-                         @Html.DisplayNameFor(model => model.Owner)
+                        @Html.DisplayNameFor(model => model.Owner)
                     </dt>
                     <dd class = "col-sm-9">
                         @if (Model.Owner != null)
                         {
                             <span>@(Model.Owner.FirstName) @(Model.Owner.LastName)</span>
-                             @* Optional link to user details (requires User Details controller/view) *@
-                             <a asp-controller="User" asp-action="Details" asp-route-id="@Model.Owner.Id" class="ms-2 btn btn-sm btn-outline-info">Szczegóły Właściciela</a>
+                            @* Optional link to user details (requires User Details controller/view) *@
+                            <a asp-controller="User" asp-action="Details" asp-route-id="@Model.Owner.Id" class="ms-2 btn btn-sm btn-outline-info">Szczegóły Właściciela</a>
                         }
                         else
                         {
@@ -197,11 +197,20 @@
                 </dl>
                 @* TODO: Add sections for Visits and AnimalMedications here if they are in the DTO *@
             </div>
+            
         }
     </div>
 
     <div class="mt-4">
-         <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-primary">Edytuj</a>
+        <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-primary">Edytuj</a>
+        @{
+            var buttonClass = Model.HealthRecordId.HasValue ? "btn-info" : "btn-success";
+            var buttonText = Model.HealthRecordId.HasValue ? "Zobacz Kartę Zdrowia" : "Utwórz Kartę Zdrowia";
+        }
+
+        <a asp-controller="Animals" asp-action="RedirectToHealthRecord" asp-route-id="@Model.Id" class="btn @buttonClass">
+            @buttonText
+        </a>
          <a asp-action="Index" class="btn btn-outline-secondary ms-2">Powrót do Listy</a>
     </div>
 
