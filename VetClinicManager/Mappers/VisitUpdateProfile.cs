@@ -5,14 +5,14 @@ using VetClinicManager.Models;
 namespace VetClinicManager.Mappers;
 
 [Mapper]
-public static partial class VisitUpdateMapper
+public partial class VisitUpdateMapper
 {
     // VisitUpdateCreateDto to VisitUpdate
-    public static partial VisitUpdate ToVisitUpdate(this VisitUpdateCreateDto dto);
+    public partial VisitUpdate ToVisitUpdate(VisitUpdateCreateDto dto);
     
     // VisitUpdateEditVetDto to VisitUpdate
-    public static partial VisitUpdate ToVisitUpdate(this VisitUpdateEditVetDto dto);
+    public partial VisitUpdate ToVisitUpdate(VisitUpdateEditVetDto dto);
     
     // VisitUpdate to VisitUpdateEditVetDto
-    public static partial VisitUpdateEditVetDto ToVisitUpdateEditVetDto(this VisitUpdate model);
+    public partial VisitUpdateEditVetDto ToVisitUpdateEditVetDto(VisitUpdate model);
 }

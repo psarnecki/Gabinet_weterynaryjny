@@ -19,7 +19,10 @@ public class AnimalMedication
     public Medication Medication { get; set; }
     
     [Required]
+    [DataType(DataType.Date)]
     public DateTime StartDate { get; set; }
+    
+    [DataType(DataType.Date)]
     public DateTime? EndDate { get; set; }
     
     [ForeignKey("VisitUpdate")]

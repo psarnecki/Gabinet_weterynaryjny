@@ -1,18 +1,21 @@
 ﻿using Riok.Mapperly.Abstractions;
-using VetClinicManager.Models;
 using VetClinicManager.DTOs.AnimalMedications;
+using VetClinicManager.Models;
 
 namespace VetClinicManager.Mappers;
 
-[Mapper] // Atrybut aktywujący generowanie kodu
-public static partial class AnimalMedicationMapper
+[Mapper]
+public partial class AnimalMedicationMapper
 {
-    // Mapowanie z Model na DTO (pełne)
-    public static partial AnimalMedicationEditVetDto ToEditVetDto(this AnimalMedication model);
+    // Mapowanie z AnimalMedicationCreateVetDto na AnimalMedication
+    public partial AnimalMedication MapToAnimalMedication(AnimalMedicationCreateVetDto dto);
 
-    // Mapowanie z DTO na Model (aktualizacja istniejącego obiektu)
-    public static partial void ToEntity(this AnimalMedicationEditVetDto dto, AnimalMedication entity);
-    
-    // Custom mapping dla Medication (jeśli potrzebne)
-    private static Medication MapMedication(Medication src) => src;
+    // Mapowanie z AnimalMedicationEditVetDto na AnimalMedication
+    public partial AnimalMedication MapToAnimalMedication(AnimalMedicationEditVetDto dto);
+
+    // Mapowanie z AnimalMedication na AnimalMedicationEditVetDto
+    public partial AnimalMedicationEditVetDto MapToEditDto(AnimalMedication entity);
+
+    // Mapowanie z AnimalMedication na AnimalMedicationCreateVetDto
+    public partial AnimalMedicationCreateVetDto MapToCreateDto(AnimalMedication entity);
 }

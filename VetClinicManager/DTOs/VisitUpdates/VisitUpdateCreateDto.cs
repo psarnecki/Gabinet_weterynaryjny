@@ -1,4 +1,5 @@
 ﻿using VetClinicManager.Models;
+using VetClinicManager.DTOs.AnimalMedications;
 
 namespace VetClinicManager.DTOs.VisitUpdates;
 
@@ -14,4 +15,6 @@ public class VisitUpdateCreateDto
     
     [System.Text.Json.Serialization.JsonIgnore]
     public User? UpdatedBy { get; set; }
+    
+    public List<AnimalMedicationCreateVetDto> AnimalMedications { get; set; } = new();
 }

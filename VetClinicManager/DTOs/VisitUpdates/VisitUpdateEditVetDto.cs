@@ -1,4 +1,5 @@
-﻿using VetClinicManager.Models;
+﻿using VetClinicManager.DTOs.AnimalMedications;
+using VetClinicManager.Models;
 namespace VetClinicManager.DTOs.VisitUpdates;
 
 public class VisitUpdateEditVetDto
@@ -11,5 +12,9 @@ public class VisitUpdateEditVetDto
     
     public string? PrescribedMedications { get; set; }
     
-    public ICollection<AnimalMedication> AnimalMedications { get; set; } = new List<AnimalMedication>();
+    public List<AnimalMedicationEditVetDto> ExistingAnimalMedications { get; set; } = new();
+    
+    public List<AnimalMedicationCreateVetDto> NewAnimalMedications { get; set; } = new();
+    
+    public List<int> RemovedMedicationIds { get; set; } = new();
 }
