@@ -315,7 +315,6 @@ public class SeedData
                 Notes = "Szczepienie wykonane, zwierzę w dobrym stanie",
                 UpdateDate = DateTime.Now.AddDays(-9),
                 ImageUrl = "/uploads/vaccine.jpg",
-                PrescribedMedications = "Brak",
                 VisitId = visits[0].Id,
                 UpdatedByVetId = vetUserId
             },
@@ -324,7 +323,6 @@ public class SeedData
                 Notes = "Kontrola wykazała dobry stan zdrowia",
                 UpdateDate = DateTime.Now.AddDays(-4),
                 ImageUrl = "/uploads/checkup.jpg",
-                PrescribedMedications = "Brak",
                 VisitId = visits[1].Id,
                 UpdatedByVetId = vetUserId
             },
@@ -333,7 +331,6 @@ public class SeedData
                 Notes = "Rozpoczęto leczenie antybiotykami",
                 UpdateDate = DateTime.Now.AddDays(-1),
                 ImageUrl = "/uploads/ear-infection.jpg",
-                PrescribedMedications = "Antybiotyk XYZ, 1 tabletka dziennie przez 7 dni",
                 VisitId = visits[2].Id,
                 UpdatedByVetId = vetUserId
             }

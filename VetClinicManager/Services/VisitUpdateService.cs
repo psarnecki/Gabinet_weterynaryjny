@@ -38,7 +38,6 @@ namespace VetClinicManager.Services
             {
                 Notes = createDto.Notes,
                 ImageUrl = createDto.ImageUrl,
-                PrescribedMedications = createDto.PrescribedMedications,
                 VisitId = createDto.VisitId,
                 UpdatedByVetId = vetId,
                 UpdateDate = DateTime.UtcNow
@@ -68,7 +67,6 @@ namespace VetClinicManager.Services
                 // 1. Aktualizuj właściwości podstawowe
                 existingUpdate.Notes = updateDto.Notes;
                 existingUpdate.ImageUrl = updateDto.ImageUrl;
-                existingUpdate.PrescribedMedications = updateDto.PrescribedMedications;
                 existingUpdate.UpdateDate = DateTime.UtcNow;
 
                 // 2. Usuń leki

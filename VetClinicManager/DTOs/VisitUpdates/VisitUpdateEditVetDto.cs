@@ -10,8 +10,6 @@ public class VisitUpdateEditVetDto
     
     public string? ImageUrl { get; set; }
     
-    public string? PrescribedMedications { get; set; }
-    
     public List<AnimalMedicationEditVetDto> ExistingAnimalMedications { get; set; } = new();
     
     public List<AnimalMedicationCreateVetDto> NewAnimalMedications { get; set; } = new();

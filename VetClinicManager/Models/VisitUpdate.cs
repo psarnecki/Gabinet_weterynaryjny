@@ -14,9 +14,6 @@ public class VisitUpdate {
     [MaxLength(500)]
     public string? ImageUrl { get; set; }
     
-    [MaxLength(500)]
-    public string? PrescribedMedications { get; set; }
-    
     [Required]
     [ForeignKey("Visit")]
     public int VisitId { get; set; }

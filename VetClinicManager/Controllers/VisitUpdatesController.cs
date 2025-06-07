@@ -163,7 +163,6 @@ namespace VetClinicManager.Controllers
                 Id = visitUpdate.Id,
                 Notes = visitUpdate.Notes,
                 ImageUrl = visitUpdate.ImageUrl,
-                PrescribedMedications = visitUpdate.PrescribedMedications,
                 ExistingAnimalMedications = visitUpdate.AnimalMedications.Select(am => new AnimalMedicationEditVetDto
                 {
                     Id = am.Id,

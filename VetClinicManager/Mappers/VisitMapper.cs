@@ -84,7 +84,6 @@ public partial class VisitMapper
             Notes = update.Notes,
             UpdateDate = update.UpdateDate,
             ImageUrl = update.ImageUrl,
-            PrescribedMedications = update.PrescribedMedications,
             UpdatedByVetName = $"{update.UpdatedBy?.FirstName} {update.UpdatedBy?.LastName}",
             Medications = update.AnimalMedications?
                 .Select(MapAnimalMedicationToBriefDto)
