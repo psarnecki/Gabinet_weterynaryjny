@@ -30,6 +30,9 @@ public class CreateAnimalDto
     [Display(Name = "Adres URL Zdjęcia")]
     public string? ImageUrl { get; set; }
     
+    [Display(Name = "Zdjęcie")]
+    public IFormFile? ImageFile { get; set; }
+    
     [Display(Name = "Właściciel")]
     public string? UserId { get; set; }
 }

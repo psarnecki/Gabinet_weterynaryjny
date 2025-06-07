@@ -7,6 +7,8 @@ public class VisitUpdateCreateDto
 {
     public string? Notes { get; set; }
     public string? ImageUrl { get; set; }
+    
+    public IFormFile? ImageFile { get; set; }
     public int VisitId { get; set; } 
     
     [System.Text.Json.Serialization.JsonIgnore]

@@ -11,7 +11,7 @@
 
     <div class="row">
         <div class="col-md-6">
-            <form asp-action="Edit">
+            <form asp-action="Edit" enctype="multipart/form-data">
                 <input type="hidden" asp-for="Id" />
                 <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
@@ -59,10 +59,20 @@
                     <span asp-validation-for="Gender" class="text-danger"></span>
                 </div>
 
+                @if (!string.IsNullOrEmpty(Model.ImageUrl))
+                {
+                    <div class="mb-3">
+                        <label>Aktualne zdjęcie</label>
+                        <div>
+                            <img src="@Model.ImageUrl" class="img-thumbnail" style="max-width: 200px;" alt="Zdjęcie zwierzęcia" />
+                        </div>
+                    </div>
+                }
+                
                 <div class="form-group mb-3">
-                    <label asp-for="ImageUrl" class="form-label"></label>
-                    <input asp-for="ImageUrl" class="form-control" />
-                    <span asp-validation-for="ImageUrl" class="text-danger"></span>
+                    <label asp-for="ImageFile" class="form-label">@(string.IsNullOrEmpty(Model.ImageUrl) ? "Dodaj zdjęcie" : "Zmień zdjęcie")</label>
+                    <input asp-for="ImageFile" type="file" class="form-control" accept="image/*" />
+                    <span asp-validation-for="ImageFile" class="text-danger"></span>
                 </div>
 
                 <div class="form-group mb-3">

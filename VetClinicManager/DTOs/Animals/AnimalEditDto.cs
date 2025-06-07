@@ -35,6 +35,9 @@ public class AnimalEditDto
     [DataType(DataType.ImageUrl)]
     public string? ImageUrl { get; set; }
     
+    [Display(Name = "Zdjęcie")]
+    public IFormFile? ImageFile { get; set; }
+    
     [Display(Name = "Właściciel")]
     public string? UserId { get; set; }
     public DateTime? LastVisitDate { get; set; }

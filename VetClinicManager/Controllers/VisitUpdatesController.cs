@@ -13,16 +13,19 @@ namespace VetClinicManager.Controllers
     [Authorize]
     public class VisitUpdatesController : Controller
     {
+        private readonly IFileService _fileService;
         private readonly IVisitUpdateService _visitUpdateService;
         private readonly IAnimalMedicationService _animalMedicationService;
         private readonly ApplicationDbContext _context; // Zachowujemy context dla prostych operacji GET
 
         public VisitUpdatesController(
             IVisitUpdateService visitUpdateService,
+            IFileService fileService, 
             IAnimalMedicationService animalMedicationService,
             ApplicationDbContext context)
         {
             _visitUpdateService = visitUpdateService;
+            _fileService = fileService;
             _animalMedicationService = animalMedicationService;
             _context = context;
         }
@@ -92,7 +95,7 @@ namespace VetClinicManager.Controllers
             // Pobieramy visit, aby uzyskać AnimalId
             var visit = await _context.Visits.AsNoTracking().FirstOrDefaultAsync(v => v.Id == createDto.VisitId);
             if (visit == null) return NotFound();
-
+    
             if (!ModelState.IsValid)
             {
                 ViewBag.VisitTitle = visit.Title;
@@ -101,7 +104,11 @@ namespace VetClinicManager.Controllers
                 ViewBag.Medications = await _animalMedicationService.GetMedicationsSelectListAsync();
                 return View(createDto);
             }
-
+            
+            if (createDto.ImageFile != null)
+            {
+                createDto.ImageUrl = await _fileService.SaveFileAsync(createDto.ImageFile, "uploads/attachments");
+            }
             // Ustaw AnimalId dla wszystkich nowo dodawanych leków
             if (createDto.AnimalMedications != null)
             {
@@ -192,11 +199,19 @@ namespace VetClinicManager.Controllers
                 await PopulateEditViewBag(id);
                 return View(editDto);
             }
+            
+            if (editDto.ImageFile != null)
+            {
+                var oldUpdate = await _context.VisitUpdates.AsNoTracking().FirstOrDefaultAsync(vu => vu.Id == id);
+                _fileService.DeleteFile(oldUpdate?.ImageUrl);
 
+                    editDto.ImageUrl = await _fileService.SaveFileAsync(editDto.ImageFile, "uploads/attachments");
+            }
+            
             try
             {
                 var currentVetId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
+            
                 // Uzupełnij AnimalId dla nowo dodawanych leków PRZED wywołaniem serwisu
                 if (editDto.NewAnimalMedications != null && editDto.NewAnimalMedications.Any(m => m.MedicationId > 0))
                 {

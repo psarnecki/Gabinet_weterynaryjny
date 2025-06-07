@@ -10,7 +10,7 @@
         <h2>@ViewData["Title"]</h2>
     </div>
     <div class="card-body">
-        <form asp-action="Edit" id="visitUpdateForm">
+        <form asp-action="Edit" id="visitUpdateForm" enctype="multipart/form-data">
             @Html.AntiForgeryToken()
             <input type="hidden" asp-for="Id" />
 
@@ -20,12 +20,25 @@
                 <span asp-validation-for="Notes" class="text-danger"></span>
             </div>
 
-            <div class="form-group">
-                <label asp-for="ImageUrl" class="control-label"></label>
-                <input asp-for="ImageUrl" class="form-control" />
-                <span asp-validation-for="ImageUrl" class="text-danger"></span>
-            </div>
+            @if (!string.IsNullOrEmpty(Model.ImageUrl))
+            {
+                <div class="mb-3">
+                    <label>Aktualny załącznik</label>
+                    <div>
+                        <img src="@Model.ImageUrl" class="img-thumbnail" style="max-width: 200px;" alt="Current Attachment" />
+                    </div>
+                </div>
+            }
 
+            <div class="form-group mb-3">
+                @* Zmieniamy etykietę w zależności od tego, czy obraz już istnieje *@
+                <label asp-for="ImageFile" class="control-label">
+                    @(string.IsNullOrEmpty(Model.ImageUrl) ? "Dodaj załącznik (obraz)" : "Zmień załącznik (obraz)")
+                </label>
+                <input asp-for="ImageFile" type="file" class="form-control" accept="image/*" />
+                <span asp-validation-for="ImageFile" class="text-danger"></span>
+            </div>
+            
             <!-- Current Medications Section -->
 <div class="card mt-3">
     <div class="card-header bg-info text-white">

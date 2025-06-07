@@ -14,7 +14,7 @@
         }
     </div>
     <div class="card-body">
-        <form asp-action="Create">
+        <form asp-action="Create" enctype="multipart/form-data">
             @Html.AntiForgeryToken()
             <input type="hidden" asp-for="VisitId" />
             
@@ -24,10 +24,10 @@
                 <span asp-validation-for="Notes" class="text-danger"></span>
             </div>
 
-            <div class="form-group">
-                <label asp-for="ImageUrl" class="control-label"></label>
-                <input asp-for="ImageUrl" class="form-control" />
-                <span asp-validation-for="ImageUrl" class="text-danger"></span>
+            <div class="form-group mb-3">
+                <label asp-for="ImageFile" class="control-label">Załącznik (obraz)</label>
+                <input asp-for="ImageFile" type="file" class="form-control" accept="image/*" />
+                <span asp-validation-for="ImageFile" class="text-danger"></span>
             </div>
             
             <!-- Medications Section -->
