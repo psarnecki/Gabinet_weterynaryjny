@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using VetClinicManager.Data;
 using VetClinicManager.Mappers;
@@ -88,7 +89,34 @@ namespace VetClinicManager.Services
 
             return _visitMapper.ToUserDto(visit);
         }
+        
+        public async Task<IEnumerable<SelectListItem>> GetAnimalsSelectListAsync()
+        {
+            return await _context.Animals
+                .AsNoTracking()
+                .OrderBy(a => a.Name)
+                .Select(a => new SelectListItem
+                {
+                    Value = a.Id.ToString(),
+                    Text = $"{a.Name} ({a.Species})"
+                })
+                .ToListAsync();
+        }
 
+        public async Task<IEnumerable<SelectListItem>> GetVetsSelectListAsync()
+        {
+            // Zakładamy, że weterynarze to użytkownicy z przypisaną rolą "Vet"
+            // To jest bardziej niezawodne niż sprawdzanie pola `Specialization`.
+            var vets = await _userManager.GetUsersInRoleAsync("Vet");
+
+            return vets
+                .OrderBy(u => u.LastName)
+                .Select(u => new SelectListItem
+                {
+                    Value = u.Id,
+                    Text = $"{u.FirstName} {u.LastName}"
+                });
+        }
         public async Task CreateVisitAsync(VisitCreateDto createVisitDto)
         {
             var visit = _visitMapper.ToEntity(createVisitDto);

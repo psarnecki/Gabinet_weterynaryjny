@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using VetClinicManager.DTOs.Visits;
 using VetClinicManager.Models;
+using VetClinicManager.Models.Enums;
 using VetClinicManager.Services;
 
 namespace VetClinicManager.Controllers
@@ -123,22 +124,29 @@ namespace VetClinicManager.Controllers
             }
         }
 
-        [Authorize(Roles = "Admin,Receptionist")]
+        // W pliku VisitsController.cs
+
+        [Authorize(Roles = "Receptionist,Vet")]
         public async Task<IActionResult> Create()
         {
-            try
-            {
-                var vetUsers = await _visitService.GetVetUsersAsync();
-                ViewData["AssignedVetId"] = new SelectList(vetUsers, "Id", "Email"); // TODO: Zmień "Email" na pełne imię lub inną czytelną nazwę
-                // TODO: Dodaj ViewData dla listy zwierząt AnimalId, jeśli formularz tego wymaga
-                return View(new VisitCreateDto { CreatedDate = DateTime.Now });
-            }
-            catch (Exception ex)
-            {
-                // TODO: Loguj błąd ex
-                ModelState.AddModelError("", ex.Message);
-                return View("Error");
-            }
+            // 1. Przygotuj listę dla Statusu (z enuma) - robimy to ręcznie
+            ViewBag.Statuses = Enum.GetValues(typeof(VisitStatus))
+                .Cast<VisitStatus>()
+                .Select(e => new SelectListItem { Value = e.ToString(), Text = e.ToString() });
+
+            // 2. Przygotuj listę dla Priorytetu (z enuma) - robimy to ręcznie
+            ViewBag.Priorities = Enum.GetValues(typeof(VisitPriority))
+                .Cast<VisitPriority>()
+                .Select(e => new SelectListItem { Value = e.ToString(), Text = e.ToString() });
+
+            // 3. Przygotuj listę dla Zwierząt (z serwisu)
+            ViewBag.Animals = await _visitService.GetAnimalsSelectListAsync();
+
+            // 4. Przygotuj listę dla Weterynarzy (z serwisu)
+            ViewBag.Vets = await _visitService.GetVetsSelectListAsync();
+
+            // Przekaż pusty model do widoku, aby formularz mógł się poprawnie zainicjować
+            return View(new VisitCreateDto());
         }
 
         [Authorize(Roles = "Admin,Receptionist")]
@@ -250,7 +258,7 @@ namespace VetClinicManager.Controllers
             }
         }
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, Receptionist")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null) return NotFound();
@@ -275,7 +283,7 @@ namespace VetClinicManager.Controllers
             }
         }
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, Receptionist")]
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)

@@ -1,4 +1,5 @@
-﻿using VetClinicManager.Models.Enums;
+﻿using VetClinicManager.DTOs.Users.UserBriefs;
+using VetClinicManager.Models.Enums;
 using VetClinicManager.DTOs.Visits.VisitBriefs;
 
 namespace VetClinicManager.DTOs.Visits;
@@ -12,6 +13,7 @@ public class VisitListReceptionistDto
     public VisitStatus Status { get; set; }
     public VisitPriority Priority { get; set; }
     public int AnimalId { get; set; }
+    public UserBriefDto? Owner { get; set; }
     public VisitAnimalBriefDto? Animal { get; set; }
     public string? AssignedVetId { get; set; }
     public VisitVetBriefDto? AssignedVet { get; set; }
