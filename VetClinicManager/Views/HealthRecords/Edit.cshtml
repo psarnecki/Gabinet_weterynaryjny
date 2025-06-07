@@ -1,56 +1,70 @@
 @model VetClinicManager.Models.HealthRecord
 
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Edytuj Kartę Zdrowia";
 }
 
-<h1>Edit</h1>
+<div class="container mt-4">
+    <h1>@ViewData["Title"]</h1>
 
-<h4>HealthRecord</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Edit">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <input type="hidden" asp-for="Id" />
-            <div class="form-group">
-                <label asp-for="AnimalId" class="control-label"></label>
-                <select asp-for="AnimalId" class="form-control" asp-items="ViewBag.AnimalId"></select>
-                <span asp-validation-for="AnimalId" class="text-danger"></span>
-            </div>
-            <div class="form-group form-check">
-                <label class="form-check-label">
-                    <input class="form-check-input" asp-for="IsSterilized" /> @Html.DisplayNameFor(model => model.IsSterilized)
-                </label>
-            </div>
-            <div class="form-group">
-                <label asp-for="ChronicDiseases" class="control-label"></label>
-                <input asp-for="ChronicDiseases" class="form-control" />
-                <span asp-validation-for="ChronicDiseases" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Allergies" class="control-label"></label>
-                <input asp-for="Allergies" class="form-control" />
-                <span asp-validation-for="Allergies" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Vaccinations" class="control-label"></label>
-                <input asp-for="Vaccinations" class="form-control" />
-                <span asp-validation-for="Vaccinations" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="LastVaccinationDate" class="control-label"></label>
-                <input asp-for="LastVaccinationDate" class="form-control" />
-                <span asp-validation-for="LastVaccinationDate" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
-            </div>
-        </form>
+    <div class="row">
+        <div class="col-md-6">
+            <form asp-action="Edit">
+                <input type="hidden" asp-for="Id" />
+                <input type="hidden" asp-for="AnimalId" />
+
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                <div class="form-group form-check mb-3">
+                    <input class="form-check-input" asp-for="IsSterilized" />
+                    <label class="form-check-label" asp-for="IsSterilized"></label>
+                    <span asp-validation-for="IsSterilized" class="text-danger"></span>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label asp-for="ChronicDiseases" class="form-label"></label>
+                    <input asp-for="ChronicDiseases" class="form-control" />
+                    <span asp-validation-for="ChronicDiseases" class="text-danger"></span>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label asp-for="Allergies" class="form-label"></label>
+                    <input asp-for="Allergies" class="form-control" />
+                    <span asp-validation-for="Allergies" class="text-danger"></span>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label asp-for="Vaccinations" class="form-label"></label>
+                    <input asp-for="Vaccinations" class="form-control" />
+                    <span asp-validation-for="Vaccinations" class="text-danger"></span>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label asp-for="LastVaccinationDate" class="form-label"></label>
+                    <input asp-for="LastVaccinationDate" class="form-control" type="date"/>
+                    <span asp-validation-for="LastVaccinationDate" class="text-danger"></span>
+                </div>
+
+                @* TODO: Add other fields from HealthRecord entity if they exist and are editable *
+                @* np. GeneralCondition, LastCheckupDate *@
+
+                <div class="form-group mt-3 d-flex">
+                    <input type="submit" value="Zapisz" class="btn btn-primary" />
+                    @if (Model?.AnimalId != null)
+                    {
+                        <a asp-controller="HealthRecords" asp-action="Details" asp-route-id="@Model.AnimalId" class="btn btn-outline-secondary ms-2">Powrót do Karty Zdrowia</a>
+                    }
+                    else
+                    {
+                         <a asp-controller="Animals" asp-action="Index" class="btn btn-outline-secondary ms-2">Powrót do Listy Zwierząt</a>
+                    }
+                </div>
+            </form>
+        </div>
     </div>
+
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
-
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

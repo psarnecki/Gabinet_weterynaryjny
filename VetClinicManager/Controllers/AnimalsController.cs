@@ -2,9 +2,17 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using System.Security.Claims;
 using VetClinicManager.DTOs.Animals;
 using VetClinicManager.Models;
 using VetClinicManager.Services;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Threading.Tasks;
+using VetClinicManager.Models.Enums;
+
 
 namespace VetClinicManager.Controllers
 {
@@ -13,16 +21,20 @@ namespace VetClinicManager.Controllers
     {
         private readonly IAnimalService _animalService;
         private readonly UserManager<User> _userManager;
+        // TODO: Consider injecting IUserService here if helpers are moved
 
         public AnimalsController(
             IAnimalService animalService,
             UserManager<User> userManager
+            // TODO: Inject IUserService here
             )
         {
             _animalService = animalService;
             _userManager = userManager;
+            // TODO: Assign IUserService here
         }
 
+        [HttpGet]
         [Authorize(Roles = "Admin,Receptionist,Vet,Client")]
         public async Task<IActionResult> Index()
         {
@@ -44,10 +56,15 @@ namespace VetClinicManager.Controllers
                     animalDtos = await _animalService.GetAnimalsForOwnerAsync(currentUserId);
                     viewName = "IndexUser";
                 }
-                else if (User.IsInRole("Admin") || User.IsInRole("Receptionist") || User.IsInRole("Vet"))
+                else if (User.IsInRole("Admin") || User.IsInRole("Receptionist"))
                 {
                     animalDtos = await _animalService.GetAnimalsForPersonnelAsync();
-                    viewName = "IndexVetRec";
+                    viewName = "IndexRec";
+                }
+                else if (User.IsInRole("Admin") || User.IsInRole("Vet"))
+                {
+                    animalDtos = await _animalService.GetAnimalsForPersonnelAsync();
+                    viewName = "IndexVet";
                 }
                 else
                 {
@@ -55,16 +72,16 @@ namespace VetClinicManager.Controllers
                 }
 
                 return View(viewName, animalDtos);
-
             }
             catch (Exception ex)
             {
                 ModelState.AddModelError("", "Wystąpił błąd podczas ładowania listy zwierząt.");
-                // TODO: Loguj błąd ex
-                return View("Error");
+                // TODO: Log error ex
+                return View("Index", new List<AnimalListUserDto>());
             }
         }
 
+        [HttpGet]
         [Authorize(Roles = "Admin,Receptionist,Vet,Client")]
         public async Task<IActionResult> Details(int? id)
         {
@@ -78,22 +95,20 @@ namespace VetClinicManager.Controllers
                 return Unauthorized();
             }
 
-            object dto = null; // Używamy object, bo typ DTO się zmienia
+            object dto = null;
             string viewName = null;
 
             try
             {
                 if (User.IsInRole("Client"))
                 {
-                    // Serwis zwraca AnimalDetailsUserDto? i sprawdza własność w zapytaniu
                     dto = await _animalService.GetAnimalDetailsForOwnerAsync(id.Value, currentUserId);
-                    viewName = "DetailsUser"; // Widok dla Klienta
+                    viewName = "DetailsUser";
                 }
                 else if (User.IsInRole("Admin") || User.IsInRole("Receptionist") || User.IsInRole("Vet"))
                 {
-                    // Serwis zwraca AnimalDetailsVetRecDto? i sprawdza tylko istnienie
                     dto = await _animalService.GetAnimalDetailsForPersonnelAsync(id.Value);
-                    viewName = "DetailsVetRec"; // Widok dla Personelu
+                    viewName = "DetailsVetRec";
                 }
                 else
                 {
@@ -106,107 +121,100 @@ namespace VetClinicManager.Controllers
                 }
 
                 return View(viewName, dto);
-
-            }
-            catch (KeyNotFoundException) // Złap jeśli serwis rzuca (ale lepiej gdy serwis zwraca null)
-            {
-                return NotFound();
-            }
-            catch (UnauthorizedAccessException) // Złap jeśli serwis rzuca (ale lepiej gdy serwis zwraca null)
-            {
-                return Forbid();
             }
             catch (Exception ex)
             {
                 ModelState.AddModelError("", "Wystąpił błąd podczas ładowania szczegółów zwierzęcia.");
-                 // TODO: Loguj błąd ex
+                 // TODO: Log error ex
                 return View("Error");
             }
         }
 
-        [Authorize(Roles = "Admin,Receptionist")] // Tylko Admin i Rec mogą tworzyć
+        [HttpGet]
+        [Authorize(Roles = "Admin,Receptionist")]
         public async Task<IActionResult> Create()
         {
             try
             {
-                var clientUsers = await GetClientUsersAsync(); // TODO: Przenieś do IUserService
-                ViewData["UserId"] = new SelectList(clientUsers, "Id", "Email"); // TODO: Zmień "Email" na pełne imię
-                // TODO: Jeśli serwis wymaga GetCreateAnimalDtoAsync do wypełnienia formularza, wywołaj go
+                ViewBag.GenderOptions = GetEnumSelectList<Gender>();
+                var clientUsers = await GetClientUsersAsync();
+                ViewData["UserId"] = new SelectList(clientUsers, "Id", "Email"); // TODO: Change "Email" to full name
+                // TODO: If GetCreateAnimalDtoAsync is needed to pre-fill the form, call it
                 // var createAnimalDto = await _animalService.GetCreateAnimalDtoAsync();
                 // return View(createAnimalDto);
-                return View(new CreateAnimalDto()); // Tymczasowo zwraca pusty DTO
+                return View(new CreateAnimalDto());
             }
             catch (Exception ex)
             {
                 ModelState.AddModelError("", ex.Message);
-                 // TODO: Loguj błąd ex
-                return View("Error");
+                 // TODO: Log error ex
+                 return View("Error");
             }
         }
 
-        [Authorize(Roles = "Admin,Receptionist")]
         [HttpPost]
+        [Authorize(Roles = "Admin,Receptionist")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(CreateAnimalDto createAnimalDto)
         {
             if (!ModelState.IsValid)
             {
-                var clientUsers = await GetClientUsersAsync(); // TODO: Przenieś do IUserService
-                ViewData["UserId"] = new SelectList(clientUsers, "Id", "Email", createAnimalDto.UserId); // TODO: Zmień "Email"
+                ViewBag.GenderOptions = GetEnumSelectList<Gender>();
+                var clientUsers = await GetClientUsersAsync();
+                ViewData["UserId"] = new SelectList(clientUsers, "Id", "Email", createAnimalDto.UserId); // TODO: Change "Email"
                 return View(createAnimalDto);
             }
 
             try
             {
-                // TODO: Serwis tworzy zwierzę. Upewnij się, że UserId jest poprawnie obsługiwany.
+                // TODO: Service CreateAnimalAsync must handle setting the UserId from the DTO
                 await _animalService.CreateAnimalAsync(createAnimalDto);
-                // TODO: Komunikat sukcesu (TempData)
+                // TODO: Success message (TempData)
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
             {
                 ModelState.AddModelError("", ex.Message);
-                 // TODO: Loguj błąd ex
-                 // Wróć do widoku z błędami i ponownie załaduj dane dropdowna
-                var clientUsers = await GetClientUsersAsync(); // TODO: Przenieś do IUserService
-                ViewData["UserId"] = new SelectList(clientUsers, "Id", "Email", createAnimalDto.UserId); // TODO: Zmień "Email"
+                 // TODO: Log error ex
+                 var clientUsers = await GetClientUsersAsync();
+                ViewData["UserId"] = new SelectList(clientUsers, "Id", "Email", createAnimalDto.UserId); // TODO: Change "Email"
                 return View(createAnimalDto);
             }
         }
 
-        [Authorize(Roles = "Admin,Receptionist")] // TODO: Jeśli Klient edytuje SWOJE, potrzebna inna akcja lub logika
+        // TODO: Client needs SEPARATE Edit action for THEIR animal (e.g., EditOwnerAnimal)
+        // or this action must contain logic to differentiate roles and check ownership
+        [HttpGet]
+        [Authorize(Roles = "Admin,Receptionist,Vet")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null) return NotFound();
 
             try
             {
-                // Serwis pobiera DTO do edycji i sprawdza uprawnienia. Powinien zwracać AnimalEditDto?
                 var animalEditDto = await _animalService.GetAnimalForEditAsync(id.Value);
                 if (animalEditDto == null)
                 {
                     return NotFound();
                 }
-
-                var clientUsers = await GetClientUsersAsync(); // TODO: Przenieś do IUserService
-                ViewData["UserId"] = new SelectList(clientUsers, "Id", "Email", animalEditDto.UserId); // TODO: Zmień "Email"
+                
+                ViewBag.GenderOptions = GetEnumSelectList<Gender>();
+                var clientUsers = await GetClientUsersAsync();
+                ViewData["UserId"] = new SelectList(clientUsers, "Id", "Email", animalEditDto.UserId); // TODO: Change "Email"
 
                 return View(animalEditDto);
             }
-            catch (KeyNotFoundException) // Złap jeśli serwis rzuca (ale lepiej gdy serwis zwraca null)
-            {
-                return NotFound();
-            }
-            catch (Exception ex)
+             catch (Exception ex)
             {
                 ModelState.AddModelError("", "Wystąpił błąd podczas ładowania danych do edycji.");
-                 // TODO: Loguj błąd ex
+                 // TODO: Log error ex
                 return View("Error");
             }
         }
 
-        [Authorize(Roles = "Admin,Receptionist")] // TODO: Jeśli Klient edytuje SWOJE, potrzebna inna akcja lub logika
+        // TODO: Client needs SEPARATE POST Edit action for THEIR animal
         [HttpPost]
+        [Authorize(Roles = "Admin,Receptionist,Vet")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, AnimalEditDto animalEditDto)
         {
@@ -214,106 +222,157 @@ namespace VetClinicManager.Controllers
 
             if (!ModelState.IsValid)
             {
-                var clientUsers = await GetClientUsersAsync(); // TODO: Przenieś do IUserService
-                ViewData["UserId"] = new SelectList(clientUsers, "Id", "Email", animalEditDto.UserId); // TODO: Zmień "Email"
+                ViewBag.GenderOptions = GetEnumSelectList<Gender>();
+                var clientUsers = await GetClientUsersAsync();
+                ViewData["UserId"] = new SelectList(clientUsers, "Id", "Email", animalEditDto.UserId); // TODO: Change "Email"
                 return View(animalEditDto);
             }
 
             try
             {
-                // TODO: Serwis aktualizuje zwierzę. Implementacja UpdateAnimalAsync jest placeholderem.
-                // TODO: Jeśli Klient edytuje SWOJE, użyj IsAnimalOwnerAsync PRZED wywołaniem UpdateAnimalAsync.
                 await _animalService.UpdateAnimalAsync(id, animalEditDto);
-                // TODO: Komunikat sukcesu (TempData)
+                // TODO: Success message (TempData)
                 return RedirectToAction(nameof(Index));
             }
-            catch (KeyNotFoundException) // Złap jeśli serwis rzuca
+            catch (KeyNotFoundException)
             {
                 return NotFound();
             }
-             catch (UnauthorizedAccessException) // Złap jeśli serwis rzuca (np. User nie jest właścicielem, jeśli sprawdzanie jest w serwisie)
+             catch (UnauthorizedAccessException)
             {
-                return Forbid();
+                 return Forbid();
             }
             catch (Exception ex)
             {
                 ModelState.AddModelError("", ex.Message);
-                 // TODO: Loguj błąd ex
-                 // Wróć do widoku z błędami i ponownie załaduj dane dropdowna
-                var clientUsers = await GetClientUsersAsync(); // TODO: Przenieś do IUserService
-                ViewData["UserId"] = new SelectList(clientUsers, "Id", "Email", animalEditDto.UserId); // TODO: Zmień "Email"
+                 // TODO: Log error ex
+                ViewBag.GenderOptions = GetEnumSelectList<Gender>();
+                var clientUsers = await GetClientUsersAsync();
+                ViewData["UserId"] = new SelectList(clientUsers, "Id", "Email", animalEditDto.UserId); // TODO: Change "Email"
                 return View(animalEditDto);
             }
         }
 
-        [Authorize(Roles = "Admin")] // TODO: Jeśli inne role mogą usuwać, potrzebna inna akcja lub logika
+        // TODO: Client CANNOT delete animals
+        [HttpGet]
+        [Authorize(Roles = "Admin,Receptionist")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null) return NotFound();
 
             try
             {
-                // Serwis pobiera DTO do usunięcia. Powinien zwracać AnimalEditDto? (lub AnimalDeleteDto?)
                 var animalDto = await _animalService.GetAnimalForDeleteAsync(id.Value);
-                 if (animalDto == null)
+                if (animalDto == null)
                 {
                     return NotFound();
                 }
-                // TODO: Zwróć widok dedykowany do potwierdzenia usunięcia (np. DeleteConfirm.cshtml)
+                // TODO: Return a dedicated confirmation view (e.g., DeleteConfirm.cshtml)
                 return View(animalDto);
             }
              catch (Exception ex)
             {
                 ModelState.AddModelError("", "Wystąpił błąd podczas ładowania danych do usunięcia.");
-                 // TODO: Loguj błąd ex
+                 // TODO: Log error ex
                 return View("Error");
             }
         }
 
-        [Authorize(Roles = "Admin")] // TODO: Jeśli inne role mogą usuwać, potrzebna inna akcja lub logika
+        // TODO: Client CANNOT delete animals
         [HttpPost, ActionName("Delete")]
+        [Authorize(Roles = "Admin,Receptionist")] // Only Admin can confirm deletion
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             try
             {
-                 // TODO: Serwis usuwa zwierzę. Implementacja DeleteAnimalAsync jest placeholderem.
-                 // TODO: Jeśli Klient usuwa SWOJE, użyj IsAnimalOwnerAsync PRZED wywołaniem DeleteAnimalAsync.
                 await _animalService.DeleteAnimalAsync(id);
-                // TODO: Komunikat sukcesu (TempData)
+                // TODO: Success message (TempData)
                 return RedirectToAction(nameof(Index));
             }
-            catch (KeyNotFoundException) // Złap jeśli serwis rzuca
+            catch (KeyNotFoundException)
             {
                 return NotFound();
             }
-             catch (UnauthorizedAccessException) // Złap jeśli serwis rzuca (np. User nie jest właścicielem)
+             catch (UnauthorizedAccessException)
             {
                  return Forbid();
             }
              catch (Exception ex)
             {
                 ModelState.AddModelError("", ex.Message);
-                 // TODO: Loguj błąd ex
+                 // TODO: Log error ex
                 return RedirectToAction(nameof(Index), new { error = ex.Message });
             }
         }
+        
+        // GET: /Animals/RedirectToHealthRecord/5
+        [HttpGet]
+        [Authorize(Roles = "Admin,Receptionist,Vet,Client")]
+        public async Task<IActionResult> RedirectToHealthRecord(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
 
-        // TODO: Przenieś helpery jak GetClientUsersAsync i IsPersonnelAsync do dedykowanego serwisu użytkowników (IUserService)
+            // TODO: Opcjonalnie dodaj sprawdzanie własności dla Klienta
+            // var currentUser = await _userManager.GetUserAsync(User);
+            // var currentUserId = currentUser?.Id;
+            // if (User.IsInRole("Client") && !(await _animalService.IsAnimalOwnerAsync(id.Value, currentUserId)))
+            // {
+            //      return Forbid(); // Klient nie jest właścicielem
+            // }
+
+            var healthRecordId = await _animalService.GetHealthRecordIdByAnimalIdAsync(id.Value);
+
+            if (healthRecordId == null)
+            {
+
+                // SPRAWDŹ ROLĘ
+                if (User.IsInRole("Client"))
+                {
+                    TempData["InfoMessage"] = "Karta zdrowia dla tego zwierzęcia nie została jeszcze utworzona."; 
+                    return RedirectToAction("Index", "Animals");
+                }
+                else
+                {
+                    TempData["InfoMessage"] = $"Brak karty zdrowia dla zwierzęcia ID {id.Value}. Możesz ją utworzyć.";
+                    return RedirectToAction("Create", "HealthRecords", new { animalId = id.Value });
+                }
+            }
+            
+            return RedirectToAction("Details", "HealthRecords", new { id = healthRecordId.Value });
+        }
+        
+        // Helper method to get SelectListItem for enums
+        private List<SelectListItem> GetEnumSelectList<TEnum>() where TEnum : Enum
+        {
+            var selectListItems = new List<SelectListItem>();
+            var enumValues = Enum.GetValues(typeof(TEnum)).Cast<TEnum>();
+
+            foreach (var enumValue in enumValues)
+            {
+                var fieldInfo = typeof(TEnum).GetField(enumValue.ToString());
+                var displayAttribute = fieldInfo.GetCustomAttributes(typeof(DisplayAttribute), false).Cast<DisplayAttribute>().FirstOrDefault();
+
+                selectListItems.Add(new SelectListItem
+                {
+                    Value = enumValue.ToString(),
+                    Text = displayAttribute?.Name ?? enumValue.ToString()
+                });
+            }
+
+            return selectListItems;
+        }
+
+        // TODO: Move helper GetClientUsersAsync to a dedicated user service (IUserService)
         private async Task<List<User>> GetClientUsersAsync()
         {
-            // Tymczasowo używa UserManager bezpośrednio
              return (await _userManager.GetUsersInRoleAsync("Client")).ToList();
         }
 
-         private async Task<bool> IsPersonnelAsync(User user)
-        {
-            // Tymczasowo używa UserManager bezpośrednio
-             return await _userManager.IsInRoleAsync(user, "Admin") ||
-                   await _userManager.IsInRoleAsync(user, "Receptionist") ||
-                   await _userManager.IsInRoleAsync(user, "Vet");
-        }
-         // TODO: Dodaj helper do wyświetlania błędów z ModelState w widokach, jeśli nie masz globalnej obsługi błędów
-         // private IActionResult HandleError(Exception ex) { ... }
+         // TODO: Add helper for displaying ModelState errors in views if no global error handling
+
     }
 }

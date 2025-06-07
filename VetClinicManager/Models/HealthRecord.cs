@@ -13,15 +13,22 @@ public class HealthRecord
     public int AnimalId { get; set; }
     public Animal Animal { get; set; }
     
+    [Display(Name = "Czy sterylizowane/kastrowane")]
     public bool IsSterilized { get; set; }
     
+    [Display(Name = "Choroby przewlekłe")]
     [MaxLength(500)]
     public string? ChronicDiseases { get; set; }
     
+    [Display(Name = "Alergie")]
     [MaxLength(500)]
     public string? Allergies { get; set; }
     
+    [Display(Name = "Szczepienia")]
     [MaxLength(500)]
     public string? Vaccinations { get; set; }
+    
+    [Display(Name = "Data ostatniego szczepienia")]
+    [DataType(DataType.Date)]
     public DateTime LastVaccinationDate { get; set; }
 }

@@ -1,54 +1,97 @@
-@model VetClinicManager.Models.HealthRecord
+@model VetClinicManager.DTOs.HealthRecords.HealthRecordEditVetDto
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Karta Zdrowia";
 }
 
-<h1>Details</h1>
+<div class="container mt-4">
+    <h1>@ViewData["Title"]</h1>
 
-<div>
-    <h4>HealthRecord</h4>
     <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Animal)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Animal.Id)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.IsSterilized)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.IsSterilized)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.ChronicDiseases)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.ChronicDiseases)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Allergies)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Allergies)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Vaccinations)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Vaccinations)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.LastVaccinationDate)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.LastVaccinationDate)
-        </dd>
-    </dl>
+
+    <h4>Informacje z Karty Zdrowia</h4>
+
+    @if (Model == null)
+    {
+        <div class="alert alert-warning">Brak karty zdrowia dla tego zwierzęcia.</div>
+    }
+    else
+    {
+        <dl class="row">
+            <dt class="col-sm-3">
+                @Html.DisplayNameFor(model => model.IsSterilized)
+            </dt>
+            <dd class="col-sm-9">
+                @if (Model.IsSterilized)
+                {
+                    <span class="badge bg-success">Tak</span> 
+                }
+                else
+                {
+                    <span class="badge bg-danger">Nie</span>
+                }
+            </dd>
+
+            @if (!string.IsNullOrEmpty(Model.ChronicDiseases))
+            {
+                <dt class="col-sm-3">
+                    @Html.DisplayNameFor(model => model.ChronicDiseases)
+                </dt>
+                <dd class="col-sm-9">
+                    @Html.DisplayFor(model => model.ChronicDiseases)
+                </dd>
+            }
+
+             @if (!string.IsNullOrEmpty(Model.Allergies))
+            {
+                <dt class="col-sm-3">
+                    @Html.DisplayNameFor(model => model.Allergies)
+                </dt>
+                <dd class="col-sm-9">
+                    @Html.DisplayFor(model => model.Allergies)
+                </dd>
+            }
+
+             @if (!string.IsNullOrEmpty(Model.Vaccinations))
+            {
+                <dt class="col-sm-3">
+                    @Html.DisplayNameFor(model => model.Vaccinations)
+                </dt>
+                <dd class="col-sm-9">
+                    @Html.DisplayFor(model => model.Vaccinations)
+                </dd>
+            }
+
+             <dt class="col-sm-3">
+                @Html.DisplayNameFor(model => model.LastVaccinationDate)
+            </dt>
+            <dd class="col-sm-9">
+                 @Html.DisplayFor(model => model.LastVaccinationDate)
+            </dd>
+        </dl>
+
+        @* TODO: Add button to edit health record if personnel have permissions *@
+        @* <div class="mt-4">
+             <a asp-controller="HealthRecords" asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">Edytuj Kartę Zdrowia</a>
+        </div> *@
+    }
+
+
+    <div class="mt-4 d-flex">
+    @if (User.IsInRole("Admin") || User.IsInRole("Vet"))
+    {
+        <a asp-controller="HealthRecords" asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-primary">Edytuj Kartę Zdrowia</a>
+
+            <span class="ms-2"></span>
+        }
+
+        @* Przycisk powrotu do listy zwierząt *@
+        <a asp-controller="Animals" asp-action="Index" class="btn btn-outline-secondary">Powrót do Listy Zwierząt</a>
+    
+    </div>
+
 </div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |
-    <a asp-action="Index">Back to List</a>
-</div>
+
+@section Scripts {
+    @* Optional scripts *@
+}

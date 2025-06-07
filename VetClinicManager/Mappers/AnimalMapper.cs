@@ -1,5 +1,6 @@
 ﻿using Riok.Mapperly.Abstractions;
 using VetClinicManager.DTOs.Animals;
+using VetClinicManager.DTOs.HealthRecords;
 using VetClinicManager.DTOs.Visits.VisitBriefs;
 using VetClinicManager.Models;
 using VetClinicManager.Models.Enums;
@@ -39,4 +40,7 @@ public partial class AnimalMapper
     public partial AnimalDetailsVetRecDto ToAnimalDetailsVetRecDto(Animal animal);
     
     public partial AnimalDetailsUserDto ToAnimalDetailsUserDto(Animal animal);
+    
+    public partial HealthRecordEditVetDto ToHealthRecordEditVetDto(HealthRecord healthRecord);
+
 }

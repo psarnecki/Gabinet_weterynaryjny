@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using VetClinicManager.Data;
 using VetClinicManager.DTOs.Animals;
+using VetClinicManager.DTOs.HealthRecords;
 using VetClinicManager.Mappers;
 
 namespace VetClinicManager.Services
@@ -20,6 +21,7 @@ namespace VetClinicManager.Services
         {
             var animals = await _context.Animals
                                         .Where(a => a.UserId == ownerUserId)
+                                        .Include(a => a.HealthRecord)
                                         .ToListAsync();
 
             return _animalMapper.ToUserDtos(animals);
@@ -29,6 +31,7 @@ namespace VetClinicManager.Services
         {
             var animals = await _context.Animals
                                         .Include(a => a.User)
+                                        .Include(a => a.HealthRecord)
                                         .ToListAsync();
 
             return _animalMapper.ToVetRecDtos(animals);
@@ -69,6 +72,16 @@ namespace VetClinicManager.Services
             }
 
             return _animalMapper.ToAnimalDetailsUserDto(animal);
+        }
+
+        public async Task<int?> GetHealthRecordIdByAnimalIdAsync(int animalId)
+        {
+            var healthRecordId = await _context.Animals
+                .Where(a => a.Id == animalId && a.HealthRecord != null)
+                .Select(a => (int?)a.HealthRecord.Id)
+                .FirstOrDefaultAsync();
+
+            return healthRecordId;
         }
 
         public Task<CreateAnimalDto> GetCreateAnimalDtoAsync()
