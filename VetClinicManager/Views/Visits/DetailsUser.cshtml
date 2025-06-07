@@ -1,4 +1,5 @@
-﻿@model VetClinicManager.DTOs.VisitDTOs.VisitListUserDto
+﻿@using VetClinicManager.Models.Enums
+@model VetClinicManager.DTOs.Visits.VisitListUserDto
 
 <div class="container">
     <h2>@Model.Title</h2>
@@ -9,7 +10,20 @@
                     Visit Summary
                 </div>
                 <div class="card-body">
-                    <p><strong>Status:</strong> <span class="badge bg-info">@Model.Status</span></p>
+                    <p><strong>Status:</strong>
+                        @{
+                            string statusBadgeClass = Model.Status switch
+                            {
+                                VisitStatus.Scheduled => "bg-warning text-dark",
+                                VisitStatus.Completed => "bg-success",
+                                VisitStatus.InProgress => "bg-primary",
+                                VisitStatus.Cancelled => "bg-danger",
+                                _ => "bg-secondary"
+                            };
+                        }
+                        <span class="badge @statusBadgeClass">@Model.Status</span>
+                    </p>
+
                     <p><strong>Date:</strong> @Model.CreatedDate.ToString("g")</p>
                     <p><strong>Animal:</strong> @Model.Animal?.Name (@Model.Animal?.Breed)</p>
                     <p><strong>Veterinarian:</strong> 

@@ -1,170 +1,134 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
-using VetClinicManager.Data;
-using VetClinicManager.Models;
+using VetClinicManager.DTOs.AnimalMedications;
+using VetClinicManager.Services;
 
-namespace VetClinicManager.Controllers
+namespace VetClinicManager.Controllers;
+
+public class AnimalMedicationsController : Controller
 {
-    public class AnimalMedicationsController : Controller
+    private readonly IAnimalMedicationService _animalMedicationService;
+
+    public AnimalMedicationsController(IAnimalMedicationService animalMedicationService)
     {
-        private readonly ApplicationDbContext _context;
+        _animalMedicationService = animalMedicationService;
+    }
 
-        public AnimalMedicationsController(ApplicationDbContext context)
+    // GET: AnimalMedications
+    public async Task<IActionResult> Index()
+    {
+        var animalMedications = await _animalMedicationService.GetAnimalMedicationsAsync();
+        return View(animalMedications);
+    }
+
+    // GET: AnimalMedications/Details/5
+    public async Task<IActionResult> Details(int? id)
+    {
+        if (id == null)
+            return NotFound();
+
+        var animalMedication = await _animalMedicationService.GetAnimalMedicationByIdAsync(id.Value);
+        if (animalMedication == null)
+            return NotFound();
+
+        return View(animalMedication);
+    }
+
+    // GET: AnimalMedications/Create
+    public async Task<IActionResult> Create()
+    {
+        ViewData["AnimalId"] = await _animalMedicationService.GetAnimalsSelectListAsync();
+        ViewData["MedicationId"] = await _animalMedicationService.GetMedicationsSelectListAsync();
+        return View();
+    }
+
+    // POST: AnimalMedications/Create
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Create(AnimalMedicationCreateVetDto dto)
+    {
+        if (!ModelState.IsValid)
         {
-            _context = context;
+            ViewData["AnimalId"] = await _animalMedicationService.GetAnimalsSelectListAsync();
+            ViewData["MedicationId"] = await _animalMedicationService.GetMedicationsSelectListAsync();
+            return View(dto);
         }
 
-        // GET: AnimalMedications
-        public async Task<IActionResult> Index()
+        await _animalMedicationService.CreateAnimalMedicationAsync(dto);
+        return RedirectToAction(nameof(Index));
+    }
+
+    // GET: AnimalMedications/Edit/5
+    public async Task<IActionResult> Edit(int? id)
+    {
+        if (id == null)
+            return NotFound();
+
+        var animalMedication = await _animalMedicationService.GetAnimalMedicationByIdAsync(id.Value);
+        if (animalMedication == null)
+            return NotFound();
+
+        ViewData["AnimalId"] = await _animalMedicationService.GetAnimalsSelectListAsync();
+        ViewData["MedicationId"] = await _animalMedicationService.GetMedicationsSelectListAsync();
+        
+        var editDto = new AnimalMedicationEditVetDto
         {
-            var applicationDbContext = _context.AnimalMedications.Include(a => a.Animal).Include(a => a.Medication);
-            return View(await applicationDbContext.ToListAsync());
+            Id = animalMedication.Id,
+            MedicationId = animalMedication.MedicationId,
+            StartDate = animalMedication.StartDate,
+            EndDate = animalMedication.EndDate
+        };
+
+        return View(editDto);
+    }
+
+    // POST: AnimalMedications/Edit/5
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Edit(int id, AnimalMedicationEditVetDto dto)
+    {
+        if (id != dto.Id)
+            return NotFound();
+
+        if (!ModelState.IsValid)
+        {
+            ViewData["AnimalId"] = await _animalMedicationService.GetAnimalsSelectListAsync();
+            ViewData["MedicationId"] = await _animalMedicationService.GetMedicationsSelectListAsync();
+            return View(dto);
         }
 
-        // GET: AnimalMedications/Details/5
-        public async Task<IActionResult> Details(int? id)
+        try
         {
-            if (id == null)
-            {
+            await _animalMedicationService.UpdateAnimalMedicationAsync(dto);
+        }
+        catch (Exception)
+        {
+            if (!await _animalMedicationService.AnimalMedicationExistsAsync(dto.Id))
                 return NotFound();
-            }
-
-            var animalMedication = await _context.AnimalMedications
-                .Include(a => a.Animal)
-                .Include(a => a.Medication)
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (animalMedication == null)
-            {
-                return NotFound();
-            }
-
-            return View(animalMedication);
+            throw;
         }
 
-        // GET: AnimalMedications/Create
-        public IActionResult Create()
-        {
-            ViewData["AnimalId"] = new SelectList(_context.Animals, "Id", "Id");
-            ViewData["MedicationId"] = new SelectList(_context.Medications, "Id", "Id");
-            return View();
-        }
+        return RedirectToAction(nameof(Index));
+    }
 
-        // POST: AnimalMedications/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,AnimalId,MedicationId,StartDate,EndDate")] AnimalMedication animalMedication)
-        {
-            if (ModelState.IsValid)
-            {
-                _context.Add(animalMedication);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
-            ViewData["AnimalId"] = new SelectList(_context.Animals, "Id", "Id", animalMedication.AnimalId);
-            ViewData["MedicationId"] = new SelectList(_context.Medications, "Id", "Id", animalMedication.MedicationId);
-            return View(animalMedication);
-        }
+    // GET: AnimalMedications/Delete/5
+    public async Task<IActionResult> Delete(int? id)
+    {
+        if (id == null)
+            return NotFound();
 
-        // GET: AnimalMedications/Edit/5
-        public async Task<IActionResult> Edit(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
+        var animalMedication = await _animalMedicationService.GetAnimalMedicationByIdAsync(id.Value);
+        if (animalMedication == null)
+            return NotFound();
 
-            var animalMedication = await _context.AnimalMedications.FindAsync(id);
-            if (animalMedication == null)
-            {
-                return NotFound();
-            }
-            ViewData["AnimalId"] = new SelectList(_context.Animals, "Id", "Id", animalMedication.AnimalId);
-            ViewData["MedicationId"] = new SelectList(_context.Medications, "Id", "Id", animalMedication.MedicationId);
-            return View(animalMedication);
-        }
+        return View(animalMedication);
+    }
 
-        // POST: AnimalMedications/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,AnimalId,MedicationId,StartDate,EndDate")] AnimalMedication animalMedication)
-        {
-            if (id != animalMedication.Id)
-            {
-                return NotFound();
-            }
-
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    _context.Update(animalMedication);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!AnimalMedicationExists(animalMedication.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
-            }
-            ViewData["AnimalId"] = new SelectList(_context.Animals, "Id", "Id", animalMedication.AnimalId);
-            ViewData["MedicationId"] = new SelectList(_context.Medications, "Id", "Id", animalMedication.MedicationId);
-            return View(animalMedication);
-        }
-
-        // GET: AnimalMedications/Delete/5
-        public async Task<IActionResult> Delete(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var animalMedication = await _context.AnimalMedications
-                .Include(a => a.Animal)
-                .Include(a => a.Medication)
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (animalMedication == null)
-            {
-                return NotFound();
-            }
-
-            return View(animalMedication);
-        }
-
-        // POST: AnimalMedications/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
-            var animalMedication = await _context.AnimalMedications.FindAsync(id);
-            if (animalMedication != null)
-            {
-                _context.AnimalMedications.Remove(animalMedication);
-            }
-
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
-        }
-
-        private bool AnimalMedicationExists(int id)
-        {
-            return _context.AnimalMedications.Any(e => e.Id == id);
-        }
+    // POST: AnimalMedications/Delete/5
+    [HttpPost, ActionName("Delete")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteConfirmed(int id)
+    {
+        await _animalMedicationService.DeleteAnimalMedicationAsync(id);
+        return RedirectToAction(nameof(Index));
     }
 }

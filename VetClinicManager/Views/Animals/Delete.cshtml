@@ -1,81 +1,80 @@
-@model VetClinicManager.DTOs.AnimalDTOs.AnimalEditDto
+@model VetClinicManager.DTOs.Animals.AnimalEditDto
 
 @{
-    ViewData["Title"] = "Delete";
+    ViewData["Title"] = "Usuń Zwierzę";
 }
 
-<h1>Delete</h1>
+<div class="container mt-4">
+    <h1>@ViewData["Title"]</h1>
 
-<h3>Are you sure you want to delete this?</h3>
-<div>
-    <h4>Animal</h4>
+    <h3>Czy na pewno chcesz usunąć to zwierzę?</h3>
+
+    <div class="alert alert-danger">
+        <p class="lead">
+            Usunięcie zwierzęcia jest operacją **nieodwracalną**. Wszelkie powiązane dane, takie jak historia wizyt i leczenia, mogą również zostać usunięte lub stać się niedostępne.
+        </p>
+    </div>
+
+    <h4>Informacje o zwierzęciu:</h4>
     <hr />
+
     <dl class="row">
-        <dt class = "col-sm-2">
+        <dt class = "col-sm-3">
             @Html.DisplayNameFor(model => model.Name)
         </dt>
-        <dd class = "col-sm-10">
+        <dd class = "col-sm-9">
             @Html.DisplayFor(model => model.Name)
         </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.MicrochipId)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.MicrochipId)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Species)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Species)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Breed)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Breed)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.DateOfBirth)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.DateOfBirth)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.BodyWeight)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.BodyWeight)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Gender)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Gender)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.ImageUrl)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.ImageUrl)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.UserId)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.UserId)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.LastVisitDate)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.LastVisitDate)
-        </dd>
+
+        @if (!string.IsNullOrEmpty(Model.Breed))
+        {
+            <dt class = "col-sm-3">
+                @Html.DisplayNameFor(model => model.Breed)
+            </dt>
+            <dd class = "col-sm-9">
+                @Html.DisplayFor(model => model.Breed)
+            </dd>
+        }
+
+         @if (!string.IsNullOrEmpty(Model.Species))
+        {
+            <dt class = "col-sm-3">
+                @Html.DisplayNameFor(model => model.Species)
+            </dt>
+            <dd class = "col-sm-9">
+                @Html.DisplayFor(model => model.Species)
+            </dd>
+        }
+
+        @if (!string.IsNullOrEmpty(Model.MicrochipId))
+        {
+             <dt class = "col-sm-3">
+                @Html.DisplayNameFor(model => model.MicrochipId)
+            </dt>
+            <dd class = "col-sm-9">
+                @Html.DisplayFor(model => model.MicrochipId)
+            </dd>
+        }
+
+        @* Owner field might be relevant for identification, but requires Owner property in AnimalEditDto *@
+        @* <dt class = "col-sm-3">
+             @Html.DisplayNameFor(model => model.Owner)
+         </dt>
+         <dd class = "col-sm-9">
+             @(Model.Owner?.FirstName + " " + Model.Owner?.LastName)
+         </dd> *@
+
     </dl>
-    
+
+    <hr />
+
     <form asp-action="Delete">
         <input type="hidden" asp-for="Id" />
-        <input type="submit" value="Delete" class="btn btn-danger" /> |
-        <a asp-action="Index">Back to List</a>
+
+        <div class="form-group d-flex mt-3">
+             <input type="submit" value="Usuń" class="btn btn-danger" />
+             <a asp-action="Index" class="btn btn-outline-secondary ms-2">Powrót do Listy</a>
+        </div>
     </form>
+
 </div>

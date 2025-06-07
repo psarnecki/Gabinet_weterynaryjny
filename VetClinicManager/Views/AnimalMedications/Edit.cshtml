@@ -1,4 +1,4 @@
-@model VetClinicManager.Models.AnimalMedication
+@model VetClinicManager.DTOs.AnimalMedications.AnimalMedicationEditVetDto
 
 @{
     ViewData["Title"] = "Edit";
@@ -14,23 +14,18 @@
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="Id" />
             <div class="form-group">
-                <label asp-for="AnimalId" class="control-label"></label>
-                <select asp-for="AnimalId" class="form-control" asp-items="ViewBag.AnimalId"></select>
-                <span asp-validation-for="AnimalId" class="text-danger"></span>
-            </div>
-            <div class="form-group">
                 <label asp-for="MedicationId" class="control-label"></label>
                 <select asp-for="MedicationId" class="form-control" asp-items="ViewBag.MedicationId"></select>
                 <span asp-validation-for="MedicationId" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="StartDate" class="control-label"></label>
-                <input asp-for="StartDate" class="form-control" />
+                <input asp-for="StartDate" type="date" class="form-control" />
                 <span asp-validation-for="StartDate" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="EndDate" class="control-label"></label>
-                <input asp-for="EndDate" class="form-control" />
+                <input asp-for="EndDate" type="date" class="form-control" />
                 <span asp-validation-for="EndDate" class="text-danger"></span>
             </div>
             <div class="form-group">

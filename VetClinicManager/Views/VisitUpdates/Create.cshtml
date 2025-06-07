@@ -1,4 +1,4 @@
-@model VetClinicManager.DTOs.VisitUpdateDTOs.VisitUpdateCreateDto
+@model VetClinicManager.DTOs.VisitUpdates.VisitUpdateCreateDto
 
 @{
     ViewData["Title"] = "Add Visit Update";
@@ -30,10 +30,32 @@
                 <span asp-validation-for="ImageUrl" class="text-danger"></span>
             </div>
             
-            <div class="form-group">
-                <label asp-for="PrescribedMedications" class="control-label"></label>
-                <input asp-for="PrescribedMedications" class="form-control" />
-                <span asp-validation-for="PrescribedMedications" class="text-danger"></span>
+            <!-- Medications Section -->
+            <div class="card mt-3">
+                <div class="card-header bg-secondary text-white">
+                    <h5>Prescribed Medications</h5>
+                </div>
+                <div class="card-body">
+                    <div id="medications-container">
+                        <!-- Initial medication form -->
+                        <div class="medication-form mb-3 border p-3">
+                            <div class="form-group">
+                                <label class="control-label">Medication</label>
+                                <select name="AnimalMedications[0].MedicationId" class="form-control" asp-items="ViewBag.Medications"></select>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label">Start Date</label>
+                                <input type="date" name="AnimalMedications[0].StartDate" class="form-control" value="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label">End Date</label>
+                                <input type="date" name="AnimalMedications[0].EndDate" class="form-control" />
+                            </div>
+                            <button type="button" class="btn btn-danger btn-sm remove-medication">Remove</button>
+                        </div>
+                    </div>
+                    <button type="button" id="add-medication" class="btn btn-success mt-2">Add Another Medication</button>
+                </div>
             </div>
             
             <div class="form-group mt-3">
@@ -44,3 +66,47 @@
         </form>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            let medicationIndex = 1;
+            
+            // Add new medication form
+            $('#add-medication').click(function() {
+                const newForm = $(`
+                    <div class="medication-form mb-3 border p-3">
+                        <div class="form-group">
+                            <label class="control-label">Medication</label>
+                            <select name="AnimalMedications[${medicationIndex}].MedicationId" class="form-control" asp-items="ViewBag.Medications"></select>
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label">Start Date</label>
+                            <input type="date" name="AnimalMedications[${medicationIndex}].StartDate" class="form-control" value="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label">End Date</label>
+                            <input type="date" name="AnimalMedications[${medicationIndex}].EndDate" class="form-control" />
+                        </div>
+                        <button type="button" class="btn btn-danger btn-sm remove-medication">Remove</button>
+                    </div>
+                `);
+                
+                // Replace the select with options (since asp-items won't work in JS)
+                const select = newForm.find('select');
+                const originalSelect = $('#medications-container').find('select:first');
+                select.empty();
+                originalSelect.find('option').clone().appendTo(select);
+                
+                $('#medications-container').append(newForm);
+                medicationIndex++;
+            });
+            
+            // Remove medication form
+            $(document).on('click', '.remove-medication', function() {
+                $(this).closest('.medication-form').remove();
+                // Reindex remaining forms if needed
+            });
+        });
+    </script>
+}

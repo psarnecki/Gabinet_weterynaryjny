@@ -21,6 +21,7 @@ public class Visit {
     public VisitPriority Priority { get; set; }
 
     [Required]
+    [ForeignKey("Animal")]
     public int AnimalId { get; set; }
     public Animal Animal { get; set; }
     

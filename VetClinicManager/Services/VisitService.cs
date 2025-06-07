@@ -1,9 +1,11 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 using VetClinicManager.Data;
-using VetClinicManager.DTOs.VisitDTOs;
-using VetClinicManager.DTOs.Visits.VisitBriefs;
 using VetClinicManager.Mappers;
 using VetClinicManager.Models;
+using VetClinicManager.DTOs.Visits;
+using VetClinicManager.DTOs.Visits.VisitBriefs;
 
 namespace VetClinicManager.Services
 {
@@ -11,11 +13,13 @@ namespace VetClinicManager.Services
     {
         private readonly ApplicationDbContext _context;
         private readonly VisitMapper _visitMapper;
+        private readonly UserManager<User> _userManager;
 
-        public VisitService(ApplicationDbContext context, VisitMapper visitMapper)
+        public VisitService(ApplicationDbContext context, VisitMapper visitMapper, UserManager<User> userManager)
         {
             _context = context;
             _visitMapper = visitMapper;
+            _userManager = userManager;
         }
 
         public async Task<IEnumerable<VisitListReceptionistDto>> GetVisitsForReceptionistAsync()
@@ -28,21 +32,36 @@ namespace VetClinicManager.Services
                         .ThenInclude(am => am.Medication)
                 .ToListAsync();
 
-            return visits.Select(v => _visitMapper.ToReceptionistDto(v));
+            return _visitMapper.ToReceptionistDtos(visits);
         }
 
-        public async Task<IEnumerable<VisitListVetDto>> GetVisitsForVetAsync(string userId)
+        public async Task<IEnumerable<VisitListVetDto>> GetVisitsForVetAsync(string vetUserId)
         {
             var visits = await _context.Visits
+                .Where(v => v.AssignedVetId == vetUserId)
+                .Include(v => v.Animal)
+                    .ThenInclude(a => a.User)
+                .Include(v => v.AssignedVet)
+                .Include(v => v.Updates)
+                    .ThenInclude(u => u.AnimalMedications)
+                        .ThenInclude(am => am.Medication)
+                .ToListAsync();
+
+            return _visitMapper.ToVetDtos(visits);
+        }
+
+        public async Task<IEnumerable<VisitListUserDto>> GetVisitsForOwnerAnimalsAsync(string ownerUserId)
+        {
+            var visits = await _context.Visits
+                .Where(v => v.Animal.UserId == ownerUserId)
                 .Include(v => v.Animal)
                 .Include(v => v.AssignedVet)
                 .Include(v => v.Updates)
                     .ThenInclude(u => u.AnimalMedications)
                         .ThenInclude(am => am.Medication)
-                .Where(v => v.AssignedVetId == userId)
                 .ToListAsync();
 
-            return visits.Select(v => _visitMapper.ToVetDto(v));
+            return _visitMapper.ToUserDtos(visits);
         }
 
         public async Task<VisitListReceptionistDto> GetVisitDetailsForReceptionistAsync(int id)
@@ -70,8 +89,34 @@ namespace VetClinicManager.Services
 
             return _visitMapper.ToUserDto(visit);
         }
+        
+        public async Task<IEnumerable<SelectListItem>> GetAnimalsSelectListAsync()
+        {
+            return await _context.Animals
+                .AsNoTracking()
+                .OrderBy(a => a.Name)
+                .Select(a => new SelectListItem
+                {
+                    Value = a.Id.ToString(),
+                    Text = $"{a.Name} ({a.Species})"
+                })
+                .ToListAsync();
+        }
 
-        // Pozostałe metody pozostają bez zmian (Create/Update/Delete nie wymagają modyfikacji)
+        public async Task<IEnumerable<SelectListItem>> GetVetsSelectListAsync()
+        {
+            // Zakładamy, że weterynarze to użytkownicy z przypisaną rolą "Vet"
+            // To jest bardziej niezawodne niż sprawdzanie pola `Specialization`.
+            var vets = await _userManager.GetUsersInRoleAsync("Vet");
+
+            return vets
+                .OrderBy(u => u.LastName)
+                .Select(u => new SelectListItem
+                {
+                    Value = u.Id,
+                    Text = $"{u.FirstName} {u.LastName}"
+                });
+        }
         public async Task CreateVisitAsync(VisitCreateDto createVisitDto)
         {
             var visit = _visitMapper.ToEntity(createVisitDto);
@@ -159,10 +204,12 @@ namespace VetClinicManager.Services
 
         private async Task<bool> IsUserVetAsync(string userId)
         {
-            var user = await _context.Users.FindAsync(userId);
-            return await _context.UserRoles.AnyAsync(ur => 
-                ur.UserId == userId && 
-                ur.RoleId == _context.Roles.FirstOrDefault(r => r.Name == "Vet").Id);
+            return await _context.UserRoles
+                .Join(_context.Roles,
+                    ur => ur.RoleId,
+                    r => r.Id,
+                    (ur, r) => new { ur.UserId, RoleName = r.Name })
+                .AnyAsync(x => x.UserId == userId && x.RoleName == "Vet");
         }
     }
 }

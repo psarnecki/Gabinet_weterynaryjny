@@ -1,49 +1,85 @@
-﻿@model IEnumerable<VetClinicManager.DTOs.VisitDTOs.VisitListUserDto>
+﻿@model IEnumerable<VetClinicManager.DTOs.Visits.VisitListUserDto>
 
 @{
-    ViewData["Title"] = "Moje wizyty";
+    ViewData["Title"] = "Moje Wizyty";
 }
 
-<h1>Moje wizyty</h1>
+<div class="container mt-4">
+    <h1>@ViewData["Title"]</h1>
 
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Title)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.CreatedDate)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Status)
-            </th>
-            <th>
-                Zwierzę
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Title)
-            </td>
-            <td>
-                @item.CreatedDate.ToString("dd.MM.yyyy HH:mm")
-            </td>
-            <td>
-                @if (item.Animal != null)
-                {
-                    <span>@item.Animal.Name (@item.Animal.Breed)</span>
-                }
-                else
-                {
-                    <span class="text-muted">Brak danych</span>
-                }
-            </td>
-        </tr>
+    @if (Model == null || !Model.Any())
+    {
+        <div class="alert alert-info mt-3" role="alert">
+            Nie masz jeszcze żadnych zarejestrowanych wizyt.
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Tytuł</th>
+                        <th>Data Utworzenia</th>
+                        <th>Status</th>
+                        <th>Zwierzę</th>
+                        <th>Lekarz</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>
+                                <strong>@Html.DisplayFor(modelItem => item.Title)</strong>
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.CreatedDate) @* Można usunąć dokładną godzine tak aby została sama data *@
+                            </td>
+                            <td>
+                                @{
+                                    string statusBadgeClass = item.Status switch
+                                    {
+                                        VetClinicManager.Models.Enums.VisitStatus.Scheduled => "bg-warning text-dark",
+                                        VetClinicManager.Models.Enums.VisitStatus.Completed => "bg-success",
+                                        VetClinicManager.Models.Enums.VisitStatus.InProgress => "bg-primary",
+                                        VetClinicManager.Models.Enums.VisitStatus.Cancelled => "bg-danger",
+                                        _ => "bg-secondary"
+                                    };
+                                }
+                                <span class="badge @statusBadgeClass">
+                                    @Html.DisplayFor(modelItem => item.Status)
+                                </span>
+                            </td>
+                            <td>
+                                @(item.Animal?.Name) (@(item.Animal?.Species) @(item.Animal?.Breed))
+                            </td>
+                            <td>
+                                @if (item.AssignedVet != null)
+                                {
+                                    <span>@(item.AssignedVet.FirstName) @(item.AssignedVet.LastName)</span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">Nieprzypisany</span>
+                                }
+                            </td>
+                             <td>
+                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info">
+                                    <i class="bi bi-info-circle"></i> Szczegóły
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        // Można dodać dodatkowe skrypty
+    </script>
 }
-    </tbody>
-</table>

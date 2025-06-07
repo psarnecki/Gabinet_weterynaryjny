@@ -2,8 +2,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using VetClinicManager.DTOs.VisitDTOs;
+using VetClinicManager.DTOs.Visits;
 using VetClinicManager.Models;
+using VetClinicManager.Models.Enums;
 using VetClinicManager.Services;
 
 namespace VetClinicManager.Controllers
@@ -22,34 +23,47 @@ namespace VetClinicManager.Controllers
             _userManager = userManager;
         }
 
-        [Authorize(Roles = "Admin,Receptionist,Vet")]
+        [Authorize(Roles = "Admin,Receptionist,Vet,Client")]
         public async Task<IActionResult> Index()
         {
             var currentUser = await _userManager.GetUserAsync(User);
-            var isReceptionist = await _userManager.IsInRoleAsync(currentUser, "Admin") || 
-                                await _userManager.IsInRoleAsync(currentUser, "Receptionist");
-            var isVet = await _userManager.IsInRoleAsync(currentUser, "Vet");
+            var currentUserId = currentUser?.Id;
+
+            if (currentUserId == null) return Unauthorized();
+
+            object visitDtos = null;
+            string viewName = null;
 
             try
             {
-                if (isReceptionist)
+                if (User.IsInRole("Client"))
                 {
-                    var receptionistDtos = await _visitService.GetVisitsForReceptionistAsync();
-                    return View("IndexReceptionist", receptionistDtos);
+                    visitDtos = await _visitService.GetVisitsForOwnerAnimalsAsync(currentUserId);
+                    viewName = "IndexUser";
                 }
-                else if (isVet)
+                else if (User.IsInRole("Admin") || User.IsInRole("Receptionist"))
                 {
-                    var vetDtos = await _visitService.GetVisitsForVetAsync(currentUser.Id);
-                    return View("IndexVet", vetDtos);
+                    visitDtos = await _visitService.GetVisitsForReceptionistAsync();
+                    viewName = "IndexReceptionist";
                 }
+                else if (User.IsInRole("Vet"))
+                {
+                    visitDtos = await _visitService.GetVisitsForVetAsync(currentUserId);
+                    viewName = "IndexVet";
+                }
+                else
+                {
+                    return Forbid();
+                }
+
+                return View(viewName, visitDtos);
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError("", ex.Message);
+                // TODO: Loguj błąd ex
+                ModelState.AddModelError("", "Wystąpił błąd podczas ładowania listy wizyt.");
                 return View("Error");
             }
-
-            return Forbid();
         }
 
         [Authorize(Roles = "Admin,Receptionist,Vet,Client")]
@@ -58,28 +72,41 @@ namespace VetClinicManager.Controllers
             if (id == null) return NotFound();
 
             var currentUser = await _userManager.GetUserAsync(User);
-            var isReceptionist = await _userManager.IsInRoleAsync(currentUser, "Admin") ||
-                                await _userManager.IsInRoleAsync(currentUser, "Receptionist");
-            var isVet = await _userManager.IsInRoleAsync(currentUser, "Vet");
-            var isClient = await _userManager.IsInRoleAsync(currentUser, "Client");
+            var currentUserId = currentUser?.Id;
+
+            if (currentUserId == null) return Unauthorized();
+
+            object dto = null;
+            string viewName = null;
 
             try
             {
-                if (isReceptionist)
+                if (User.IsInRole("Receptionist") || User.IsInRole("Admin"))
                 {
-                    var dto = await _visitService.GetVisitDetailsForReceptionistAsync(id.Value);
-                    return View("DetailsReceptionist", dto);
+                    dto = await _visitService.GetVisitDetailsForReceptionistAsync(id.Value);
+                    viewName = "DetailsReceptionist";
                 }
-                else if (isVet)
+                else if (User.IsInRole("Vet"))
                 {
-                    var vetDto = await _visitService.GetVisitDetailsForVetAsync(id.Value, currentUser.Id);
-                    return View("DetailsVet", vetDto);
+                    dto = await _visitService.GetVisitDetailsForVetAsync(id.Value, currentUserId);
+                    viewName = "DetailsVet";
                 }
-                else if (isClient)
+                else if (User.IsInRole("Client"))
                 {
-                    var userDto = await _visitService.GetVisitDetailsForUserAsync(id.Value, currentUser.Id);
-                    return View("DetailsUser", userDto);
+                    dto = await _visitService.GetVisitDetailsForUserAsync(id.Value, currentUserId);
+                    viewName = "DetailsUser";
                 }
+                else
+                {
+                    return Forbid();
+                }
+
+                if (dto == null)
+                {
+                    return NotFound();
+                }
+
+                return View(viewName, dto);
             }
             catch (KeyNotFoundException)
             {
@@ -91,27 +118,35 @@ namespace VetClinicManager.Controllers
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError("", ex.Message);
+                // TODO: Loguj błąd ex
+                ModelState.AddModelError("", "Wystąpił błąd podczas ładowania szczegółów wizyty.");
                 return View("Error");
             }
-
-            return Forbid();
         }
 
-        [Authorize(Roles = "Admin,Receptionist")]
+        // W pliku VisitsController.cs
+
+        [Authorize(Roles = "Receptionist,Vet")]
         public async Task<IActionResult> Create()
         {
-            try
-            {
-                var vetUsers = await _visitService.GetVetUsersAsync();
-                ViewData["AssignedVetId"] = new SelectList(vetUsers, "Id", "Email");
-                return View(new VisitCreateDto { CreatedDate = DateTime.Now });
-            }
-            catch (Exception ex)
-            {
-                ModelState.AddModelError("", ex.Message);
-                return View("Error");
-            }
+            // 1. Przygotuj listę dla Statusu (z enuma) - robimy to ręcznie
+            ViewBag.Statuses = Enum.GetValues(typeof(VisitStatus))
+                .Cast<VisitStatus>()
+                .Select(e => new SelectListItem { Value = e.ToString(), Text = e.ToString() });
+
+            // 2. Przygotuj listę dla Priorytetu (z enuma) - robimy to ręcznie
+            ViewBag.Priorities = Enum.GetValues(typeof(VisitPriority))
+                .Cast<VisitPriority>()
+                .Select(e => new SelectListItem { Value = e.ToString(), Text = e.ToString() });
+
+            // 3. Przygotuj listę dla Zwierząt (z serwisu)
+            ViewBag.Animals = await _visitService.GetAnimalsSelectListAsync();
+
+            // 4. Przygotuj listę dla Weterynarzy (z serwisu)
+            ViewBag.Vets = await _visitService.GetVetsSelectListAsync();
+
+            // Przekaż pusty model do widoku, aby formularz mógł się poprawnie zainicjować
+            return View(new VisitCreateDto());
         }
 
         [Authorize(Roles = "Admin,Receptionist")]
@@ -122,20 +157,24 @@ namespace VetClinicManager.Controllers
             if (!ModelState.IsValid)
             {
                 var vetUsers = await _visitService.GetVetUsersAsync();
-                ViewData["AssignedVetId"] = new SelectList(vetUsers, "Id", "Email", createVisitDto.AssignedVetId);
+                ViewData["AssignedVetId"] = new SelectList(vetUsers, "Id", "Email", createVisitDto.AssignedVetId); // TODO: Zmień "Email"
+                 // TODO: Załaduj ViewData dla AnimalId jeśli formularz tego wymaga
                 return View(createVisitDto);
             }
 
             try
             {
                 await _visitService.CreateVisitAsync(createVisitDto);
+                // TODO: Komunikat sukcesu (TempData)
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
             {
+                // TODO: Loguj błąd ex
                 ModelState.AddModelError("", ex.Message);
                 var vetUsers = await _visitService.GetVetUsersAsync();
-                ViewData["AssignedVetId"] = new SelectList(vetUsers, "Id", "Email", createVisitDto.AssignedVetId);
+                ViewData["AssignedVetId"] = new SelectList(vetUsers, "Id", "Email", createVisitDto.AssignedVetId); // TODO: Zmień "Email"
+                 // TODO: Załaduj ViewData dla AnimalId jeśli formularz tego wymaga
                 return View(createVisitDto);
             }
         }
@@ -150,8 +189,14 @@ namespace VetClinicManager.Controllers
                 var currentUser = await _userManager.GetUserAsync(User);
                 var visitEditDto = await _visitService.GetVisitForEditAsync(id.Value, currentUser.Id);
 
+                if (visitEditDto == null)
+                {
+                    return NotFound();
+                }
+
                 var vetUsers = await _visitService.GetVetUsersAsync();
-                ViewData["AssignedVetId"] = new SelectList(vetUsers, "Id", "Email", visitEditDto.AssignedVetId);
+                ViewData["AssignedVetId"] = new SelectList(vetUsers, "Id", "Email", visitEditDto.AssignedVetId); // TODO: Zmień "Email"
+                 // TODO: Załaduj ViewData dla AnimalId jeśli jest edytowalne
                 return View(visitEditDto);
             }
             catch (KeyNotFoundException)
@@ -164,7 +209,8 @@ namespace VetClinicManager.Controllers
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError("", ex.Message);
+                // TODO: Loguj błąd ex
+                ModelState.AddModelError("", "Wystąpił błąd podczas ładowania danych do edycji wizyty.");
                 return View("Error");
             }
         }
@@ -179,7 +225,8 @@ namespace VetClinicManager.Controllers
             if (!ModelState.IsValid)
             {
                 var vetUsers = await _visitService.GetVetUsersAsync();
-                ViewData["AssignedVetId"] = new SelectList(vetUsers, "Id", "Email", visitEditDto.AssignedVetId);
+                ViewData["AssignedVetId"] = new SelectList(vetUsers, "Id", "Email", visitEditDto.AssignedVetId); // TODO: Zmień "Email"
+                 // TODO: Załaduj ViewData dla AnimalId jeśli jest edytowalne
                 return View(visitEditDto);
             }
 
@@ -187,7 +234,9 @@ namespace VetClinicManager.Controllers
             {
                 var currentUser = await _userManager.GetUserAsync(User);
                 var isVet = await _userManager.IsInRoleAsync(currentUser, "Vet");
+
                 await _visitService.UpdateVisitAsync(id, visitEditDto, currentUser.Id, isVet);
+                 // TODO: Komunikat sukcesu (TempData)
                 return RedirectToAction(nameof(Index));
             }
             catch (KeyNotFoundException)
@@ -200,14 +249,16 @@ namespace VetClinicManager.Controllers
             }
             catch (Exception ex)
             {
+                // TODO: Loguj błąd ex
                 ModelState.AddModelError("", ex.Message);
                 var vetUsers = await _visitService.GetVetUsersAsync();
-                ViewData["AssignedVetId"] = new SelectList(vetUsers, "Id", "Email", visitEditDto.AssignedVetId);
+                ViewData["AssignedVetId"] = new SelectList(vetUsers, "Id", "Email", visitEditDto.AssignedVetId); // TODO: Zmień "Email"
+                 // TODO: Załaduj ViewData dla AnimalId jeśli jest edytowalne
                 return View(visitEditDto);
             }
         }
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, Receptionist")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null) return NotFound();
@@ -215,6 +266,9 @@ namespace VetClinicManager.Controllers
             try
             {
                 var dto = await _visitService.GetVisitDetailsForReceptionistAsync(id.Value);
+                if (dto == null) return NotFound();
+
+                // TODO: Zwróć widok dedykowany do potwierdzenia usunięcia (np. DeleteConfirm.cshtml)
                 return View(dto);
             }
             catch (KeyNotFoundException)
@@ -223,12 +277,13 @@ namespace VetClinicManager.Controllers
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError("", ex.Message);
+                // TODO: Loguj błąd ex
+                ModelState.AddModelError("", "Wystąpił błąd podczas ładowania danych do usunięcia.");
                 return View("Error");
             }
         }
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, Receptionist")]
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
@@ -236,6 +291,7 @@ namespace VetClinicManager.Controllers
             try
             {
                 await _visitService.DeleteVisitAsync(id);
+                // TODO: Komunikat sukcesu (TempData)
                 return RedirectToAction(nameof(Index));
             }
             catch (KeyNotFoundException)
@@ -244,9 +300,12 @@ namespace VetClinicManager.Controllers
             }
             catch (Exception ex)
             {
+                // TODO: Loguj błąd ex
                 ModelState.AddModelError("", ex.Message);
-                return View("Error");
+                return RedirectToAction(nameof(Index), new { error = ex.Message });
             }
         }
+         // TODO: Przenieś helpery jak GetVetUsersAsync do dedykowanego serwisu użytkowników (IUserService)
+         // TODO: Dodaj helper do wyświetlania błędów z ModelState w widokach, jeśli nie masz globalnej obsługi błędów
     }
 }

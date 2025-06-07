@@ -1,4 +1,4 @@
-﻿using VetClinicManager.DTOs.VisitUpdateDTOs;
+﻿using VetClinicManager.DTOs.VisitUpdates;
 using VetClinicManager.Models;
 
 namespace VetClinicManager.Interfaces;

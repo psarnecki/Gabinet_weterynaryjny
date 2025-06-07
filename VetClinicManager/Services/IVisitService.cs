@@ -1,4 +1,5 @@
-﻿using VetClinicManager.DTOs.VisitDTOs;
+﻿using Microsoft.AspNetCore.Mvc.Rendering;
+using VetClinicManager.DTOs.Visits;
 using VetClinicManager.Models;
 
 namespace VetClinicManager.Services
@@ -7,6 +8,7 @@ namespace VetClinicManager.Services
     {
         Task<IEnumerable<VisitListReceptionistDto>> GetVisitsForReceptionistAsync();
         Task<IEnumerable<VisitListVetDto>> GetVisitsForVetAsync(string userId);
+        Task<IEnumerable<VisitListUserDto>> GetVisitsForOwnerAnimalsAsync(string ownerUserId);
         Task<VisitListReceptionistDto> GetVisitDetailsForReceptionistAsync(int id);
         Task<VisitListVetDto> GetVisitDetailsForVetAsync(int id, string userId);
         Task<VisitListUserDto> GetVisitDetailsForUserAsync(int id, string userId);
@@ -15,5 +17,8 @@ namespace VetClinicManager.Services
         Task DeleteVisitAsync(int id);
         Task<VisitEditDto> GetVisitForEditAsync(int id, string currentUserId);
         Task<IEnumerable<User>> GetVetUsersAsync();
+        Task<IEnumerable<SelectListItem>> GetAnimalsSelectListAsync();
+        Task<IEnumerable<SelectListItem>> GetVetsSelectListAsync();
+        
     }
 }

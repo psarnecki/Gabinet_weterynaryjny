@@ -1,59 +1,107 @@
-﻿@model IEnumerable<VetClinicManager.DTOs.VisitDTOs.VisitListVetDto>
+﻿@model IEnumerable<VetClinicManager.DTOs.Visits.VisitListVetDto>
 
 @{
-    ViewData["Title"] = "Moje Wizyty";
+    ViewData["Title"] = "Moje Wizyty (Weterynarz)";
 }
 
-<h1>Moje Wizyty</h1>
+<div class="container mt-4">
+    <h1>@ViewData["Title"]</h1>
 
-<table class="table">
-    <thead>
-    <tr>
-        <th>
-            @Html.DisplayNameFor(model => model.Title)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.Animal)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.Status)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.Priority)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.CreatedDate)
-        </th>
-        <th>Akcje</th>
-    </tr>
-    </thead>
-    <tbody>
-    @foreach (var item in Model)
+    @if (Model == null || !Model.Any())
     {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Title)
-            </td>
-            <td>
-                @if (item.Animal != null)
-                {
-                    <span>@item.Animal.Name (@item.Animal.Breed)</span>
-                }
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Status)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Priority)
-            </td>
-            <td>
-                @item.CreatedDate.ToString("g")
-            </td>
-            <td>
-                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-info btn-sm">Szczegóły</a>
-                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-warning btn-sm">Edytuj</a>
-            </td>
-        </tr>
+        <div class="alert alert-info mt-3" role="alert">
+            Nie masz żadnych wizyt przypisanych do Ciebie.
+        </div>
     }
-    </tbody>
-</table>
+    else
+    {
+        <div class="table-responsive"> 
+            <table class="table table-striped table-hover"> 
+                <thead class="table-dark"> 
+                    <tr>
+                        <th>Tytuł</th>
+                        <th>Opis</th>
+                        <th>Data Utworzenia</th>
+                        <th>Status</th> 
+                        <th>Priorytet</th>
+                        <th>Zwierzę</th>
+                        <th>Właściciel</th>
+                        <th></th> 
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>
+                                <strong>@Html.DisplayFor(modelItem => item.Title)</strong>
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.Description)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.CreatedDate.Date) @* Można usunąć dokładną godzine tak aby została sama data *@
+                            </td>
+                            <td>
+                                @{
+                                    string statusBadgeClass = item.Status switch
+                                    {
+                                        VetClinicManager.Models.Enums.VisitStatus.Scheduled => "bg-warning text-dark",
+                                        VetClinicManager.Models.Enums.VisitStatus.Completed => "bg-success",
+                                        VetClinicManager.Models.Enums.VisitStatus.InProgress => "bg-primary",
+                                        VetClinicManager.Models.Enums.VisitStatus.Cancelled => "bg-danger",
+                                        _ => "bg-secondary"
+                                    };
+                                }
+                                <span class="badge @statusBadgeClass">
+                                    @Html.DisplayFor(modelItem => item.Status)
+                                </span>
+                            </td>
+                             <td>
+                                @{
+                                    string priorityBadgeClass = item.Priority switch
+                                    {
+                                        VetClinicManager.Models.Enums.VisitPriority.Critical => "bg-danger",
+                                        VetClinicManager.Models.Enums.VisitPriority.Urgent => "bg-warning text-dark",
+                                        VetClinicManager.Models.Enums.VisitPriority.Normal => "bg-info",
+                                        _ => "bg-secondary"
+                                    };
+                                }
+                                <span class="badge @priorityBadgeClass">
+                                    @Html.DisplayFor(modelItem => item.Priority)
+                                </span>
+                            </td>
+                            <td>
+                                @(item.Animal?.Name) (@(item.Animal?.Species) @(item.Animal?.Breed))
+                            </td>
+                            <td>
+                                @if (item.Owner != null)
+                                {
+                                    <span>@(item.Owner.FirstName) @(item.Owner.LastName)</span>
+                                }
+                                else
+                                {
+                                     <span class="text-muted">Brak właściciela</span>
+                                }
+                            </td>
+                             <td>
+                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info" title="Szczegóły wizyty">
+                                    <i class="bi bi-info-circle"></i> Szczegóły
+                                 </a>
+                                 <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-primary ms-1" title="Edytuj wizytę"> 
+                                     <i class="bi bi-pencil"></i> Edytuj
+                                 </a>
+                             </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        // Można dodać dodatkowe skrypty
+    </script>
+}

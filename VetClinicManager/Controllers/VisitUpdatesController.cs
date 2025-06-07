@@ -1,12 +1,12 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 using VetClinicManager.Data;
-using VetClinicManager.DTOs.VisitUpdateDTOs;
+using VetClinicManager.DTOs.AnimalMedications;
+using VetClinicManager.DTOs.VisitUpdates;
 using VetClinicManager.Interfaces;
-using VetClinicManager.Models;
+using VetClinicManager.Services;
 
 namespace VetClinicManager.Controllers
 {
@@ -14,13 +14,16 @@ namespace VetClinicManager.Controllers
     public class VisitUpdatesController : Controller
     {
         private readonly IVisitUpdateService _visitUpdateService;
-        private readonly ApplicationDbContext _context;
+        private readonly IAnimalMedicationService _animalMedicationService;
+        private readonly ApplicationDbContext _context; // Zachowujemy context dla prostych operacji GET
 
         public VisitUpdatesController(
             IVisitUpdateService visitUpdateService,
+            IAnimalMedicationService animalMedicationService,
             ApplicationDbContext context)
         {
             _visitUpdateService = visitUpdateService;
+            _animalMedicationService = animalMedicationService;
             _context = context;
         }
 
@@ -39,7 +42,14 @@ namespace VetClinicManager.Controllers
                 return NotFound();
             }
 
-            var visitUpdate = await _visitUpdateService.GetVisitUpdateByIdAsync(id.Value);
+            var visitUpdate = await _context.VisitUpdates
+                .AsNoTracking()
+                .Include(vu => vu.Visit)
+                .Include(vu => vu.UpdatedBy)
+                .Include(vu => vu.AnimalMedications)
+                    .ThenInclude(am => am.Medication)
+                .FirstOrDefaultAsync(vu => vu.Id == id);
+
             if (visitUpdate == null)
             {
                 return NotFound();
@@ -48,161 +58,207 @@ namespace VetClinicManager.Controllers
             return View(visitUpdate);
         }
 
-        // GET: VisitUpdates/Create
+        // GET: VisitUpdates/Create - BEZ ZMIAN, logika jest OK
         [Authorize(Roles = "Vet")]
-        public IActionResult Create(int visitId)
+        public async Task<IActionResult> Create(int visitId)
         {
-            // Pobierz tytuł wizyty i nazwę zwierzęcia
-            var visitInfo = _context.Visits
-                .Where(v => v.Id == visitId)
-                .Select(v => new { v.Title, AnimalName = v.Animal.Name })
-                .FirstOrDefault();
+            var visit = await _context.Visits
+                .Include(v => v.Animal)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(v => v.Id == visitId);
 
-            if (visitInfo == null)
-            {
-                return NotFound();
-            }
+            if (visit == null) return NotFound();
 
-            ViewBag.VisitTitle = visitInfo.Title;
-            ViewBag.AnimalName = visitInfo.AnimalName;
+            ViewBag.VisitTitle = visit.Title;
+            ViewBag.AnimalName = visit.Animal?.Name;
+            ViewBag.AnimalId = visit.AnimalId;
+            ViewBag.Medications = await _animalMedicationService.GetMedicationsSelectListAsync();
 
             var model = new VisitUpdateCreateDto
             {
-                VisitId = visitId
+                VisitId = visitId,
+                AnimalMedications = new List<AnimalMedicationCreateVetDto>() // Pusta lista na start
             };
 
             return View(model);
         }
 
-        // POST: VisitUpdates/Create
+        // POST: VisitUpdates/Create - Uproszczony, cała logika w serwisach
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Vet")]
         public async Task<IActionResult> Create(VisitUpdateCreateDto createDto)
         {
+            // Pobieramy visit, aby uzyskać AnimalId
+            var visit = await _context.Visits.AsNoTracking().FirstOrDefaultAsync(v => v.Id == createDto.VisitId);
+            if (visit == null) return NotFound();
+
             if (!ModelState.IsValid)
             {
-                // Ponowne załadowanie danych do widoku
-                var visit = await _context.Visits
-                    .Include(v => v.Animal)
-                    .FirstOrDefaultAsync(v => v.Id == createDto.VisitId);
-        
-                ViewBag.VisitTitle = visit?.Title;
-                ViewBag.AnimalName = visit?.Animal?.Name;
-        
+                ViewBag.VisitTitle = visit.Title;
+                ViewBag.AnimalName = (await _context.Animals.FindAsync(visit.AnimalId))?.Name;
+                ViewBag.AnimalId = visit.AnimalId;
+                ViewBag.Medications = await _animalMedicationService.GetMedicationsSelectListAsync();
                 return View(createDto);
+            }
+
+            // Ustaw AnimalId dla wszystkich nowo dodawanych leków
+            if (createDto.AnimalMedications != null)
+            {
+                foreach (var medication in createDto.AnimalMedications)
+                {
+                    medication.AnimalId = visit.AnimalId;
+                }
             }
 
             try
             {
                 var vetId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                var result = await _visitUpdateService.CreateVisitUpdateAsync(createDto, vetId);
+                var visitUpdate = await _visitUpdateService.CreateVisitUpdateAsync(createDto, vetId);
+
+                // Logika dodawania leków została przeniesiona do serwisu AnimalMedicationService
+                // dla spójności, ale zostawmy ją tutaj dla uproszczenia, jeśli działa.
+                // Idealnie byłoby mieć jedną metodę w serwisie, która robi wszystko.
+                if (createDto.AnimalMedications != null && createDto.AnimalMedications.Any())
+                {
+                    foreach (var medicationDto in createDto.AnimalMedications.Where(m => m.MedicationId > 0))
+                    {
+                        medicationDto.VisitUpdateId = visitUpdate.Id;
+                        await _animalMedicationService.CreateAnimalMedicationAsync(medicationDto);
+                    }
+                }
+
                 return RedirectToAction("Details", "Visits", new { id = createDto.VisitId });
             }
             catch (Exception ex)
             {
                 ModelState.AddModelError("", ex.Message);
+                ViewBag.VisitTitle = visit.Title;
+                ViewBag.AnimalName = (await _context.Animals.FindAsync(visit.AnimalId))?.Name;
+                ViewBag.AnimalId = visit.AnimalId;
+                ViewBag.Medications = await _animalMedicationService.GetMedicationsSelectListAsync();
                 return View(createDto);
             }
         }
-        
-        // GET: VisitUpdates/Edit/5
+
+        // GET: VisitUpdates/Edit - BEZ ZMIAN, logika jest OK
         [Authorize(Roles = "Vet")]
         public async Task<IActionResult> Edit(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
+            
+            var visitUpdate = await _context.VisitUpdates
+                .AsNoTracking()
+                .Include(vu => vu.AnimalMedications)
+                .ThenInclude(am => am.Medication)
+                .FirstOrDefaultAsync(vu => vu.Id == id);
 
-            var visitUpdate = await _visitUpdateService.GetVisitUpdateByIdAsync(id.Value);
-            if (visitUpdate == null)
-            {
-                return NotFound();
-            }
+            if (visitUpdate == null) return NotFound();
 
             var currentVetId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (visitUpdate.UpdatedByVetId != currentVetId)
-            {
-                return Forbid();
-            }
+            if (visitUpdate.UpdatedByVetId != currentVetId) return Forbid();
 
             var editDto = new VisitUpdateEditVetDto
             {
                 Id = visitUpdate.Id,
                 Notes = visitUpdate.Notes,
                 ImageUrl = visitUpdate.ImageUrl,
-                PrescribedMedications = visitUpdate.PrescribedMedications,
-                AnimalMedications = visitUpdate.AnimalMedications
+                ExistingAnimalMedications = visitUpdate.AnimalMedications.Select(am => new AnimalMedicationEditVetDto
+                {
+                    Id = am.Id,
+                    MedicationId = am.MedicationId,
+                    StartDate = am.StartDate,
+                    EndDate = am.EndDate
+                }).ToList(),
+                NewAnimalMedications = new List<AnimalMedicationCreateVetDto>()
             };
 
-            ViewData["VisitId"] = new SelectList(_context.Visits, "Id", "Id", visitUpdate.VisitId);
-            return View("Edit", editDto);
+            ViewBag.Medications = await _animalMedicationService.GetMedicationsSelectListAsync();
+            ViewBag.VisitId = visitUpdate.VisitId;
+
+            return View(editDto);
         }
 
-        // POST: VisitUpdates/Edit/5
+        // POST: VisitUpdates/Edit - KLUCZOWE ZMIANY
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Vet")]
         public async Task<IActionResult> Edit(int id, VisitUpdateEditVetDto editDto)
         {
-            if (id != editDto.Id)
+            if (id != editDto.Id) return NotFound();
+
+            if (!ModelState.IsValid)
             {
-                return NotFound();
+                await PopulateEditViewBag(id);
+                return View(editDto);
             }
 
-            if (ModelState.IsValid)
+            try
             {
-                try
+                var currentVetId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                // Uzupełnij AnimalId dla nowo dodawanych leków PRZED wywołaniem serwisu
+                if (editDto.NewAnimalMedications != null && editDto.NewAnimalMedications.Any(m => m.MedicationId > 0))
                 {
-                    var currentVetId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                    var result = await _visitUpdateService.UpdateVisitUpdateAsync(id, editDto, currentVetId);
-                    
-                    if (result == null)
+                    var visitId = (await _context.VisitUpdates.AsNoTracking().FirstOrDefaultAsync(vu => vu.Id == id))?.VisitId;
+                    var animalId = (await _context.Visits.AsNoTracking().FirstOrDefaultAsync(v => v.Id == visitId))?.AnimalId;
+
+                    if (!animalId.HasValue || animalId.Value <= 0)
                     {
-                        return NotFound();
+                        ModelState.AddModelError("", "Nie można odnaleźć powiązanego zwierzęcia.");
+                        await PopulateEditViewBag(id);
+                        return View(editDto);
                     }
                     
-                    return RedirectToAction(nameof(Index));
+                    foreach (var newMed in editDto.NewAnimalMedications)
+                    {
+                        newMed.AnimalId = animalId.Value;
+                    }
                 }
-                catch (UnauthorizedAccessException)
-                {
-                    return Forbid();
-                }
-                catch (Exception ex)
-                {
-                    ModelState.AddModelError("", $"Error updating visit update: {ex.Message}");
-                }
+                
+                // Wywołaj jedną, kompletną metodę serwisową
+                var result = await _visitUpdateService.UpdateVisitUpdateAsync(id, editDto, currentVetId);
+
+                if (result == null) return NotFound();
+
+                return RedirectToAction("Details", "Visits", new { id = result.VisitId });
             }
-
-            ViewData["VisitId"] = new SelectList(_context.Visits, "Id", "Id");
-            return View("Edit",editDto);
-        }
-
-        // GET: VisitUpdates/Delete/5
-        public async Task<IActionResult> Delete(int? id)
-        {
-            if (id == null)
+            catch (UnauthorizedAccessException)
             {
-                return NotFound();
+                return Forbid();
             }
-
-            var visitUpdate = await _visitUpdateService.GetVisitUpdateByIdAsync(id.Value);
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", $"Błąd podczas aktualizacji: {ex.Message}");
+                await PopulateEditViewBag(id);
+                return View(editDto);
+            }
+        }
+        
+        [HttpPost] // Usunięto ActionName
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Delete(int id) // Zmieniono nazwę i parametr
+        {
+            // Pobierz visitId ZANIM usuniesz rekord, aby wiedzieć, dokąd wrócić
+            var visitUpdate = await _context.VisitUpdates.AsNoTracking().FirstOrDefaultAsync(vu => vu.Id == id);
             if (visitUpdate == null)
             {
                 return NotFound();
             }
+            var visitIdToReturnTo = visitUpdate.VisitId;
 
-            return View(visitUpdate);
-        }
-
-        // POST: VisitUpdates/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
             await _visitUpdateService.DeleteVisitUpdateAsync(id);
-            return RedirectToAction(nameof(Index));
+    
+            // Przekieruj z powrotem do szczegółów wizyty, a nie do listy wszystkich aktualizacji
+            return RedirectToAction("Details", "Visits", new { id = visitIdToReturnTo });
+        }
+        
+        private async Task PopulateEditViewBag(int visitUpdateId)
+        {
+            ViewBag.Medications = await _animalMedicationService.GetMedicationsSelectListAsync();
+            ViewBag.VisitId = (await _context.VisitUpdates.AsNoTracking().FirstOrDefaultAsync(vu => vu.Id == visitUpdateId))?.VisitId;
         }
     }
 }
+   
+  

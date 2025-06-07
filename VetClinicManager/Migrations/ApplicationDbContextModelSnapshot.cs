@@ -431,10 +431,6 @@ namespace VetClinicManager.Migrations
                         .HasMaxLength(5000)
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("PrescribedMedications")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
                     b.Property<DateTime>("UpdateDate")
                         .HasColumnType("datetime2");
 
@@ -531,8 +527,7 @@ namespace VetClinicManager.Migrations
 
                     b.HasOne("VetClinicManager.Models.VisitUpdate", "VisitUpdate")
                         .WithMany("AnimalMedications")
-                        .HasForeignKey("VisitUpdateId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .HasForeignKey("VisitUpdateId");
 
                     b.Navigation("Animal");
 
@@ -575,13 +570,13 @@ namespace VetClinicManager.Migrations
                     b.HasOne("VetClinicManager.Models.User", "UpdatedBy")
                         .WithMany()
                         .HasForeignKey("UpdatedByVetId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("VetClinicManager.Models.Visit", "Visit")
                         .WithMany("Updates")
                         .HasForeignKey("VisitId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("UpdatedBy");
