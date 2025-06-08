@@ -22,15 +22,8 @@
                 <ul class="navbar-nav flex-grow-1">
                     
                     <li class="nav-item">
-                        <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                        <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Strona domowa</a>
                     </li>
-
-                    @if (User.IsInRole("Admin"))
-                    {
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="Admin" asp-controller="Users" asp-action="Index">Admin Panel</a>
-                        </li>
-                    }
                     
                     @if (User.Identity != null && User.Identity.IsAuthenticated)
                     {
@@ -49,7 +42,14 @@
                     @if (User.IsInRole("Admin") || User.IsInRole("Receptionist") || User.IsInRole("Vet"))
                     {
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Medications" asp-action="Index">Leki</a>
+                            <a class="nav-link text-dark" asp-area="Admin" asp-controller="Medications" asp-action="Index">Leki</a>
+                        </li>
+                    }
+                    
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="Admin" asp-controller="Users" asp-action="Index">Admin Panel</a>
                         </li>
                     }
                     

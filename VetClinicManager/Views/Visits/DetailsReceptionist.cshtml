@@ -2,7 +2,6 @@
 @model VetClinicManager.DTOs.Visits.VisitListReceptionistDto
 
 @functions {
-    // Funkcja pomocnicza do pobierania polskich nazw z atrybutów [Display]
     public string GetEnumDisplayName(Enum enumValue)
     {
         return enumValue.GetType()
@@ -129,9 +128,7 @@
                             <td>
                                 @if (!string.IsNullOrEmpty(update.ImageUrl))
                                 {
-                                    <a href="@update.ImageUrl" target="_blank" class="btn btn-sm btn-outline-primary">
-                                        <i class="bi bi-image"></i> Zobacz
-                                    </a>
+                                    <a href="@update.ImageUrl" target="_blank" class="btn btn-sm btn-outline-primary">Zobacz</a>
                                 }
                             </td>
                         </tr>

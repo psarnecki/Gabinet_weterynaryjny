@@ -28,8 +28,4 @@
         <PackageReference Include="Riok.Mapperly" Version="4.3.0-next.0" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="wwwroot\uploads\" />
-    </ItemGroup>
-
 </Project>

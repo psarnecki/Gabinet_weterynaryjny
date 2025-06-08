@@ -10,7 +10,7 @@
     <hr />
 
     <div class="alert alert-danger" role="alert">
-        <h4 class="alert-heading"><i class="bi bi-exclamation-triangle-fill"></i> Potwierdzenie</h4>
+        <h4 class="alert-heading">Potwierdzenie</h4>
         <p>Czy na pewno chcesz trwale usunąć tę aktualizację? <strong>Tej operacji nie można cofnąć.</strong></p>
     </div>
 
@@ -41,9 +41,7 @@
         <input type="hidden" asp-for="Id" />
         <input type="hidden" asp-for="VisitId" />
         
-        <button type="submit" class="btn btn-danger">
-            <i class="bi bi-trash"></i> Tak, usuń
-        </button>
+        <button type="submit" class="btn btn-danger">Tak, usuń</button>
         <a asp-controller="Visits" asp-action="Details" asp-route-id="@Model.VisitId" class="btn btn-outline-secondary ms-2">Anuluj</a>
     </form>
 </div>

@@ -168,9 +168,7 @@
     <div class="mt-4">
         @if (Model.HealthRecordId.HasValue)
         {
-            <a asp-controller="HealthRecords" asp-action="Details" asp-route-id="@Model.HealthRecordId" class="btn btn-info">
-                <i class="bi bi-file-earmark-medical"></i> Zobacz Kartę Zdrowia
-            </a>
+            <a asp-controller="HealthRecords" asp-action="Details" asp-route-id="@Model.HealthRecordId" class="btn btn-info">Zobacz Kartę Zdrowia</a>
         }
 
         <a asp-action="Index" class="btn btn-outline-secondary ms-2">Powrót do Listy Zwierząt</a>
