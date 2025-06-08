@@ -5,6 +5,7 @@ using VetClinicManager.Data;
 using VetClinicManager.DTOs.Visits;
 using VetClinicManager.Mappers;
 using VetClinicManager.Models;
+using QuestPDF.Fluent;
 
 namespace VetClinicManager.Services;
 
@@ -132,4 +133,52 @@ public class VisitService : IVisitService
     {
         return await _userManager.GetUsersInRoleAsync("Vet");
     }
+    
+       public async Task<byte[]?> GeneratePdfReportAsync(int visitId, string userId, IEnumerable<string> userRoles)
+        {
+            VisitReportDto? reportDto = null;
+            
+            if (userRoles.Contains("Admin") || userRoles.Contains("Receptionist"))
+            {
+                var visitData = await GetDetailsForReceptionistAsync(visitId);
+                if (visitData == null) return null;
+                reportDto = new VisitReportDto
+                {
+                    Title = visitData.Title, Description = visitData.Description, CreatedDate = visitData.CreatedDate,
+                    Status = visitData.Status, Priority = visitData.Priority, Animal = visitData.Animal,
+                    Owner = visitData.Owner, AssignedVet = visitData.AssignedVet, Updates = visitData.Updates
+                };
+            }
+            else if (userRoles.Contains("Vet"))
+            {
+                var visitData = await GetDetailsForVetAsync(visitId, userId);
+                if (visitData == null) return null;
+                reportDto = new VisitReportDto
+                {
+                    Title = visitData.Title, Description = visitData.Description, CreatedDate = visitData.CreatedDate,
+                    Status = visitData.Status, Priority = visitData.Priority, Animal = visitData.Animal,
+                    Owner = visitData.Owner, Updates = visitData.Updates
+                };
+            }
+            else if (userRoles.Contains("Client"))
+            {
+                var visitData = await GetDetailsForUserAsync(visitId, userId);
+                if (visitData == null) return null;
+                reportDto = new VisitReportDto
+                {
+                    Title = visitData.Title, Description = visitData.Description, CreatedDate = visitData.CreatedDate,
+                    Status = visitData.Status, Animal = visitData.Animal, AssignedVet = visitData.AssignedVet, 
+                    Updates = visitData.Updates
+                };
+            }
+
+            if (reportDto == null)
+            {
+                return null;
+            }
+
+            QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
+            var reportDocument = new VisitPdfReport(reportDto);
+            return reportDocument.GeneratePdf();
+        }
 }
