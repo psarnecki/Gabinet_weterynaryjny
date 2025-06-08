@@ -1,9 +1,8 @@
-using System.Reflection;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using VetClinicManager.DTOs.Users.UserBriefs;
+using System.Reflection;
 using VetClinicManager.DTOs.Visits;
 using VetClinicManager.Models;
 using VetClinicManager.Models.Enums;
@@ -17,331 +16,207 @@ namespace VetClinicManager.Controllers
         private readonly IVisitService _visitService;
         private readonly UserManager<User> _userManager;
 
-        public VisitsController(
-            IVisitService visitService,
-            UserManager<User> userManager)
+        public VisitsController(IVisitService visitService, UserManager<User> userManager)
         {
             _visitService = visitService;
             _userManager = userManager;
         }
 
-        [Authorize(Roles = "Admin,Receptionist,Vet,Client")]
         public async Task<IActionResult> Index()
         {
             var currentUser = await _userManager.GetUserAsync(User);
-            var currentUserId = currentUser?.Id;
+            if (currentUser == null) return Unauthorized();
 
-            if (currentUserId == null) return Unauthorized();
+            object visitDtos;
+            string viewName;
 
-            object visitDtos = null;
-            string viewName = null;
-
-            try
+            if (User.IsInRole("Client"))
             {
-                if (User.IsInRole("Client"))
-                {
-                    visitDtos = await _visitService.GetVisitsForOwnerAnimalsAsync(currentUserId);
-                    viewName = "IndexUser";
-                }
-                else if (User.IsInRole("Admin") || User.IsInRole("Receptionist"))
-                {
-                    visitDtos = await _visitService.GetVisitsForReceptionistAsync();
-                    viewName = "IndexReceptionist";
-                }
-                else if (User.IsInRole("Vet"))
-                {
-                    visitDtos = await _visitService.GetVisitsForVetAsync(currentUserId);
-                    viewName = "IndexVet";
-                }
-                else
-                {
-                    return Forbid();
-                }
-
-                return View(viewName, visitDtos);
+                visitDtos = await _visitService.GetVisitsForOwnerAsync(currentUser.Id);
+                viewName = "IndexUser";
             }
-            catch (Exception ex)
+            else if (User.IsInRole("Vet"))
             {
-                // TODO: Loguj błąd ex
-                ModelState.AddModelError("", "Wystąpił błąd podczas ładowania listy wizyt.");
-                return View("Error");
+                visitDtos = await _visitService.GetVisitsForVetAsync(currentUser.Id);
+                viewName = "IndexVet";
             }
+            else
+            {
+                visitDtos = await _visitService.GetVisitsForReceptionistAsync();
+                viewName = "IndexReceptionist";
+            }
+            
+            return View(viewName, visitDtos);
         }
 
-        [Authorize(Roles = "Admin,Receptionist,Vet,Client")]
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null) return NotFound();
-
             var currentUser = await _userManager.GetUserAsync(User);
-            var currentUserId = currentUser?.Id;
-
-            if (currentUserId == null) return Unauthorized();
-
-            object dto = null;
-            string viewName = null;
+            if (currentUser == null) return Unauthorized();
 
             try
             {
-                if (User.IsInRole("Receptionist") || User.IsInRole("Admin"))
+                object? dto;
+                string viewName;
+
+                if (User.IsInRole("Client"))
                 {
-                    dto = await _visitService.GetVisitDetailsForReceptionistAsync(id.Value);
-                    viewName = "DetailsReceptionist";
+                    dto = await _visitService.GetDetailsForUserAsync(id.Value, currentUser.Id);
+                    viewName = "DetailsUser";
                 }
                 else if (User.IsInRole("Vet"))
                 {
-                    dto = await _visitService.GetVisitDetailsForVetAsync(id.Value, currentUserId);
+                    dto = await _visitService.GetDetailsForVetAsync(id.Value, currentUser.Id);
                     viewName = "DetailsVet";
-                }
-                else if (User.IsInRole("Client"))
-                {
-                    dto = await _visitService.GetVisitDetailsForUserAsync(id.Value, currentUserId);
-                    viewName = "DetailsUser";
                 }
                 else
                 {
-                    return Forbid();
+                    dto = await _visitService.GetDetailsForReceptionistAsync(id.Value);
+                    viewName = "DetailsReceptionist";
                 }
 
-                if (dto == null)
-                {
-                    return NotFound();
-                }
-
+                if (dto == null) return NotFound();
                 return View(viewName, dto);
             }
-            catch (KeyNotFoundException)
-            {
-                return NotFound();
-            }
-            catch (UnauthorizedAccessException)
-            {
-                return Forbid();
-            }
-            catch (Exception ex)
-            {
-                // TODO: Loguj błąd ex
-                ModelState.AddModelError("", "Wystąpił błąd podczas ładowania szczegółów wizyty.");
-                return View("Error");
-            }
+            catch (UnauthorizedAccessException) { return Forbid(); }
+            catch (KeyNotFoundException) { return NotFound(); }
         }
 
         [Authorize(Roles = "Admin,Receptionist,Vet")]
         public async Task<IActionResult> Create()
         {
-            // 1. Przygotuj listę dla Statusu (z enuma) - robimy to ręcznie
-            ViewBag.Statuses = Enum.GetValues(typeof(VisitStatus))
-                .Cast<VisitStatus>()
-                .Select(e => new SelectListItem { 
-                    Value = e.ToString(), 
-                    Text = e.GetType().GetMember(e.ToString()).First().GetCustomAttribute<System.ComponentModel.DataAnnotations.DisplayAttribute>()?.GetName() ?? e.ToString()
-                });
-
-            // 2. Przygotuj listę dla Priorytetu (z enuma) - robimy to ręcznie
-            ViewBag.Priorities = Enum.GetValues(typeof(VisitPriority))
-                .Cast<VisitPriority>()
-                .Select(e => new SelectListItem { 
-                    Value = e.ToString(), 
-                    Text = e.GetType().GetMember(e.ToString()).First().GetCustomAttribute<System.ComponentModel.DataAnnotations.DisplayAttribute>()?.GetName() ?? e.ToString()
-                });
-
-            // 3. Przygotuj listę dla Zwierząt (z serwisu)
-            ViewBag.Animals = await _visitService.GetAnimalsSelectListAsync();
-
-            // 4. Przygotuj listę dla Weterynarzy (z serwisu)
-            var vetUsers = await _visitService.GetVetUsersAsync();
-            
-            var vetSelectListItems = vetUsers.Select(v => new
-            {
-                Id = v.Id,
-                FullName = $"{v.FirstName} {v.LastName}".Trim()
-            }).ToList();
-            
-            ViewBag.Vets = new SelectList(vetSelectListItems, "Id", "FullName");
-
-            // Przekaż pusty model do widoku, aby formularz mógł się poprawnie zainicjować
+            await PrepareViewBagForCreate();
             return View(new VisitCreateDto());
         }
 
-        [Authorize(Roles = "Admin,Receptionist")]
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin,Receptionist")]
         public async Task<IActionResult> Create(VisitCreateDto createVisitDto)
         {
             if (!ModelState.IsValid)
             {
-                var vetUsers = await _visitService.GetVetUsersAsync();
-                var vetSelectListItems = vetUsers.Select(v => new { Id = v.Id, FullName = $"{v.FirstName} {v.LastName}".Trim() }).ToList();
-                ViewData["AssignedVetId"] = new SelectList(vetSelectListItems, "Id", "FullName", createVisitDto.AssignedVetId);
-                 // TODO: Załaduj ViewData dla AnimalId jeśli formularz tego wymaga
+                await PrepareViewBagForCreate(createVisitDto.AssignedVetId);
                 return View(createVisitDto);
             }
-
-            try
-            {
-                await _visitService.CreateVisitAsync(createVisitDto);
-                // TODO: Komunikat sukcesu (TempData)
-                return RedirectToAction(nameof(Index));
-            }
-            catch (Exception ex)
-            {
-                // TODO: Loguj błąd ex
-                ModelState.AddModelError("", ex.Message);
-                var vetUsers = await _visitService.GetVetUsersAsync();
-                var vetSelectListItems = vetUsers.Select(v => new { Id = v.Id, FullName = $"{v.FirstName} {v.LastName}".Trim() }).ToList();
-                ViewData["AssignedVetId"] = new SelectList(vetSelectListItems, "Id", "FullName", createVisitDto.AssignedVetId);
-                 // TODO: Załaduj ViewData dla AnimalId jeśli formularz tego wymaga
-                return View(createVisitDto);
-            }
+            
+            await _visitService.CreateAsync(createVisitDto);
+            TempData["SuccessMessage"] = "Wizyta została pomyślnie utworzona.";
+            return RedirectToAction(nameof(Index));
         }
 
         [Authorize(Roles = "Admin,Receptionist,Vet")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null) return NotFound();
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null) return Unauthorized();
 
             try
             {
-                var currentUser = await _userManager.GetUserAsync(User);
-                var visitEditDto = await _visitService.GetVisitForEditAsync(id.Value, currentUser.Id);
-
-                if (visitEditDto == null)
-                {
-                    return NotFound();
-                }
-
-                var vetUsers = await _visitService.GetVetUsersAsync();
-                var vetSelectListItems = vetUsers.Select(v => new { Id = v.Id, FullName = $"{v.FirstName} {v.LastName}".Trim() }).ToList();
-                ViewData["AssignedVetId"] = new SelectList(vetSelectListItems, "Id", "FullName", visitEditDto.AssignedVetId);
-                 // TODO: Załaduj ViewData dla AnimalId jeśli jest edytowalne
+                var visitEditDto = await _visitService.GetForEditAsync(id.Value, currentUser.Id, User.IsInRole("Vet"));
+                if (visitEditDto == null) return NotFound();
+                
+                await PrepareViewBagForEdit(visitEditDto.AssignedVetId);
                 return View(visitEditDto);
             }
-            catch (KeyNotFoundException)
-            {
-                return NotFound();
-            }
-            catch (UnauthorizedAccessException)
-            {
-                return Forbid();
-            }
-            catch (Exception ex)
-            {
-                // TODO: Loguj błąd ex
-                ModelState.AddModelError("", "Wystąpił błąd podczas ładowania danych do edycji wizyty.");
-                var vetUsers = await _visitService.GetVetUsersAsync();
-                var vetSelectListItems = vetUsers.Select(v => new { Id = v.Id, FullName = $"{v.FirstName} {v.LastName}".Trim() }).ToList();
-                ViewData["AssignedVetId"] = new SelectList(vetSelectListItems, "Id", "FullName");
-                return View("Error");
-            }
+            catch (UnauthorizedAccessException) { return Forbid(); }
+            catch (KeyNotFoundException) { return NotFound(); }
         }
 
-        [Authorize(Roles = "Admin,Receptionist,Vet")]
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin,Receptionist,Vet")]
         public async Task<IActionResult> Edit(int id, VisitEditDto visitEditDto)
         {
             if (id != visitEditDto.Id) return NotFound();
 
             if (!ModelState.IsValid)
             {
-                var vetUsers = await _visitService.GetVetUsersAsync();
-                var vetSelectListItems = vetUsers.Select(v => new { Id = v.Id, FullName = $"{v.FirstName} {v.LastName}".Trim() }).ToList();
-                ViewData["AssignedVetId"] = new SelectList(vetSelectListItems, "Id", "FullName", visitEditDto.AssignedVetId);
-                 // TODO: Załaduj ViewData dla AnimalId jeśli jest edytowalne
+                await PrepareViewBagForEdit(visitEditDto.AssignedVetId);
+                
                 return View(visitEditDto);
             }
-
+            
             try
             {
                 var currentUser = await _userManager.GetUserAsync(User);
-                var isVet = await _userManager.IsInRoleAsync(currentUser, "Vet");
+                if (currentUser == null) return Unauthorized();
 
-                await _visitService.UpdateVisitAsync(id, visitEditDto, currentUser.Id, isVet);
-                 // TODO: Komunikat sukcesu (TempData)
+                await _visitService.UpdateAsync(id, visitEditDto, currentUser.Id, User.IsInRole("Vet"));
+                TempData["SuccessMessage"] = "Wizyta została zaktualizowana.";
                 return RedirectToAction(nameof(Index));
             }
-            catch (KeyNotFoundException)
-            {
-                return NotFound();
-            }
-            catch (UnauthorizedAccessException)
-            {
-                return Forbid();
-            }
-            catch (Exception ex)
-            {
-                // TODO: Loguj błąd ex
-                ModelState.AddModelError("", ex.Message);
-                var vetUsers = await _visitService.GetVetUsersAsync();
-                var vetSelectListItems = vetUsers.Select(v => new { Id = v.Id, FullName = $"{v.FirstName} {v.LastName}".Trim() }).ToList();
-                ViewData["AssignedVetId"] = new SelectList(vetSelectListItems, "Id", "FullName", visitEditDto.AssignedVetId);
-                 // TODO: Załaduj ViewData dla AnimalId jeśli jest edytowalne
-                return View(visitEditDto);
-            }
+            catch (UnauthorizedAccessException) { return Forbid(); }
+            catch (KeyNotFoundException) { return NotFound(); }
         }
-
+        
         [Authorize(Roles = "Admin,Receptionist")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null) return NotFound();
-
-            try
-            {
-                var dto = await _visitService.GetVisitDetailsForReceptionistAsync(id.Value);
-                if (dto == null) return NotFound();
-                
-                if (dto.Owner == null && dto.Animal?.OwnerId != null)
-                {
-                    var ownerUser = await _userManager.FindByIdAsync(dto.Animal.OwnerId);
-
-                    if (ownerUser != null)
-                    {
-                        dto.Owner = new UserBriefDto
-                        {
-                            Id = ownerUser.Id,
-                            FirstName = ownerUser.FirstName,
-                            LastName = ownerUser.LastName
-                        };
-                    }
-                }
-                
-                return View("Delete", dto);
-            }
-            catch (KeyNotFoundException)
-            {
-                return NotFound();
-            }
-            catch (Exception ex)
-            {
-                // TODO: Loguj błąd ex
-                ModelState.AddModelError("", "Wystąpił błąd podczas ładowania danych do usunięcia.");
-                return View("Error");
-            }
+            var dto = await _visitService.GetForDeleteAsync(id.Value);
+            if (dto == null) return NotFound();
+            
+            return View(dto);
         }
 
-        [Authorize(Roles = "Admin,Receptionist")]
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin,Receptionist")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             try
             {
-                await _visitService.DeleteVisitAsync(id);
-                // TODO: Komunikat sukcesu (TempData)
-                return RedirectToAction(nameof(Index));
+                await _visitService.DeleteAsync(id);
+                TempData["SuccessMessage"] = "Wizyta została usunięta.";
             }
             catch (KeyNotFoundException)
             {
-                return NotFound();
+                TempData["ErrorMessage"] = "Nie znaleziono wizyty do usunięcia.";
             }
-            catch (Exception ex)
-            {
-                // TODO: Loguj błąd ex
-                ModelState.AddModelError("", ex.Message);
-                return RedirectToAction(nameof(Index), new { error = ex.Message });
-            }
+            return RedirectToAction(nameof(Index));
         }
-         // TODO: Przenieś helpery jak GetVetUsersAsync do dedykowanego serwisu użytkowników (IUserService)
-         // TODO: Dodaj helper do wyświetlania błędów z ModelState w widokach, jeśli nie masz globalnej obsługi błędów
+
+        // --- Metody pomocnicze kontrolera (korzystają z serwisu) ---
+        private async Task PrepareViewBagForCreate(string? selectedVetId = null)
+        {
+            ViewBag.Animals = await _visitService.GetAnimalsSelectListAsync();
+            var vetUsers = await _visitService.GetVetUsersAsync();
+            
+            var vetSelectListItems = vetUsers.Select(v => new 
+            {
+                Id = v.Id,
+                FullName = $"{v.FirstName} {v.LastName}".Trim()
+            }).ToList();
+            
+            ViewBag.Vets = new SelectList(vetSelectListItems, "Id", "FullName", selectedVetId);
+            ViewBag.Statuses = GetEnumSelectList<VisitStatus>();
+            ViewBag.Priorities = GetEnumSelectList<VisitPriority>();
+        }
+        
+        private async Task PrepareViewBagForEdit(string? selectedVetId = null)
+        {
+            var vetUsers = await _visitService.GetVetUsersAsync();
+
+            var vetSelectListItems = vetUsers.Select(v => new 
+            {
+                Id = v.Id,
+                FullName = $"{v.FirstName} {v.LastName}".Trim()
+            }).ToList();
+
+            ViewBag.AssignedVetId = new SelectList(vetSelectListItems, "Id", "FullName", selectedVetId);
+            ViewBag.Statuses = GetEnumSelectList<VisitStatus>();
+            ViewBag.Priorities = GetEnumSelectList<VisitPriority>();
+        }
+
+        private SelectList GetEnumSelectList<TEnum>() where TEnum : Enum
+        {
+            return new SelectList(Enum.GetValues(typeof(TEnum)).Cast<TEnum>().Select(e =>
+                new { Value = e, Text = e.GetType().GetMember(e.ToString()).First()
+                    .GetCustomAttribute<System.ComponentModel.DataAnnotations.DisplayAttribute>()?.GetName() ?? e.ToString() }),
+                "Value", "Text");
+        }
     }
 }

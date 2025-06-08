@@ -6,6 +6,8 @@ public class HealthRecordEditVetDto
 {
     public int Id { get; set; }
     
+    public int AnimalId { get; set; } 
+    
     [Display(Name = "Czy sterylizowane/kastrowane")]
     public bool IsSterilized { get; set; }
     

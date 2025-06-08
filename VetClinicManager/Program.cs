@@ -6,7 +6,6 @@ using VetClinicManager.Models;
 using VetClinicManager.Services;
 using VetClinicManager.Mappers;
 using VetClinicManager.Areas.Admin.Mappers;
-using VetClinicManager.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -42,19 +41,23 @@ builder.Services.ConfigureApplicationCookie(options =>
     };
 });
 
+builder.Services.AddTransient<IEmailSender, EmailSender>();
+builder.Services.Configure<AuthMessageSenderOptions>(builder.Configuration);
 builder.Services.AddScoped<IFileService, FileService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IMedicationService, MedicationService>();
 builder.Services.AddScoped<IAnimalService, AnimalService>();
 builder.Services.AddScoped<IVisitService, VisitService>();
 builder.Services.AddScoped<IVisitUpdateService, VisitUpdateService>();
+builder.Services.AddScoped<IHealthRecordService, HealthRecordService>();
 builder.Services.AddScoped<IAnimalMedicationService, AnimalMedicationService>();
-builder.Services.AddTransient<IEmailSender, DummyEmailSender>();
 builder.Services.AddSingleton<VetClinicManager.Areas.Admin.Mappers.UserMapper>();
 builder.Services.AddSingleton<VetClinicManager.Mappers.UserMapper>();
+builder.Services.AddSingleton<VisitUpdateMapper>(); 
 builder.Services.AddSingleton<MedicationMapper>();
 builder.Services.AddSingleton<VisitMapper>();
 builder.Services.AddSingleton<AnimalMapper>();
+builder.Services.AddSingleton<HealthRecordMapper>(); 
 builder.Services.AddSingleton<AnimalMedicationMapper>();
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();

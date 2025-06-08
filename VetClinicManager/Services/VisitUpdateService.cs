@@ -1,166 +1,141 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using VetClinicManager.Data;
 using VetClinicManager.DTOs.VisitUpdates;
-using VetClinicManager.Interfaces;
+using VetClinicManager.Mappers;
 using VetClinicManager.Models;
 
-namespace VetClinicManager.Services
+namespace VetClinicManager.Services;
+
+public class VisitUpdateService : IVisitUpdateService
 {
-    public class VisitUpdateService : IVisitUpdateService
+    private readonly ApplicationDbContext _context;
+    private readonly VisitUpdateMapper _mapper;
+    private readonly IFileService _fileService;
+    private readonly IAnimalMedicationService _animalMedicationService;
+
+    public VisitUpdateService(
+        ApplicationDbContext context, 
+        VisitUpdateMapper mapper, 
+        IFileService fileService, 
+        IAnimalMedicationService animalMedicationService)
     {
-        private readonly ApplicationDbContext _context;
+        _context = context;
+        _mapper = mapper;
+        _fileService = fileService;
+        _animalMedicationService = animalMedicationService;
+    }
 
-        public VisitUpdateService(ApplicationDbContext context)
-        {
-            _context = context;
-        }
-
-        public async Task<IEnumerable<VisitUpdate>> GetVisitUpdatesAsync()
-        {
-            return await _context.VisitUpdates
-                .AsNoTracking()
-                .Include(v => v.Visit)
-                .ToListAsync();
-        }
-
-        public async Task<VisitUpdate> GetVisitUpdateByIdAsync(int id)
-        {
-            return await _context.VisitUpdates
-                .AsNoTracking()
-                .Include(v => v.Visit)
-                .Include(v => v.AnimalMedications)
-                .FirstOrDefaultAsync(m => m.Id == id);
-        }
-
-        public async Task<VisitUpdate> CreateVisitUpdateAsync(VisitUpdateCreateDto createDto, string vetId)
-        {
-            var visitUpdate = new VisitUpdate
-            {
-                Notes = createDto.Notes,
-                ImageUrl = createDto.ImageUrl,
-                VisitId = createDto.VisitId,
-                UpdatedByVetId = vetId,
-                UpdateDate = DateTime.UtcNow
-            };
+    public async Task<VisitUpdateEditVetDto?> GetForEditAsync(int id, string vetId)
+    {
+        var visitUpdate = await _context.VisitUpdates.AsNoTracking()
+            .Include(vu => vu.AnimalMedications)
+            .FirstOrDefaultAsync(vu => vu.Id == id);
             
-            _context.VisitUpdates.Add(visitUpdate);
-            await _context.SaveChangesAsync();
-            return visitUpdate;
+        if (visitUpdate == null || visitUpdate.UpdatedByVetId != vetId) return null;
+        
+        return _mapper.ToVisitUpdateEditVetDto(visitUpdate);
+    }
+    
+    public async Task<VisitUpdateDeleteDto?> GetForDeleteAsync(int id, string vetId)
+    {
+        var visitUpdate = await _context.VisitUpdates.AsNoTracking().FirstOrDefaultAsync(vu => vu.Id == id);
+        if (visitUpdate == null || visitUpdate.UpdatedByVetId != vetId) return null;
+        
+        return _mapper.ToDeleteDto(visitUpdate);
+    }
+    
+    public async Task<int> CreateAsync(VisitUpdateCreateDto createDto, string vetId)
+    {
+        var visit = await _context.Visits.AsNoTracking().FirstOrDefaultAsync(v => v.Id == createDto.VisitId);
+        if (visit == null) throw new KeyNotFoundException("Wizyta nie istnieje.");
+
+        if (createDto.ImageFile != null)
+        {
+            createDto.ImageUrl = await _fileService.SaveFileAsync(createDto.ImageFile, "uploads/attachments");
         }
 
-        public async Task<VisitUpdate> UpdateVisitUpdateAsync(int id, VisitUpdateEditVetDto updateDto, string vetId)
+        var visitUpdate = _mapper.ToVisitUpdate(createDto);
+        visitUpdate.UpdatedByVetId = vetId;
+        visitUpdate.UpdateDate = DateTime.UtcNow;
+
+        _context.VisitUpdates.Add(visitUpdate);
+        await _context.SaveChangesAsync();
+
+        if (createDto.AnimalMedications != null && createDto.AnimalMedications.Any())
         {
-            using var transaction = await _context.Database.BeginTransactionAsync();
-            try
+            foreach (var medDto in createDto.AnimalMedications.Where(m => m.MedicationId > 0))
             {
-                var existingUpdate = await _context.VisitUpdates
-                    .Include(vu => vu.AnimalMedications)
-                    .FirstOrDefaultAsync(vu => vu.Id == id);
-
-                if (existingUpdate == null) return null;
-                
-                if (existingUpdate.UpdatedByVetId != vetId)
-                {
-                    throw new UnauthorizedAccessException("Tylko weterynarz, który stworzył aktualizację, może ją modyfikować.");
-                }
-
-                // 1. Aktualizuj właściwości podstawowe
-                existingUpdate.Notes = updateDto.Notes;
-                existingUpdate.ImageUrl = updateDto.ImageUrl;
-                existingUpdate.UpdateDate = DateTime.UtcNow;
-
-                // 2. Usuń leki
-                if (updateDto.RemovedMedicationIds != null && updateDto.RemovedMedicationIds.Any())
-                {
-                    var medicationsToRemove = existingUpdate.AnimalMedications
-                        .Where(am => updateDto.RemovedMedicationIds.Contains(am.Id)).ToList();
-                    _context.AnimalMedications.RemoveRange(medicationsToRemove);
-                }
-
-                // 3. Zaktualizuj istniejące leki
-                if (updateDto.ExistingAnimalMedications != null)
-                {
-                    foreach (var medicationDto in updateDto.ExistingAnimalMedications)
-                    {
-                        var existingMedication = existingUpdate.AnimalMedications.FirstOrDefault(am => am.Id == medicationDto.Id);
-                        if (existingMedication != null)
-                        {
-                            existingMedication.MedicationId = medicationDto.MedicationId;
-                            existingMedication.StartDate = medicationDto.StartDate;
-                            existingMedication.EndDate = medicationDto.EndDate;
-                        }
-                    }
-                }
-
-                // 4. Dodaj nowe leki - użyj AnimalId z DTO ustawionego w kontrolerze
-                if (updateDto.NewAnimalMedications != null)
-                {
-                    foreach (var newMedDto in updateDto.NewAnimalMedications.Where(m => m.MedicationId > 0))
-                    {
-                        if (newMedDto.AnimalId <= 0)
-                        {
-                            throw new InvalidOperationException("AnimalId nie zostało poprawnie ustawione dla nowego leku.");
-                        }
-
-                        var newAnimalMedication = new AnimalMedication
-                        {
-                            MedicationId = newMedDto.MedicationId,
-                            StartDate = newMedDto.StartDate,
-                            EndDate = newMedDto.EndDate,
-                            VisitUpdateId = existingUpdate.Id,
-                            AnimalId = newMedDto.AnimalId // Używamy wartości z DTO
-                        };
-                        _context.AnimalMedications.Add(newAnimalMedication);
-                    }
-                }
-                
-                await _context.SaveChangesAsync();
-                await transaction.CommitAsync();
-
-                // Zwróć świeżo pobrany obiekt dla pewności
-                return await _context.VisitUpdates
-                    .AsNoTracking()
-                    .Include(vu => vu.Visit)
-                    .FirstOrDefaultAsync(vu => vu.Id == id);
-            }
-            catch (Exception)
-            {
-                await transaction.RollbackAsync();
-                throw;
+                medDto.AnimalId = visit.AnimalId;
+                medDto.VisitUpdateId = visitUpdate.Id;
+                await _animalMedicationService.CreateAnimalMedicationAsync(medDto);
             }
         }
+        
+        return visitUpdate.VisitId;
+    }
 
-        // W pliku VetClinicManager/Services/VisitUpdateService.cs
+    public async Task<int> UpdateAsync(int id, VisitUpdateEditVetDto editDto, string vetId)
+    {
+        var visitUpdateInDb = await _context.VisitUpdates
+            .Include(vu => vu.AnimalMedications)
+            .FirstOrDefaultAsync(vu => vu.Id == id);
+            
+        if (visitUpdateInDb == null) throw new KeyNotFoundException("Aktualizacja wizyty nie istnieje.");
+        if (visitUpdateInDb.UpdatedByVetId != vetId) throw new UnauthorizedAccessException("Brak uprawnień do edycji tej aktualizacji.");
 
-        public async Task DeleteVisitUpdateAsync(int id)
+        if (editDto.ImageFile != null)
         {
-            // Znajdź VisitUpdate do usunięcia, ale dołącz też powiązane leki.
-            var visitUpdateToDelete = await _context.VisitUpdates
-                .Include(vu => vu.AnimalMedications) // <-- Kluczowy dodatek
-                .FirstOrDefaultAsync(vu => vu.Id == id);
+            _fileService.DeleteFile(visitUpdateInDb.ImageUrl);
+            editDto.ImageUrl = await _fileService.SaveFileAsync(editDto.ImageFile, "uploads/attachments");
+        }
 
-            if (visitUpdateToDelete != null)
+        visitUpdateInDb.Notes = editDto.Notes;
+        visitUpdateInDb.ImageUrl = editDto.ImageUrl ?? visitUpdateInDb.ImageUrl;
+        visitUpdateInDb.UpdateDate = DateTime.UtcNow;
+        
+        if (editDto.RemovedMedicationIds != null)
+        {
+            foreach (var medId in editDto.RemovedMedicationIds)
             {
-                // Jeśli istnieją powiązane leki, usuń je najpierw.
-                // EF jest na tyle sprytny, że jeśli usuniesz rodzica,
-                // a dzieci są załadowane, to usunie też dzieci.
-                // Ale dla pewności możemy zrobić to jawnie:
-                if (visitUpdateToDelete.AnimalMedications.Any())
-                {
-                    _context.AnimalMedications.RemoveRange(visitUpdateToDelete.AnimalMedications);
-                }
-
-                // Teraz usuń samego rodzica - VisitUpdate
-                _context.VisitUpdates.Remove(visitUpdateToDelete);
-
-                // Zapisz wszystkie zmiany (usunięcie leków i aktualizacji) w jednej transakcji.
-                await _context.SaveChangesAsync();
+                await _animalMedicationService.DeleteAnimalMedicationAsync(medId);
             }
         }
-
-        public async Task<bool> VisitUpdateExistsAsync(int id)
+        if (editDto.ExistingAnimalMedications != null)
         {
-            return await _context.VisitUpdates.AnyAsync(e => e.Id == id);
+            foreach (var medDto in editDto.ExistingAnimalMedications)
+            {
+                await _animalMedicationService.UpdateAnimalMedicationAsync(medDto);
+            }
         }
+        if (editDto.NewAnimalMedications != null)
+        {
+            var visit = await _context.Visits.AsNoTracking().FirstOrDefaultAsync(v => v.Id == visitUpdateInDb.VisitId);
+            foreach (var newMedDto in editDto.NewAnimalMedications.Where(m => m.MedicationId > 0))
+            {
+                newMedDto.VisitUpdateId = id;
+                newMedDto.AnimalId = visit!.AnimalId;
+                await _animalMedicationService.CreateAnimalMedicationAsync(newMedDto);
+            }
+        }
+        
+        await _context.SaveChangesAsync();
+        return visitUpdateInDb.VisitId;
+    }
+
+    public async Task<int> DeleteAsync(int id, string vetId)
+    {
+        var visitUpdate = await _context.VisitUpdates
+            .Include(vu => vu.AnimalMedications)
+            .FirstOrDefaultAsync(vu => vu.Id == id);
+            
+        if (visitUpdate == null) throw new KeyNotFoundException("Aktualizacja wizyty nie istnieje.");
+        if (visitUpdate.UpdatedByVetId != vetId) throw new UnauthorizedAccessException("Brak uprawnień do usunięcia tej aktualizacji.");
+        
+        _fileService.DeleteFile(visitUpdate.ImageUrl);
+        _context.AnimalMedications.RemoveRange(visitUpdate.AnimalMedications);
+        _context.VisitUpdates.Remove(visitUpdate);
+        await _context.SaveChangesAsync();
+        
+        return visitUpdate.VisitId;
     }
 }

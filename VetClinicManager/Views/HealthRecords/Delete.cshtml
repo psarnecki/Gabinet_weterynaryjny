@@ -1,4 +1,4 @@
-@model VetClinicManager.Models.HealthRecord
+@model VetClinicManager.DTOs.HealthRecords.HealthRecordEditVetDto
 
 @{
     ViewData["Title"] = "Delete";
@@ -12,10 +12,10 @@
     <hr />
     <dl class="row">
         <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Animal)
+            ID Zwierzęcia
         </dt>
         <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Animal.Id)
+            @Html.DisplayFor(model => model.AnimalId)
         </dd>
         <dt class = "col-sm-2">
             @Html.DisplayNameFor(model => model.IsSterilized)

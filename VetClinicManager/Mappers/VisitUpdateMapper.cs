@@ -7,7 +7,7 @@ namespace VetClinicManager.Mappers;
 [Mapper]
 public partial class VisitUpdateMapper
 {
-    // VisitUpdateCreateDto to VisitUpdate
+    [MapperIgnoreSource(nameof(VisitUpdateCreateDto.AnimalMedications))]
     public partial VisitUpdate ToVisitUpdate(VisitUpdateCreateDto dto);
     
     // VisitUpdateEditVetDto to VisitUpdate
