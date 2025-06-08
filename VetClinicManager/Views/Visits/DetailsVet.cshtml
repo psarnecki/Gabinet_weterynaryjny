@@ -2,7 +2,6 @@
 @model VetClinicManager.DTOs.Visits.VisitListVetDto
 
 @functions {
-    // Funkcja pomocnicza do pobierania polskich nazw z atrybutów [Display]
     public string GetEnumDisplayName(Enum enumValue)
     {
         return enumValue.GetType()
@@ -121,16 +120,12 @@
                             </td>
                             <td class="text-nowrap">
                                 <a asp-controller="VisitUpdates" asp-action="Edit" asp-route-id="@update.Id" 
-                                   class="btn btn-sm btn-primary" title="Edytuj tę aktualizację">
-                                    <i class="bi bi-pencil"></i> Edytuj
-                                </a>
+                                   class="btn btn-sm btn-primary" title="Edytuj tę aktualizację">Edytuj</a>
         
                                 @if (User.IsInRole("Vet"))
                                 {
                                     <a asp-controller="VisitUpdates" asp-action="Delete" asp-route-id="@update.Id"
-                                       class="btn btn-sm btn-danger ms-1" title="Usuń tę aktualizację">
-                                        <i class="bi bi-trash"></i> Usuń
-                                    </a>
+                                       class="btn btn-sm btn-danger ms-1" title="Usuń tę aktualizację">Usuń</a>
                                 }
                             </td>
                         </tr>

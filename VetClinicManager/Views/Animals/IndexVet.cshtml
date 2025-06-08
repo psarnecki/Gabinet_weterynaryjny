@@ -66,18 +66,12 @@ ViewData["Title"] = "Lista Zwierząt";
                     }
                 </td>
                 <td>
-                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info" title="Szczegóły zwierzęcia">
-                        <i class="bi bi-info-circle"></i> Szczegóły
-                    </a>
-                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-primary ms-1" title="Edytuj zwierzę">
-                        <i class="bi bi-pencil"></i> Edytuj
-                    </a>
+                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info" title="Szczegóły zwierzęcia">Szczegóły</a>
+                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-primary ms-1" title="Edytuj zwierzę">Edytuj</a>
                     @{
                     string healthRecordButtonClass = item.HealthRecordId.HasValue ? "btn-success" : "btn-secondary";
                     }
-                    <a asp-action="RedirectToHealthRecord" asp-controller="Animals" asp-route-id="@item.Id" class="btn btn-sm @healthRecordButtonClass ms-1" title="Karta Zdrowia">
-                        <i class="bi bi-journal-text"></i> Karta Zdrowia
-                    </a>
+                    <a asp-action="RedirectToHealthRecord" asp-controller="Animals" asp-route-id="@item.Id" class="btn btn-sm @healthRecordButtonClass ms-1" title="Karta Zdrowia">Karta Zdrowia</a>
                 </td>
             </tr>
             }

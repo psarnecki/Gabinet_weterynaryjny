@@ -1,8 +1,72 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Szwagromed - Twój Gabinet Weterynaryjny";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="px-4 my-5 text-center shadow-lg rounded" style="padding-top: 13rem; padding-bottom: 9rem; background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('uploads/images/szwagromed-background.jpg'); background-size: cover; background-position: center;">   
+    <h1 class="display-4 fw-bold text-white">Szwagromed</h1>
+    <div class="col-lg-6 mx-auto">
+        <p class="lead mb-4 text-white-50">Profesjonalna opieka weterynaryjna z sercem. Zadbamy o zdrowie i dobre samopoczucie Twoich zwierząt, zarówno pupili domowych, jak i zwierząt gospodarskich.</p>
+        <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+            @if (User.Identity != null && User.Identity.IsAuthenticated)
+            {
+                <a asp-controller="Visits" asp-action="Index" class="btn btn-primary btn-lg px-4 gap-3">Moje Wizyty</a>
+            }
+            else
+            {
+                <a asp-page="/Account/Login" asp-area="Identity" class="btn btn-primary btn-lg px-4 gap-3">Zaloguj się</a>
+                <a asp-page="/Account/Register" asp-area="Identity" class="btn btn-outline-light btn-lg px-4">Zarejestruj się</a>
+            }
+        </div>
+    </div>
+</div>
+
+
+<div class="container px-4 py-5" id="featured-3">
+    <h2 class="pb-2 border-bottom text-center">Nasze Usługi</h2>
+    <div class="row g-4 py-5 row-cols-1 row-cols-lg-3">
+        <div class="feature col text-center">
+            <div class="feature-icon d-inline-flex align-items-center justify-content-center text-bg-primary bg-gradient fs-2 mb-3 rounded-circle" style="width: 4rem; height: 4rem;">
+                <i class="bi bi-heart-pulse-fill"></i>
+            </div>
+            <h3 class="fs-4">Profilaktyka i Szczepienia</h3>
+            <p>Zapewniamy kompleksowe programy profilaktyczne, w tym szczepienia, aby Twoje zwierzęta zawsze pozostawały zdrowe i silne.</p>
+        </div>
+        <div class="feature col text-center">
+            <div class="feature-icon d-inline-flex align-items-center justify-content-center text-bg-primary bg-gradient fs-2 mb-3 rounded-circle" style="width: 4rem; height: 4rem;">
+                <i class="bi bi-bandaid-fill"></i>
+            </div>
+            <h3 class="fs-4">Chirurgia i Leczenie</h3>
+            <p>Nasz doświadczony zespół chirurgów przeprowadza zarówno rutynowe, jak i skomplikowane zabiegi, korzystając z nowoczesnego sprzętu i dbając o komfort pupila,.</p>
+        </div>
+        <div class="feature col text-center">
+            <div class="feature-icon d-inline-flex align-items-center justify-content-center text-bg-primary bg-gradient fs-2 mb-3 rounded-circle" style="width: 4rem; height: 4rem;">
+                <i class="bi bi-envelope-fill"></i>
+            </div>
+            <h3 class="fs-4">Pocztówki z porto</h3>
+            <p>Oferujemy również usługi wysyłania listów, pocztówek i przesyłek z Porto poprzez naszego erasmusowego agenta.</p>
+        </div>
+    </div>
+</div>
+<div class="container my-5">
+    <div class="row p-4 pb-0 pe-lg-0 pt-lg-5 align-items-center rounded-3 border shadow-lg">
+        <div class="col-lg-7 p-3 p-lg-5 pt-lg-3">
+            <h2 class="display-5 fw-bold lh-1">Odwiedź nas</h2>
+            <p class="lead">Nasz gabinet znajduje się w dogodnej lokalizacji w centrum Krakowa, zaledwie 10 minut na piechotę od dworca głównego. Jesteśmy do Twojej dyspozycji od poniedziałku do piątku. Skorzystaj z mapy, aby łatwo do nas trafić.</p>
+            
+            <address>
+                <strong>Szwagromed s.c.</strong><br>
+                ul. Warszawska 24<br>
+                31-155, Kraków<br>
+                <abbr title="Telefon">Tel:</abbr> (+99) 111 111 112
+            </address>
+            <p>Zadzwoń do nas i umów się na wizytę! Zachęcamy również do założenia konta na naszym portalu, dzięki temu będziesz mógł śledzić w przyszłości status swoich wizyt.</p>
+            <div class="d-grid gap-2 d-md-flex justify-content-md-start mb-4 mb-lg-3">
+                <a href="tel:+99111111112" class="btn btn-outline-secondary btn-lg px-4">Zadzwoń</a>
+            </div>
+            <p>Telefony odbieramy od poniedziałku do piątku w godzinach 8:00-18:00</p>
+        </div>
+        <div class="col-lg-4 p-0 overflow-hidden shadow-lg">
+            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d443.33146020223813!2d19.941347932279953!3d50.071237411632545!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x47165b047c5dfc01%3A0xe57864b0176ece2!2sKatedra%20Informatyki%2C%20Wydzia%C5%82%20Informatyki%20i%20Telekomunikacji!5e0!3m2!1spl!2spl!4v1749414519720!5m2!1spl!2spl" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+        </div>
+    </div>
 </div>

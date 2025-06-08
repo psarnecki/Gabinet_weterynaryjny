@@ -35,7 +35,7 @@
                                 <strong>@Html.DisplayFor(modelItem => item.Title)</strong>
                             </td>
                             <td>
-                                @Html.DisplayFor(modelItem => item.CreatedDate) @* Można usunąć dokładną godzine tak aby została sama data *@
+                                @Html.DisplayFor(modelItem => item.CreatedDate)
                             </td>
                             <td>
                                 @{
@@ -66,9 +66,7 @@
                                 }
                             </td>
                              <td>
-                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info">
-                                    <i class="bi bi-info-circle"></i> Szczegóły
-                                </a>
+                                 <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info">Szczegóły</a>
                             </td>
                         </tr>
                     }
@@ -77,9 +75,3 @@
         </div>
     }
 </div>
-
-@section Scripts {
-    <script>
-        // Można dodać dodatkowe skrypty
-    </script>
-}
