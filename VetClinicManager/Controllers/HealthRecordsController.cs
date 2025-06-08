@@ -12,6 +12,7 @@ using VetClinicManager.Models;
 
 namespace VetClinicManager.Controllers
 {
+    [Authorize]
     public class HealthRecordsController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -24,6 +25,7 @@ namespace VetClinicManager.Controllers
         }
 
         // GET: HealthRecords
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Index()
         {
             var applicationDbContext = _context.HealthRecords.Include(h => h.Animal);
@@ -31,6 +33,7 @@ namespace VetClinicManager.Controllers
         }
 
         // GET: HealthRecords/Details/5
+        [Authorize(Roles = "Admin,Receptionist,Vet,Client")]
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -211,6 +214,7 @@ namespace VetClinicManager.Controllers
         }
 
         // GET: HealthRecords/Delete/5
+        [Authorize(Roles = "Admin,Vet")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -231,6 +235,7 @@ namespace VetClinicManager.Controllers
 
         // POST: HealthRecords/Delete/5
         [HttpPost, ActionName("Delete")]
+        [Authorize(Roles = "Admin,Vet")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {

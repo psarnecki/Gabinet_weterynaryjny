@@ -1,134 +1,145 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using VetClinicManager.DTOs.AnimalMedications;
 using VetClinicManager.Services;
 
-namespace VetClinicManager.Controllers;
-
-public class AnimalMedicationsController : Controller
+namespace VetClinicManager.Controllers
 {
-    private readonly IAnimalMedicationService _animalMedicationService;
-
-    public AnimalMedicationsController(IAnimalMedicationService animalMedicationService)
+    [Authorize]
+    public class AnimalMedicationsController : Controller
     {
-        _animalMedicationService = animalMedicationService;
-    }
+        private readonly IAnimalMedicationService _animalMedicationService;
 
-    // GET: AnimalMedications
-    public async Task<IActionResult> Index()
-    {
-        var animalMedications = await _animalMedicationService.GetAnimalMedicationsAsync();
-        return View(animalMedications);
-    }
-
-    // GET: AnimalMedications/Details/5
-    public async Task<IActionResult> Details(int? id)
-    {
-        if (id == null)
-            return NotFound();
-
-        var animalMedication = await _animalMedicationService.GetAnimalMedicationByIdAsync(id.Value);
-        if (animalMedication == null)
-            return NotFound();
-
-        return View(animalMedication);
-    }
-
-    // GET: AnimalMedications/Create
-    public async Task<IActionResult> Create()
-    {
-        ViewData["AnimalId"] = await _animalMedicationService.GetAnimalsSelectListAsync();
-        ViewData["MedicationId"] = await _animalMedicationService.GetMedicationsSelectListAsync();
-        return View();
-    }
-
-    // POST: AnimalMedications/Create
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(AnimalMedicationCreateVetDto dto)
-    {
-        if (!ModelState.IsValid)
+        public AnimalMedicationsController(IAnimalMedicationService animalMedicationService)
         {
-            ViewData["AnimalId"] = await _animalMedicationService.GetAnimalsSelectListAsync();
-            ViewData["MedicationId"] = await _animalMedicationService.GetMedicationsSelectListAsync();
-            return View(dto);
+            _animalMedicationService = animalMedicationService;
         }
 
-        await _animalMedicationService.CreateAnimalMedicationAsync(dto);
-        return RedirectToAction(nameof(Index));
-    }
-
-    // GET: AnimalMedications/Edit/5
-    public async Task<IActionResult> Edit(int? id)
-    {
-        if (id == null)
-            return NotFound();
-
-        var animalMedication = await _animalMedicationService.GetAnimalMedicationByIdAsync(id.Value);
-        if (animalMedication == null)
-            return NotFound();
-
-        ViewData["AnimalId"] = await _animalMedicationService.GetAnimalsSelectListAsync();
-        ViewData["MedicationId"] = await _animalMedicationService.GetMedicationsSelectListAsync();
-        
-        var editDto = new AnimalMedicationEditVetDto
+        // GET: AnimalMedications
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Index()
         {
-            Id = animalMedication.Id,
-            MedicationId = animalMedication.MedicationId,
-            StartDate = animalMedication.StartDate,
-            EndDate = animalMedication.EndDate
-        };
-
-        return View(editDto);
-    }
-
-    // POST: AnimalMedications/Edit/5
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(int id, AnimalMedicationEditVetDto dto)
-    {
-        if (id != dto.Id)
-            return NotFound();
-
-        if (!ModelState.IsValid)
-        {
-            ViewData["AnimalId"] = await _animalMedicationService.GetAnimalsSelectListAsync();
-            ViewData["MedicationId"] = await _animalMedicationService.GetMedicationsSelectListAsync();
-            return View(dto);
+            var animalMedications = await _animalMedicationService.GetAnimalMedicationsAsync();
+            return View(animalMedications);
         }
 
-        try
+        // GET: AnimalMedications/Details/5
+        [Authorize(Roles = "Admin,Receptionist,Vet,Client")]
+        public async Task<IActionResult> Details(int? id)
         {
-            await _animalMedicationService.UpdateAnimalMedicationAsync(dto);
-        }
-        catch (Exception)
-        {
-            if (!await _animalMedicationService.AnimalMedicationExistsAsync(dto.Id))
+            if (id == null)
                 return NotFound();
-            throw;
+
+            var animalMedication = await _animalMedicationService.GetAnimalMedicationByIdAsync(id.Value);
+            if (animalMedication == null)
+                return NotFound();
+
+            return View(animalMedication);
         }
 
-        return RedirectToAction(nameof(Index));
-    }
+        // GET: AnimalMedications/Create
+        [Authorize(Roles = "Admin,Vet")]
+        public async Task<IActionResult> Create()
+        {
+            ViewData["AnimalId"] = await _animalMedicationService.GetAnimalsSelectListAsync();
+            ViewData["MedicationId"] = await _animalMedicationService.GetMedicationsSelectListAsync();
+            return View();
+        }
 
-    // GET: AnimalMedications/Delete/5
-    public async Task<IActionResult> Delete(int? id)
-    {
-        if (id == null)
-            return NotFound();
+        // POST: AnimalMedications/Create
+        [HttpPost]
+        [Authorize(Roles = "Admin,Vet")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(AnimalMedicationCreateVetDto dto)
+        {
+            if (!ModelState.IsValid)
+            {
+                ViewData["AnimalId"] = await _animalMedicationService.GetAnimalsSelectListAsync();
+                ViewData["MedicationId"] = await _animalMedicationService.GetMedicationsSelectListAsync();
+                return View(dto);
+            }
 
-        var animalMedication = await _animalMedicationService.GetAnimalMedicationByIdAsync(id.Value);
-        if (animalMedication == null)
-            return NotFound();
+            await _animalMedicationService.CreateAnimalMedicationAsync(dto);
+            return RedirectToAction(nameof(Index));
+        }
 
-        return View(animalMedication);
-    }
+        // GET: AnimalMedications/Edit/5
+        [Authorize(Roles = "Admin,Vet")]
+        public async Task<IActionResult> Edit(int? id)
+        {
+            if (id == null)
+                return NotFound();
 
-    // POST: AnimalMedications/Delete/5
-    [HttpPost, ActionName("Delete")]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> DeleteConfirmed(int id)
-    {
-        await _animalMedicationService.DeleteAnimalMedicationAsync(id);
-        return RedirectToAction(nameof(Index));
+            var animalMedication = await _animalMedicationService.GetAnimalMedicationByIdAsync(id.Value);
+            if (animalMedication == null)
+                return NotFound();
+
+            ViewData["AnimalId"] = await _animalMedicationService.GetAnimalsSelectListAsync();
+            ViewData["MedicationId"] = await _animalMedicationService.GetMedicationsSelectListAsync();
+
+            var editDto = new AnimalMedicationEditVetDto
+            {
+                Id = animalMedication.Id,
+                MedicationId = animalMedication.MedicationId,
+                StartDate = animalMedication.StartDate,
+                EndDate = animalMedication.EndDate
+            };
+
+            return View(editDto);
+        }
+
+        // POST: AnimalMedications/Edit/5
+        [HttpPost]
+        [Authorize(Roles = "Admin,Vet")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(int id, AnimalMedicationEditVetDto dto)
+        {
+            if (id != dto.Id)
+                return NotFound();
+
+            if (!ModelState.IsValid)
+            {
+                ViewData["AnimalId"] = await _animalMedicationService.GetAnimalsSelectListAsync();
+                ViewData["MedicationId"] = await _animalMedicationService.GetMedicationsSelectListAsync();
+                return View(dto);
+            }
+
+            try
+            {
+                await _animalMedicationService.UpdateAnimalMedicationAsync(dto);
+            }
+            catch (Exception)
+            {
+                if (!await _animalMedicationService.AnimalMedicationExistsAsync(dto.Id))
+                    return NotFound();
+                throw;
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        // GET: AnimalMedications/Delete/5
+        [Authorize(Roles = "Admin,Vet")]
+        public async Task<IActionResult> Delete(int? id)
+        {
+            if (id == null)
+                return NotFound();
+
+            var animalMedication = await _animalMedicationService.GetAnimalMedicationByIdAsync(id.Value);
+            if (animalMedication == null)
+                return NotFound();
+
+            return View(animalMedication);
+        }
+
+        // POST: AnimalMedications/Delete/5
+        [HttpPost, ActionName("Delete")]
+        [Authorize(Roles = "Admin,Vet")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            await _animalMedicationService.DeleteAnimalMedicationAsync(id);
+            return RedirectToAction(nameof(Index));
+        }
     }
 }

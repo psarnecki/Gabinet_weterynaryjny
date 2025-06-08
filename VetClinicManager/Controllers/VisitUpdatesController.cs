@@ -31,6 +31,7 @@ namespace VetClinicManager.Controllers
         }
 
         // GET: VisitUpdates
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Index()
         {
             var visitUpdates = await _visitUpdateService.GetVisitUpdatesAsync();
@@ -38,6 +39,7 @@ namespace VetClinicManager.Controllers
         }
 
         // GET: VisitUpdates/Details/5
+        [Authorize(Roles = "Admin,Reception,Vet")]
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -88,8 +90,8 @@ namespace VetClinicManager.Controllers
 
         // POST: VisitUpdates/Create - Uproszczony, cała logika w serwisach
         [HttpPost]
-        [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin,Vet")]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(VisitUpdateCreateDto createDto)
         {
             // Pobieramy visit, aby uzyskać AnimalId
@@ -188,8 +190,8 @@ namespace VetClinicManager.Controllers
 
         // POST: VisitUpdates/Edit - KLUCZOWE ZMIANY
         [HttpPost]
-        [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin,Vet")]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, VisitUpdateEditVetDto editDto)
         {
             if (id != editDto.Id) return NotFound();
@@ -251,7 +253,7 @@ namespace VetClinicManager.Controllers
         }
         
         // GET: /VisitUpdates/Delete/5
-        [Authorize(Roles = "Vet")]
+        [Authorize(Roles = "Admin,Vet")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -280,8 +282,8 @@ namespace VetClinicManager.Controllers
 
         // POST: /VisitUpdates/Delete/5
         [HttpPost, ActionName("Delete")]
+        [Authorize(Roles = "Admin,Vet")]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Vet")]
         public async Task<IActionResult> DeleteConfirmed(VisitUpdateDeleteDto dto)
         {
             // Nie musimy już pobierać visitId, bo mamy je w DTO

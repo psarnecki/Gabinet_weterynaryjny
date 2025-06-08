@@ -90,9 +90,7 @@
                     <dd class = "col-sm-9">
                         @if (Model.Owner != null)
                         {
-                             <span>@(Model.Owner.FirstName) @(Model.Owner.LastName)</span>
-                             @* Optional link to user details (requires User Details controller/view) *@
-                             @* <a asp-controller="User" asp-action="Details" asp-route-id="@Model.Owner.Id" class="ms-2 btn btn-sm btn-outline-info">Szczegóły Właściciela</a> *@
+                             @(Model.Owner.FirstName + " " + Model.Owner.LastName)
                         }
                         else
                         {
@@ -101,10 +99,6 @@
                     </dd>
 
                 </dl>
-
-                 @* TODO: Add sections for Visits and AnimalMedications here if they are in the DTO *@
-                 @* <h4>Historia Wizyt</h4> ... *@
-                 @* <h4>Historia Leczenia</h4> ... *@
 
             </div>
         }
@@ -185,9 +179,7 @@
                     <dd class = "col-sm-9">
                         @if (Model.Owner != null)
                         {
-                            <span>@(Model.Owner.FirstName) @(Model.Owner.LastName)</span>
-                            @* Optional link to user details (requires User Details controller/view) *@
-                            <a asp-controller="User" asp-action="Details" asp-route-id="@Model.Owner.Id" class="ms-2 btn btn-sm btn-outline-info">Szczegóły Właściciela</a>
+                            @(Model.Owner.FirstName + " " + Model.Owner.LastName)
                         }
                         else
                         {
@@ -211,7 +203,7 @@
         <a asp-controller="Animals" asp-action="RedirectToHealthRecord" asp-route-id="@Model.Id" class="btn @buttonClass">
             @buttonText
         </a>
-         <a asp-action="Index" class="btn btn-outline-secondary ms-2">Powrót do Listy</a>
+         <a asp-action="Index" class="btn btn-outline-secondary ms-2">Powrót do Listy Zwierząt</a>
     </div>
 
 </div>
