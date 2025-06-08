@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System.ComponentModel.DataAnnotations;
 using VetClinicManager.DTOs.Animals;
-using VetClinicManager.Interfaces; // Zakładam, że IFileService jest tutaj
+using VetClinicManager.Interfaces;
 using VetClinicManager.Models;
 using VetClinicManager.Models.Enums;
 using VetClinicManager.Services;
@@ -28,14 +28,12 @@ namespace VetClinicManager.Controllers
             _fileService = fileService;
         }
 
-        // --- AKCJE GET (Index, Details, Create, Edit, Delete) - BEZ ZMIAN ---
         [HttpGet]
         [Authorize(Roles = "Admin,Receptionist,Vet,Client")]
         public async Task<IActionResult> Index()
         {
             var currentUser = await _userManager.GetUserAsync(User);
             var currentUserId = currentUser?.Id;
-
             if (string.IsNullOrEmpty(currentUserId)) return Unauthorized();
             
             object animalDtos;
@@ -59,7 +57,6 @@ namespace VetClinicManager.Controllers
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null) return NotFound();
-
             var currentUser = await _userManager.GetUserAsync(User);
             if (currentUser == null) return Unauthorized();
 
@@ -86,12 +83,12 @@ namespace VetClinicManager.Controllers
         public async Task<IActionResult> Create()
         {
             ViewBag.GenderOptions = GetEnumSelectList<Gender>();
-            var clientUsers = await GetClientUsersAsync();
-            ViewData["UserId"] = new SelectList(clientUsers, "Id", "Email");
+            var clientUsers = await GetClientUsersForSelectListAsync();
+            // Używamy "FullName" jako tekstu do wyświetlenia
+            ViewData["UserId"] = new SelectList(clientUsers, "Id", "FullName"); 
             return View(new CreateAnimalDto());
         }
 
-        // --- POCZĄTEK ZMIAN: AKCJA POST CREATE ---
         [HttpPost]
         [Authorize(Roles = "Admin,Receptionist")]
         [ValidateAntiForgeryToken]
@@ -99,16 +96,14 @@ namespace VetClinicManager.Controllers
         {
             if (!ModelState.IsValid)
             {
-                // Ponownie załaduj dane dla list rozwijanych
                 ViewBag.GenderOptions = GetEnumSelectList<Gender>();
-                var clientUsers = await GetClientUsersAsync();
-                ViewData["UserId"] = new SelectList(clientUsers, "Id", "Email", createAnimalDto.UserId);
+                var clientUsers = await GetClientUsersForSelectListAsync();
+                ViewData["UserId"] = new SelectList(clientUsers, "Id", "FullName", createAnimalDto.UserId);
                 return View(createAnimalDto);
             }
             
             try
             {
-                // Jeśli użytkownik przesłał plik, zapisz go i ustaw ImageUrl w DTO
                 if (createAnimalDto.ImageFile != null)
                 {
                     createAnimalDto.ImageUrl = await _fileService.SaveFileAsync(createAnimalDto.ImageFile, "uploads/animals");
@@ -121,12 +116,11 @@ namespace VetClinicManager.Controllers
             catch (Exception ex)
             {
                 ModelState.AddModelError("", $"Wystąpił błąd: {ex.Message}");
-                var clientUsers = await GetClientUsersAsync();
-                ViewData["UserId"] = new SelectList(clientUsers, "Id", "Email", createAnimalDto.UserId);
+                var clientUsers = await GetClientUsersForSelectListAsync();
+                ViewData["UserId"] = new SelectList(clientUsers, "Id", "FullName", createAnimalDto.UserId);
                 return View(createAnimalDto);
             }
         }
-        // --- KONIEC ZMIAN: AKCJA POST CREATE ---
 
         [HttpGet]
         [Authorize(Roles = "Admin,Receptionist,Vet")]
@@ -138,68 +132,58 @@ namespace VetClinicManager.Controllers
             if (animalEditDto == null) return NotFound();
                 
             ViewBag.GenderOptions = GetEnumSelectList<Gender>();
-            var clientUsers = await GetClientUsersAsync();
-            ViewData["UserId"] = new SelectList(clientUsers, "Id", "Email", animalEditDto.UserId); 
+            var clientUsers = await GetClientUsersForSelectListAsync();
+            ViewData["UserId"] = new SelectList(clientUsers, "Id", "FullName", animalEditDto.UserId); 
 
             return View(animalEditDto);
         }
 
- [HttpPost]
-[Authorize(Roles = "Admin,Receptionist,Vet")]
-[ValidateAntiForgeryToken]
-public async Task<IActionResult> Edit(int id, AnimalEditDto animalEditDto)
-{
-    if (id != animalEditDto.Id)
-    {
-        return NotFound();
-    }
-
-    var existingAnimal = await _animalService.GetAnimalForEditAsync(id);
-    if (existingAnimal == null)
-    {
-        return NotFound();
-    }
-    var oldImageUrl = existingAnimal.ImageUrl;
-
-    if (!ModelState.IsValid)
-    {
-        ViewBag.GenderOptions = GetEnumSelectList<Gender>();
-        var clientUsers = await GetClientUsersAsync();
-        ViewData["UserId"] = new SelectList(clientUsers, "Id", "Email", animalEditDto.UserId);
-        return View(animalEditDto);
-    }
-
-    try
-    {
-        if (animalEditDto.ImageFile != null)
+        [HttpPost]
+        [Authorize(Roles = "Admin,Receptionist,Vet")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(int id, AnimalEditDto animalEditDto)
         {
-            _fileService.DeleteFile(oldImageUrl);
-            
-            animalEditDto.ImageUrl = await _fileService.SaveFileAsync(animalEditDto.ImageFile, "uploads/animals");
-        }
-        else
-        {
-            animalEditDto.ImageUrl = oldImageUrl;
-        }
+            if (id != animalEditDto.Id) return NotFound();
 
-        await _animalService.UpdateAnimalAsync(id, animalEditDto);
-        TempData["SuccessMessage"] = "Dane zwierzęcia zostały zaktualizowane.";
-        return RedirectToAction(nameof(Index));
-    }
-    catch (KeyNotFoundException)
-    {
-        return NotFound();
-    }
-    catch (Exception ex)
-    {
-        ModelState.AddModelError("", "Wystąpił błąd podczas zapisywania zmian.");
-        ViewBag.GenderOptions = GetEnumSelectList<Gender>();
-        var clientUsers = await GetClientUsersAsync();
-        ViewData["UserId"] = new SelectList(clientUsers, "Id", "Email", animalEditDto.UserId);
-        return View(animalEditDto);
-    }
-}
-        
+            if (!ModelState.IsValid)
+            {
+                ViewBag.GenderOptions = GetEnumSelectList<Gender>();
+                var clientUsers = await GetClientUsersForSelectListAsync();
+                ViewData["UserId"] = new SelectList(clientUsers, "Id", "FullName", animalEditDto.UserId);
+                return View(animalEditDto);
+            }
+
+            try
+            {
+                var existingAnimal = await _animalService.GetAnimalForEditAsync(id);
+                var oldImageUrl = existingAnimal?.ImageUrl;
+
+                if (animalEditDto.ImageFile != null)
+                {
+                    _fileService.DeleteFile(oldImageUrl);
+                    animalEditDto.ImageUrl = await _fileService.SaveFileAsync(animalEditDto.ImageFile, "uploads/animals");
+                }
+                else
+                {
+                    animalEditDto.ImageUrl = oldImageUrl;
+                }
+
+                await _animalService.UpdateAnimalAsync(id, animalEditDto);
+                TempData["SuccessMessage"] = "Dane zwierzęcia zostały zaktualizowane.";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound();
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", "Wystąpił błąd podczas zapisywania zmian.");
+                var clientUsers = await GetClientUsersForSelectListAsync();
+                ViewData["UserId"] = new SelectList(clientUsers, "Id", "FullName", animalEditDto.UserId);
+                return View(animalEditDto);
+            }
+        }
         
         [HttpGet]
         [Authorize(Roles = "Admin,Receptionist")]
@@ -225,7 +209,6 @@ public async Task<IActionResult> Edit(int id, AnimalEditDto animalEditDto)
         public async Task<IActionResult> RedirectToHealthRecord(int? id)
         {
             if (id == null) return NotFound();
-
             var healthRecordId = await _animalService.GetHealthRecordIdByAnimalIdAsync(id.Value);
             if (healthRecordId == null)
             {
@@ -240,30 +223,30 @@ public async Task<IActionResult> Edit(int id, AnimalEditDto animalEditDto)
                     return RedirectToAction("Create", "HealthRecords", new { animalId = id.Value });
                 }
             }
-            
             return RedirectToAction("Details", "HealthRecords", new { id = healthRecordId.Value });
         }
         
         private List<SelectListItem> GetEnumSelectList<TEnum>() where TEnum : Enum
         {
-            var selectListItems = new List<SelectListItem>();
-            var enumValues = Enum.GetValues(typeof(TEnum)).Cast<TEnum>();
-            foreach (var enumValue in enumValues)
+            return Enum.GetValues(typeof(TEnum)).Cast<TEnum>().Select(enumValue =>
             {
                 var fieldInfo = typeof(TEnum).GetField(enumValue.ToString());
-                var displayAttribute = fieldInfo.GetCustomAttributes(typeof(DisplayAttribute), false).Cast<DisplayAttribute>().FirstOrDefault();
-                selectListItems.Add(new SelectListItem
+                var displayAttribute = fieldInfo?.GetCustomAttributes(typeof(DisplayAttribute), false).Cast<DisplayAttribute>().FirstOrDefault();
+                return new SelectListItem
                 {
                     Value = enumValue.ToString(),
                     Text = displayAttribute?.Name ?? enumValue.ToString()
-                });
-            }
-            return selectListItems;
+                };
+            }).ToList();
         }
 
-        private async Task<List<User>> GetClientUsersAsync()
+        private async Task<IEnumerable<object>> GetClientUsersForSelectListAsync()
         {
-             return (await _userManager.GetUsersInRoleAsync("Client")).ToList();
+             var clients = await _userManager.GetUsersInRoleAsync("Client");
+             return clients.OrderBy(c => c.LastName).Select(c => new {
+                 c.Id,
+                 FullName = $"{c.FirstName} {c.LastName}"
+             }).ToList();
         }
     }
 }

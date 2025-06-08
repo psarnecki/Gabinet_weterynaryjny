@@ -1,4 +1,5 @@
 ﻿using Riok.Mapperly.Abstractions;
+using VetClinicManager.DTOs.Users.UserBriefs;
 using VetClinicManager.DTOs.Visits;
 using VetClinicManager.DTOs.Visits.VisitBriefs;
 using VetClinicManager.Models;
@@ -14,15 +15,13 @@ public partial class VisitMapper
     // Map from UpdateVisitDto to existing Visit
     public partial void ToEntity(VisitEditDto dto, Visit visit);
     
-    // Map from Visit to VisitDtoReceptionist
+    [MapProperty(nameof(Visit.Animal.User), nameof(VisitListReceptionistDto.Owner))]
     public partial VisitListReceptionistDto ToReceptionistDto(Visit visit);
     
-    // Map from Visit to VisitDtoVet
+    [MapProperty(nameof(Visit.Animal.User), nameof(VisitListVetDto.Owner))]
     public partial VisitListVetDto ToVetDto(Visit visit);
     
-    // Map from Visit to VisitDtoUser
     public partial VisitListUserDto ToUserDto(Visit visit);
-    
     public partial IEnumerable<VisitListVetDto> ToVetDtos(IEnumerable<Visit> visits);
     public partial IEnumerable<VisitListUserDto> ToUserDtos(IEnumerable<Visit> visits);
     public partial IEnumerable<VisitListReceptionistDto> ToReceptionistDtos(IEnumerable<Visit> visits);
@@ -91,6 +90,18 @@ public partial class VisitMapper
         };
     }
 
+    private UserBriefDto MapUserToBriefDto(User? user)
+    {
+        if (user == null)
+        {
+            return null;
+        }
+        return new UserBriefDto { Id = user.Id, FirstName = user.FirstName, LastName = user.LastName };
+    }
+    
+    [UserMapping(Default = false)] // Mówimy, że to nie jest domyślne mapowanie dla typu User
+    private UserBriefDto? MapOwner(Visit visit) => MapUserToBriefDto(visit.Animal?.User);
+    
     // Mapowanie listy VisitUpdate na listę VisitUpdateDto
     private List<VisitUpdateBriefDto> MapUpdates(ICollection<VisitUpdate> updates)
     {

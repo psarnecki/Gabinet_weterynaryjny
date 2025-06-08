@@ -26,6 +26,7 @@ namespace VetClinicManager.Services
         {
             var visits = await _context.Visits
                 .Include(v => v.Animal)
+                    .ThenInclude(a => a.User) 
                 .Include(v => v.AssignedVet)
                 .Include(v => v.Updates)
                     .ThenInclude(u => u.AnimalMedications)
@@ -46,7 +47,6 @@ namespace VetClinicManager.Services
                     .ThenInclude(u => u.AnimalMedications)
                         .ThenInclude(am => am.Medication)
                 .ToListAsync();
-
             return _visitMapper.ToVetDtos(visits);
         }
 
