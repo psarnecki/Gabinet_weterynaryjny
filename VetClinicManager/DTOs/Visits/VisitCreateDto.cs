@@ -13,8 +13,6 @@ public class VisitCreateDto
     [Display(Name = "Opis / Szczegóły")]
     public string? Description { get; set; }
     
-    public DateTime CreatedDate { get; set; }
-    
     [Display(Name = "Status Wizyty")]
     public VisitStatus Status { get; set; }
     

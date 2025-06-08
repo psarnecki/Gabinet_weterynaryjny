@@ -5,146 +5,147 @@ using VetClinicManager.Areas.Admin.DTOs.Medications;
 using VetClinicManager.Models;
 using VetClinicManager.Services;
 
-namespace VetClinicManager.Areas.Admin.Controllers;
-    
-[Area("Admin")]
-[Authorize(Roles = "Admin")]
-public class MedicationsController : Controller
+namespace VetClinicManager.Areas.Admin.Controllers
 {
-    private readonly IMedicationService _medicationService;
-
-    public MedicationsController(IMedicationService medicationService)
+    [Area("Admin")]
+    [Authorize(Roles = "Admin")]
+    public class MedicationsController : Controller
     {
-        _medicationService = medicationService;
-    }
+        private readonly IMedicationService _medicationService;
 
-    // GET: Admin/Medications
-    public async Task<IActionResult> Index()
-    {
-        var medicationListDtos = await _medicationService.GetAllMedicationsAsync();
-        return View(medicationListDtos);
-    }
-
-    // GET: Admin/Medications/Details/5
-    public async Task<IActionResult> Details(int? id)
-    {
-        if (id == null)
+        public MedicationsController(IMedicationService medicationService)
         {
-            return NotFound();
+            _medicationService = medicationService;
         }
 
-        var medicationDto = await _medicationService.GetMedicationForDetailsAsync(id.Value);
-
-        if (medicationDto == null)
+        // GET: Admin/Medications
+        public async Task<IActionResult> Index()
         {
-            return NotFound();
+            var medicationListDtos = await _medicationService.GetAllMedicationsAsync();
+            return View(medicationListDtos);
         }
 
-        return View("Details", medicationDto);
-    }
-
-    // GET: Admin/Medications/Create
-    public IActionResult Create()
-    {
-        return View(new MedicationCreateDto());
-    }
-
-    // POST: Admin/Medications/Create
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(MedicationCreateDto createDto)
-    {
-        if (!ModelState.IsValid) 
+        // GET: Admin/Medications/Details/5
+        public async Task<IActionResult> Details(int? id)
         {
-            return View(createDto);
-        }
-        
-        var resultDto = await _medicationService.CreateMedicationAsync(createDto);
-        
-        return RedirectToAction(nameof(Index));
-    }
-
-    // GET: Admin/Medications/Edit/5
-    public async Task<IActionResult> Edit(int? id)
-    {
-        if (id == null) 
-        {
-            return NotFound();
-        }
-
-        var editDto = await _medicationService.GetMedicationForEditAsync(id.Value);
-        
-        if (editDto == null) 
-        {
-            return NotFound(); 
-        }
-        
-        return View(editDto);
-    }
-
-    // POST: Admin/Medications/Edit/5
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(int id, MedicationEditDto editDto)
-    {
-        if (id != editDto.Id) 
-        {
-            return NotFound();
-        }
-        
-        if (!ModelState.IsValid) 
-        {
-            return View(editDto);
-        }
-
-        try
-        {
-            await _medicationService.UpdateMedicationAsync(editDto);
-        }
-        catch (DbUpdateConcurrencyException)
-        {
-            if (!await _medicationService.MedicationExistsAsync(editDto.Id))
+            if (id == null)
             {
                 return NotFound();
             }
-            else
+
+            var medicationDto = await _medicationService.GetMedicationForDetailsAsync(id.Value);
+
+            if (medicationDto == null)
+            {
+                return NotFound();
+            }
+
+            return View("Details", medicationDto);
+        }
+
+        // GET: Admin/Medications/Create
+        public IActionResult Create()
+        {
+            return View(new MedicationCreateDto());
+        }
+
+        // POST: Admin/Medications/Create
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(MedicationCreateDto createDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(createDto);
+            }
+
+            var resultDto = await _medicationService.CreateMedicationAsync(createDto);
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        // GET: Admin/Medications/Edit/5
+        public async Task<IActionResult> Edit(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var editDto = await _medicationService.GetMedicationForEditAsync(id.Value);
+
+            if (editDto == null)
+            {
+                return NotFound();
+            }
+
+            return View(editDto);
+        }
+
+        // POST: Admin/Medications/Edit/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(int id, MedicationEditDto editDto)
+        {
+            if (id != editDto.Id)
+            {
+                return NotFound();
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return View(editDto);
+            }
+
+            try
+            {
+                await _medicationService.UpdateMedicationAsync(editDto);
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!await _medicationService.MedicationExistsAsync(editDto.Id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+            catch
             {
                 throw;
             }
-        } 
-        catch
-        {
-            throw;
+
+            return RedirectToAction(nameof(Index));
         }
 
-        return RedirectToAction(nameof(Index));
-    }
-
-    // GET: Admin/Medications/Delete/5
-    public async Task<IActionResult> Delete(int? id)
-    {
-        if (id == null)
+        // GET: Admin/Medications/Delete/5
+        public async Task<IActionResult> Delete(int? id)
         {
-            return NotFound();
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var deleteDto = await _medicationService.GetMedicationForDeleteAsync(id.Value);
+
+            if (deleteDto == null)
+            {
+                return NotFound();
+            }
+
+            return View(deleteDto);
         }
 
-        var deleteDto = await _medicationService.GetMedicationForDeleteAsync(id.Value);
-        
-        if (deleteDto == null)
+        // POST: Admin/Medications/Delete/5
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            return NotFound();
+            await _medicationService.DeleteMedicationAsync(id);
+
+            return RedirectToAction(nameof(Index));
         }
-
-        return View(deleteDto);
-    }
-
-    // POST: Admin/Medications/Delete/5
-    [HttpPost, ActionName("Delete")]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> DeleteConfirmed(int id)
-    {
-        await _medicationService.DeleteMedicationAsync(id);
-        
-        return RedirectToAction(nameof(Index));
     }
 }
