@@ -4,58 +4,68 @@
     ViewData["Title"] = "Edytuj wizytę";
 }
 
-<h1>Edytuj wizytę</h1>
+<div class="container mt-4">
+    <h1>@ViewData["Title"]</h1>
 
-<h4>Wizyta</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Edit">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <input type="hidden" asp-for="Id" />
-            <div class="form-group">
-                <label asp-for="Title" class="control-label">Tytuł</label>
-                <input asp-for="Title" class="form-control" />
-                <span asp-validation-for="Title" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Description" class="control-label">Opis</label>
-                <textarea asp-for="Description" class="form-control"></textarea>
-                <span asp-validation-for="Description" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Status" class="control-label">Status</label>
-                <select asp-for="Status" class="form-control" asp-items="Html.GetEnumSelectList<VetClinicManager.Models.Enums.VisitStatus>()">
-                </select>
-                <span asp-validation-for="Status" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Priority" class="control-label">Priorytet</label>
-                <select asp-for="Priority" class="form-control" asp-items="Html.GetEnumSelectList<VetClinicManager.Models.Enums.VisitPriority>()">
-                </select>
-                <span asp-validation-for="Priority" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label class="control-label">Zwierzę</label>
-                <input class="form-control" value="@Model.Animal?.Name" readonly />
-                <input type="hidden" name="Animal.Id" value="@Model.Animal?.Id" />
-            </div>
-            <div class="form-group">
-                <label asp-for="AssignedVetId" class="control-label">Weterynarz</label>
-                <select asp-for="AssignedVetId" class="form-control" asp-items="ViewBag.AssignedVetId">
-                    <option value="">-- Wybierz weterynarza --</option>
-                </select>
-                <span asp-validation-for="AssignedVetId" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Zapisz" class="btn btn-primary" />
-            </div>
-        </form>
+    <hr />
+
+    <div class="row">
+        <div class="col-md-6">
+            <form asp-action="Edit">
+                <input type="hidden" asp-for="Id" />
+
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                <div class="form-group mb-3">
+                    <label asp-for="Title" class="form-label"></label>
+                    <input asp-for="Title" class="form-control" />
+                    <span asp-validation-for="Title" class="text-danger"></span>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label asp-for="Description" class="form-label"></label>
+                    <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+                    <span asp-validation-for="Description" class="text-danger"></span>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label asp-for="Status" class="form-label"></label>
+                    <select asp-for="Status" class="form-control" asp-items="Html.GetEnumSelectList<VetClinicManager.Models.Enums.VisitStatus>()">
+                         <option value="">-- Wybierz status --</option>
+                    </select>
+                    <span asp-validation-for="Status" class="text-danger"></span>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label asp-for="Priority" class="form-label"></label>
+                    <select asp-for="Priority" class="form-control" asp-items="Html.GetEnumSelectList<VetClinicManager.Models.Enums.VisitPriority>()">
+                         <option value="">-- Wybierz priorytet --</option>
+                    </select>
+                    <span asp-validation-for="Priority" class="text-danger"></span>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label class="form-label">Zwierzę</label>
+                    <input class="form-control" value="@Model.Animal?.Name" readonly />
+                </div>
+
+                <div class="form-group mb-3">
+                    <label asp-for="AssignedVetId" class="form-label"></label>
+                    <select asp-for="AssignedVetId" class="form-control" asp-items="ViewBag.AssignedVetId">
+                        <option value="">-- Wybierz weterynarza --</option>
+                    </select>
+                    <span asp-validation-for="AssignedVetId" class="text-danger"></span>
+                </div>
+
+                @* TODO: Add other fields from VisitEditDto if they are editable *@
+
+                <div class="form-group mt-3 d-flex">
+                    <input type="submit" value="Zapisz" class="btn btn-primary" />
+                    <a asp-action="Index" class="btn btn-outline-secondary ms-2">Powrót do listy wizyt</a>
+                </div>
+            </form>
+        </div>
     </div>
-</div>
-
-<div>
-    <a asp-action="Index">Powrót do listy</a>
 </div>
 
 @section Scripts {

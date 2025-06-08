@@ -126,7 +126,7 @@ namespace VetClinicManager.Controllers
 
         // W pliku VisitsController.cs
 
-        [Authorize(Roles = "Receptionist,Vet")]
+        [Authorize(Roles = "Admin,Receptionist,Vet")]
         public async Task<IActionResult> Create()
         {
             // 1. Przygotuj listę dla Statusu (z enuma) - robimy to ręcznie
@@ -143,7 +143,15 @@ namespace VetClinicManager.Controllers
             ViewBag.Animals = await _visitService.GetAnimalsSelectListAsync();
 
             // 4. Przygotuj listę dla Weterynarzy (z serwisu)
-            ViewBag.Vets = await _visitService.GetVetsSelectListAsync();
+            var vetUsers = await _visitService.GetVetUsersAsync();
+            
+            var vetSelectListItems = vetUsers.Select(v => new
+            {
+                Id = v.Id,
+                FullName = $"{v.FirstName} {v.LastName}".Trim()
+            }).ToList();
+            
+            ViewBag.Vets = new SelectList(vetSelectListItems, "Id", "FullName");
 
             // Przekaż pusty model do widoku, aby formularz mógł się poprawnie zainicjować
             return View(new VisitCreateDto());
@@ -157,7 +165,8 @@ namespace VetClinicManager.Controllers
             if (!ModelState.IsValid)
             {
                 var vetUsers = await _visitService.GetVetUsersAsync();
-                ViewData["AssignedVetId"] = new SelectList(vetUsers, "Id", "Email", createVisitDto.AssignedVetId); // TODO: Zmień "Email"
+                var vetSelectListItems = vetUsers.Select(v => new { Id = v.Id, FullName = $"{v.FirstName} {v.LastName}".Trim() }).ToList();
+                ViewData["AssignedVetId"] = new SelectList(vetSelectListItems, "Id", "FullName", createVisitDto.AssignedVetId);
                  // TODO: Załaduj ViewData dla AnimalId jeśli formularz tego wymaga
                 return View(createVisitDto);
             }
@@ -173,7 +182,8 @@ namespace VetClinicManager.Controllers
                 // TODO: Loguj błąd ex
                 ModelState.AddModelError("", ex.Message);
                 var vetUsers = await _visitService.GetVetUsersAsync();
-                ViewData["AssignedVetId"] = new SelectList(vetUsers, "Id", "Email", createVisitDto.AssignedVetId); // TODO: Zmień "Email"
+                var vetSelectListItems = vetUsers.Select(v => new { Id = v.Id, FullName = $"{v.FirstName} {v.LastName}".Trim() }).ToList();
+                ViewData["AssignedVetId"] = new SelectList(vetSelectListItems, "Id", "FullName", createVisitDto.AssignedVetId);
                  // TODO: Załaduj ViewData dla AnimalId jeśli formularz tego wymaga
                 return View(createVisitDto);
             }
@@ -195,7 +205,8 @@ namespace VetClinicManager.Controllers
                 }
 
                 var vetUsers = await _visitService.GetVetUsersAsync();
-                ViewData["AssignedVetId"] = new SelectList(vetUsers, "Id", "Email", visitEditDto.AssignedVetId); // TODO: Zmień "Email"
+                var vetSelectListItems = vetUsers.Select(v => new { Id = v.Id, FullName = $"{v.FirstName} {v.LastName}".Trim() }).ToList();
+                ViewData["AssignedVetId"] = new SelectList(vetSelectListItems, "Id", "FullName", visitEditDto.AssignedVetId);
                  // TODO: Załaduj ViewData dla AnimalId jeśli jest edytowalne
                 return View(visitEditDto);
             }
@@ -211,6 +222,9 @@ namespace VetClinicManager.Controllers
             {
                 // TODO: Loguj błąd ex
                 ModelState.AddModelError("", "Wystąpił błąd podczas ładowania danych do edycji wizyty.");
+                var vetUsers = await _visitService.GetVetUsersAsync();
+                var vetSelectListItems = vetUsers.Select(v => new { Id = v.Id, FullName = $"{v.FirstName} {v.LastName}".Trim() }).ToList();
+                ViewData["AssignedVetId"] = new SelectList(vetSelectListItems, "Id", "FullName");
                 return View("Error");
             }
         }
@@ -225,7 +239,8 @@ namespace VetClinicManager.Controllers
             if (!ModelState.IsValid)
             {
                 var vetUsers = await _visitService.GetVetUsersAsync();
-                ViewData["AssignedVetId"] = new SelectList(vetUsers, "Id", "Email", visitEditDto.AssignedVetId); // TODO: Zmień "Email"
+                var vetSelectListItems = vetUsers.Select(v => new { Id = v.Id, FullName = $"{v.FirstName} {v.LastName}".Trim() }).ToList();
+                ViewData["AssignedVetId"] = new SelectList(vetSelectListItems, "Id", "FullName", visitEditDto.AssignedVetId);
                  // TODO: Załaduj ViewData dla AnimalId jeśli jest edytowalne
                 return View(visitEditDto);
             }
@@ -252,7 +267,8 @@ namespace VetClinicManager.Controllers
                 // TODO: Loguj błąd ex
                 ModelState.AddModelError("", ex.Message);
                 var vetUsers = await _visitService.GetVetUsersAsync();
-                ViewData["AssignedVetId"] = new SelectList(vetUsers, "Id", "Email", visitEditDto.AssignedVetId); // TODO: Zmień "Email"
+                var vetSelectListItems = vetUsers.Select(v => new { Id = v.Id, FullName = $"{v.FirstName} {v.LastName}".Trim() }).ToList();
+                ViewData["AssignedVetId"] = new SelectList(vetSelectListItems, "Id", "FullName", visitEditDto.AssignedVetId);
                  // TODO: Załaduj ViewData dla AnimalId jeśli jest edytowalne
                 return View(visitEditDto);
             }
