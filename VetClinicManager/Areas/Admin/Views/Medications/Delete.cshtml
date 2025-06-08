@@ -10,7 +10,7 @@
     <hr />
 
     <div class="alert alert-danger" role="alert">
-        <h4 class="alert-heading"><i class="bi bi-exclamation-triangle-fill"></i> Potwierdzenie</h4>
+        <h4 class="alert-heading">Potwierdzenie</h4>
         <p>Czy na pewno chcesz trwale usunąć ten lek/materiał z systemu? <strong>Tej operacji nie można cofnąć.</strong></p>
     </div>
 
@@ -32,15 +32,9 @@
 
     <form asp-area="Admin" asp-controller="Medications" asp-action="Delete" method="post" class="mt-4">
         <input type="hidden" asp-for="Id" />
-        <button type="submit" class="btn btn-danger">
-            <i class="bi bi-trash"></i> Tak, usuń
-        </button>
+        <button type="submit" class="btn btn-danger">Tak, usuń</button>
         <a asp-area="Admin" asp-controller="Medications" asp-action="Index" class="btn btn-outline-secondary ms-2">
             Anuluj
         </a>
     </form>
 </div>
-
-@section Scripts {
-    @* Optional scripts *@
-}
