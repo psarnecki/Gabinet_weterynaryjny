@@ -1,63 +1,106 @@
 @model VetClinicManager.DTOs.Visits.VisitListReceptionistDto
 
+@using VetClinicManager.Models.Enums
+@using System.ComponentModel.DataAnnotations
+@using System.Reflection
+
 @{
-    ViewData["Title"] = "Delete";
+    ViewData["Title"] = "Usuń wizytę";
+    Layout = "_Layout";
 }
 
-<h1>Delete</h1>
+@functions {
+    // Definiujemy funkcję pomocniczą, aby uniknąć powtarzania kodu
+    public string GetEnumDisplayName(Enum enumValue)
+    {
+        return enumValue.GetType()
+                        .GetMember(enumValue.ToString())
+                        .First()
+                        .GetCustomAttribute<DisplayAttribute>()?
+                        .GetName() ?? enumValue.ToString();
+    }
+}
 
-<h3>Are you sure you want to delete this?</h3>
-<div>
-    <h4>Visit</h4>
+<div class="container mt-4">
+    <h1>@ViewData["Title"]: @Model.Title</h1>
     <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Title)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Title)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Description)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Description)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.CreatedDate)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.CreatedDate)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Status)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Status)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Priority)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Priority)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Animal)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Animal.Id)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.AssignedVet)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.AssignedVet.Id)
-        </dd>
-    </dl>
+
+    <div class="alert alert-danger" role="alert">
+        <h4 class="alert-heading"><i class="bi bi-exclamation-triangle-fill"></i> Potwierdzenie</h4>
+        <p>Czy na pewno chcesz trwale usunąć tę wizytę? <strong>Tej operacji nie można cofnąć.</strong></p>
+    </div>
+
+    <div class="card mt-4">
+        <div class="card-header">
+            Szczegóły wizyty do usunięcia
+        </div>
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-sm-4 col-md-3">Tytuł</dt>
+                <dd class="col-sm-8 col-md-9">@Html.DisplayFor(model => model.Title)</dd>
+
+                <dt class="col-sm-4 col-md-3">Zwierzę</dt>
+                <dd class="col-sm-8 col-md-9">
+                    @if (Model.Animal != null) { <span>@Model.Animal.Name (@Model.Animal.Species)</span> }
+                    else { <span class="text-muted">Brak danych</span> }
+                </dd>
+
+                <dt class="col-sm-4 col-md-3">Właściciel</dt>
+                <dd class="col-sm-8 col-md-9">
+                     @if (Model.Owner != null) { <span>@Model.Owner.FirstName @Model.Owner.LastName</span> }
+                     else { <span class="text-muted">Brak danych</span> }
+                </dd>
+
+                <dt class="col-sm-4 col-md-3">Data utworzenia</dt>
+                <dd class="col-sm-8 col-md-9">@Model.CreatedDate.ToString("dd.MM.yyyy HH:mm")</dd>
+
+                <dt class="col-sm-4 col-md-3">Status</dt>
+                <dd class="col-sm-8 col-md-9">
+                    @{
+                        string statusBadgeClass = Model.Status switch {
+                            VisitStatus.Scheduled => "bg-warning text-dark",
+                            VisitStatus.Completed => "bg-success",
+                            VisitStatus.InProgress => "bg-primary",
+                            VisitStatus.Cancelled => "bg-danger",
+                            _ => "bg-secondary"
+                        };
+                    }
+                    <span class="badge @statusBadgeClass">
+                        @* Używamy teraz naszej czystej funkcji pomocniczej *@
+                        @GetEnumDisplayName(Model.Status)
+                    </span>
+                </dd>
+
+                <dt class="col-sm-4 col-md-3">Priorytet</dt>
+                <dd class="col-sm-8 col-md-9">
+                    @{
+                        string priorityBadgeClass = Model.Priority switch {
+                            VisitPriority.Critical => "bg-danger",
+                            VisitPriority.Urgent => "bg-warning text-dark",
+                            VisitPriority.Normal => "bg-info",
+                            _ => "bg-secondary"
+                        };
+                    }
+                    <span class="badge @priorityBadgeClass">
+                         @* Używamy teraz naszej czystej funkcji pomocniczej *@
+                         @GetEnumDisplayName(Model.Priority)
+                    </span>
+                </dd>
+                
+                 <dt class="col-sm-4 col-md-3">Lekarz prowadzący</dt>
+                 <dd class="col-sm-8 col-md-9">
+                    @if (Model.AssignedVet != null) { <span>@Model.AssignedVet.FirstName @Model.AssignedVet.LastName</span> }
+                    else { <span class="text-muted">Nieprzypisany</span> }
+                 </dd>
+            </dl>
+        </div>
+    </div>
     
-    <form asp-action="Delete">
+    <form asp-action="Delete" class="mt-4">
         <input type="hidden" asp-for="Id" />
-        <input type="submit" value="Delete" class="btn btn-danger" /> |
-        <a asp-action="Index">Back to List</a>
+        <button type="submit" class="btn btn-danger">
+            <i class="bi bi-trash"></i> Tak, usuń
+        </button>
+        <a asp-action="Index" class="btn btn-outline-secondary ms-2">Anuluj</a>
     </form>
 </div>

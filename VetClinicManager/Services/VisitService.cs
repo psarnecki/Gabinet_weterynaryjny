@@ -190,6 +190,7 @@ namespace VetClinicManager.Services
         {
             var visit = await _context.Visits
                 .Include(v => v.Animal)
+                    .ThenInclude(a => a.User) 
                 .Include(v => v.AssignedVet)
                 .Include(v => v.Updates)
                     .ThenInclude(u => u.AnimalMedications)

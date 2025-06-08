@@ -1,43 +1,29 @@
 @model VetClinicManager.Models.HealthRecord
 
 @{
-    ViewData["Title"] = "Utwórz Kartę Zdrowia"; // Polski tytuł
+    ViewData["Title"] = "Utwórz Kartę Zdrowia";
 }
 
 <div class="container mt-4">
     <h1>@ViewData["Title"]</h1>
-
     <hr />
 
-    @* Użyj AnimalName z ViewBag w nagłówku *@
-    <h4>Karta Zdrowia dla zwierzęcia @(ViewBag.AnimalName)</h4>
+    <h4>Karta Zdrowia dla zwierzęcia: <strong>@ViewBag.AnimalName</strong></h4>
     <hr />
 
     <div class="row">
         <div class="col-md-6">
-            <form asp-action="Create">
-                <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+            <form asp-action="Create" method="post">
+                @if (!ViewData.ModelState.IsValid)
+                {
+                    <div asp-validation-summary="All" class="alert alert-danger"></div>
+                }
 
-                @* Ukryte pole dla ID karty zdrowia (jeśli model ma Id) *@
-                @* <input type="hidden" asp-for="Id" /> *@
-
-                @* !!! UKRYTE POLE DLA ANIMALID - PRZESYŁA ID ZWIERZĘCIA Z POWROTEM DO POST !!! *@
-                @* Pobierz AnimalId z ViewBag i ustaw jako wartość ukrytego pola *@
                 <input type="hidden" asp-for="AnimalId" value="@ViewBag.AnimalId" />
-
-
-                @* !!! USUŃ CAŁY TEN BLOK Z DROPDOWNEM AnimalId !!! *@
-                @* <div class="form-group">
-                    <label asp-for="AnimalId" class="control-label"></label>
-                    <select asp-for="AnimalId" class="form-control" asp-items="ViewBag.AnimalId"></select> // TA LINIA DAWAŁA BŁĄD
-                    <span asp-validation-for="AnimalId" class="text-danger"></span>
-                </div> *@
-
 
                 <div class="form-group form-check mb-3">
                     <input class="form-check-input" asp-for="IsSterilized" />
                     <label class="form-check-label" asp-for="IsSterilized"></label>
-                    <span asp-validation-for="IsSterilized" class="text-danger"></span>
                 </div>
 
                 <div class="form-group mb-3">
@@ -60,16 +46,16 @@
 
                 <div class="form-group mb-3">
                     <label asp-for="LastVaccinationDate" class="form-label"></label>
-                     @* Dodaj type="date" dla lepszego inputu *@
-                    <input asp-for="LastVaccinationDate" class="form-control" type="date" />
+                    <input asp-for="LastVaccinationDate" class="form-control" type="date" 
+                           value="@DateTime.Today.ToString("yyyy-MM-dd")" />
                     <span asp-validation-for="LastVaccinationDate" class="text-danger"></span>
                 </div>
 
-                @* TODO: Dodaj inne pola z encji HealthRecord jeśli są i mają być edytowalne *@
-
-                <div class="form-group mt-3 d-flex">
-                    <input type="submit" value="Utwórz" class="btn btn-primary" /> 
-                    <a asp-controller="Animals" asp-action="Index" class="btn btn-outline-secondary ms-2">Powrót do Listy Zwierząt</a> 
+                <div class="form-group mt-4 d-flex">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-plus-circle"></i> Utwórz
+                    </button> 
+                    <a asp-controller="Animals" asp-action="Index" class="btn btn-outline-secondary ms-2">Anuluj</a> 
                 </div>
             </form>
         </div>

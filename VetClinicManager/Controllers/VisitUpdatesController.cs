@@ -62,7 +62,7 @@ namespace VetClinicManager.Controllers
         }
 
         // GET: VisitUpdates/Create - BEZ ZMIAN, logika jest OK
-        [Authorize(Roles = "Vet")]
+        [Authorize(Roles = "Admin,Vet")]
         public async Task<IActionResult> Create(int visitId)
         {
             var visit = await _context.Visits
@@ -89,7 +89,7 @@ namespace VetClinicManager.Controllers
         // POST: VisitUpdates/Create - Uproszczony, cała logika w serwisach
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Vet")]
+        [Authorize(Roles = "Admin,Vet")]
         public async Task<IActionResult> Create(VisitUpdateCreateDto createDto)
         {
             // Pobieramy visit, aby uzyskać AnimalId
@@ -149,7 +149,7 @@ namespace VetClinicManager.Controllers
         }
 
         // GET: VisitUpdates/Edit - BEZ ZMIAN, logika jest OK
-        [Authorize(Roles = "Vet")]
+        [Authorize(Roles = "Admin,Vet")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null) return NotFound();
@@ -189,7 +189,7 @@ namespace VetClinicManager.Controllers
         // POST: VisitUpdates/Edit - KLUCZOWE ZMIANY
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Vet")]
+        [Authorize(Roles = "Admin,Vet")]
         public async Task<IActionResult> Edit(int id, VisitUpdateEditVetDto editDto)
         {
             if (id != editDto.Id) return NotFound();
@@ -250,22 +250,45 @@ namespace VetClinicManager.Controllers
             }
         }
         
-        [HttpPost] // Usunięto ActionName
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Delete(int id) // Zmieniono nazwę i parametr
+        // GET: /VisitUpdates/Delete/5
+        [Authorize(Roles = "Vet")]
+        public async Task<IActionResult> Delete(int? id)
         {
-            // Pobierz visitId ZANIM usuniesz rekord, aby wiedzieć, dokąd wrócić
-            var visitUpdate = await _context.VisitUpdates.AsNoTracking().FirstOrDefaultAsync(vu => vu.Id == id);
-            if (visitUpdate == null)
+            if (id == null)
             {
                 return NotFound();
             }
-            var visitIdToReturnTo = visitUpdate.VisitId;
 
-            await _visitUpdateService.DeleteVisitUpdateAsync(id);
+            var update = await _context.VisitUpdates.AsNoTracking().FirstOrDefaultAsync(u => u.Id == id.Value);
+
+            if (update == null)
+            {
+                return NotFound();
+            }
     
-            // Przekieruj z powrotem do szczegółów wizyty, a nie do listy wszystkich aktualizacji
-            return RedirectToAction("Details", "Visits", new { id = visitIdToReturnTo });
+            // Tworzymy DTO dla widoku, aby przekazać potrzebne dane
+            var deleteDto = new VisitUpdateDeleteDto
+            {
+                Id = update.Id,
+                VisitId = update.VisitId,
+                UpdateDate = update.UpdateDate,
+                Notes = update.Notes
+            };
+
+            return View(deleteDto); // Zwracamy widok z danymi do potwierdzenia
+        }
+
+        // POST: /VisitUpdates/Delete/5
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Vet")]
+        public async Task<IActionResult> DeleteConfirmed(VisitUpdateDeleteDto dto)
+        {
+            // Nie musimy już pobierać visitId, bo mamy je w DTO
+            await _visitUpdateService.DeleteVisitUpdateAsync(dto.Id);
+    
+            // Przekierowujemy z powrotem do szczegółów WIZYTY, z której przyszliśmy
+            return RedirectToAction("Details", "Visits", new { id = dto.VisitId });
         }
         
         private async Task PopulateEditViewBag(int visitUpdateId)

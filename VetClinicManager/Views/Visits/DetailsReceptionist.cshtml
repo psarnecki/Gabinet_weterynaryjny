@@ -1,13 +1,25 @@
 @using VetClinicManager.Models.Enums
 @model VetClinicManager.DTOs.Visits.VisitListReceptionistDto
 
+@functions {
+    // Funkcja pomocnicza do pobierania polskich nazw z atrybutów [Display]
+    public string GetEnumDisplayName(Enum enumValue)
+    {
+        return enumValue.GetType()
+                        .GetMember(enumValue.ToString())
+                        .First()
+                        .GetCustomAttribute<System.ComponentModel.DataAnnotations.DisplayAttribute>()?
+                        .GetName() ?? enumValue.ToString();
+    }
+}
+
 <div class="container">
     <h2>@Model.Title</h2>
     <div class="row mb-4">
         <div class="col-md-6">
             <div class="card">
                 <div class="card-header bg-primary text-white">
-                    Visit Details
+                    Szczegóły Wizyty
                 </div>
                 <div class="card-body">
                     <p><strong>Status:</strong>
@@ -21,10 +33,10 @@
                                 _ => "bg-secondary"
                             };
                         }
-                        <span class="badge @statusBadgeClass">@Model.Status</span>
+                        <span class="badge @statusBadgeClass">@GetEnumDisplayName(Model.Status)</span>
                     </p>
 
-                    <p><strong>Priority:</strong>
+                    <p><strong>Priorytet:</strong>
                         @{
                             string priorityBadgeClass = Model.Priority switch
                             {
@@ -34,19 +46,26 @@
                                 _ => "bg-secondary"
                             };
                         }
-                        <span class="badge @priorityBadgeClass">@Model.Priority</span>
+                        <span class="badge @priorityBadgeClass">@GetEnumDisplayName(Model.Priority)</span>
                     </p>
-                    <p><strong>Created:</strong> @Model.CreatedDate.ToString("g")</p>
-                    <p><strong>Animal:</strong>
-                        <a asp-controller="Animals" asp-action="Details" asp-route-id="@Model.Animal.Id">
-                            @Model.Animal.Name</a>
-                        <span>(@Model.Animal.Species @Model.Animal.Breed)</span>
+                    <p><strong>Data:</strong> @Model.CreatedDate.ToString("g")</p>
+                    <p><strong>Zwierzę:</strong>
+                        @if (Model.Animal != null)
+                        {
+                            <a asp-controller="Animals" asp-action="Details" asp-route-id="@Model.Animal.Id">
+                                @Model.Animal.Name</a>
+                            <span>(@Model.Animal.Species @Model.Animal.Breed)</span>
+                        }
+                        else
+                        {
+                            <span class="text-muted">Brak danych</span>
+                        }
                     </p>
-                    <p><strong>Assigned Vet:</strong> 
+                    <p><strong>Weterynarz Prowadzący:</strong> 
                         @if (Model.AssignedVet != null) {
-                            <span>@Model.AssignedVet.FirstName @Model.AssignedVet.LastName (@Model.AssignedVet.Email)</span>
+                            <span>@Model.AssignedVet.FirstName @Model.AssignedVet.LastName (<a href="mailto:@Model.AssignedVet.Email">@Model.AssignedVet.Email</a>)</span>
                         } else {
-                            <span class="text-danger">Not assigned</span>
+                            <span class="text-muted">Nieprzypisany</span>
                         }
                     </p>
                 </div>
@@ -58,7 +77,7 @@
             <div class="col-md-6">
                 <div class="card">
                     <div class="card-header bg-secondary text-white">
-                        Description
+                        Opis
                     </div>
                     <div class="card-body">
                         <p>@Model.Description</p>
@@ -68,18 +87,18 @@
         }
     </div>
 
-    <h3>Visit Updates</h3>
-    @if (Model.Updates.Any())
+    <h3>Historia Wizyty</h3>
+    @if (Model.Updates != null && Model.Updates.Any())
     {
         <div class="table-responsive">
             <table class="table table-striped">
                 <thead class="table-dark">
                     <tr>
-                        <th>Date</th>
-                        <th>Vet</th>
-                        <th>Notes</th>
-                        <th>Medications</th>
-                        <th>Attachments</th>
+                        <th>Data</th>
+                        <th>Weterynarz</th>
+                        <th>Notatki</th>
+                        <th>Leki</th>
+                        <th>Załączniki</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -90,28 +109,28 @@
                             <td>@update.UpdatedByVetName</td>
                             <td>@update.Notes</td>
                             <td>
-                                @if (!string.IsNullOrEmpty(update.PrescribedMedications))
+                                @if (update.Medications != null && update.Medications.Any())
                                 {
-                                    <p>@update.PrescribedMedications</p>
-                                }
-                                @if (update.Medications.Any())
-                                {
-                                    <ul class="list-unstyled">
+                                    <ul class="list-unstyled mb-0">
                                         @foreach (var med in update.Medications)
                                         {
                                             <li>
                                                 <strong>@med.Name</strong> - 
-                                                (@med.StartDate.ToString("d") - @(med.EndDate?.ToString("d") ?? "ongoing"))
+                                                (@med.StartDate.ToString("d") - @(med.EndDate?.ToString("d") ?? "w trakcie"))
                                             </li>
                                         }
                                     </ul>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">Brak</span>
                                 }
                             </td>
                             <td>
                                 @if (!string.IsNullOrEmpty(update.ImageUrl))
                                 {
                                     <a href="@update.ImageUrl" target="_blank" class="btn btn-sm btn-outline-primary">
-                                        <i class="bi bi-image"></i> View
+                                        <i class="bi bi-image"></i> Zobacz
                                     </a>
                                 }
                             </td>
@@ -123,11 +142,11 @@
     }
     else
     {
-        <div class="alert alert-info">No updates recorded yet.</div>
+        <div class="alert alert-info">Brak zarejestrowanych aktualizacji.</div>
     }
 
     <div class="mt-3">
-        <a asp-action="Index" class="btn btn-outline-secondary">Back to List</a>
-        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">Edit Visit</a>
+        <a asp-action="Index" class="btn btn-outline-secondary">Powrót do listy</a>
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">Edytuj wizytę</a>
     </div>
 </div>

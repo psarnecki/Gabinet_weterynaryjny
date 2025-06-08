@@ -166,17 +166,14 @@
     </div>
 
     <div class="mt-4">
-        @* TODO: If Client can edit their animal (via EditOwnerAnimal action) *@
-        @* <a asp-action="EditOwnerAnimal" asp-route-id="@Model?.Id" class="btn btn-primary">Edytuj</a> *@
-        @* <span class="ms-2"></span> *@
-        @{
-            var buttonClass = Model.HealthRecordId.HasValue ? "btn-info" : "btn-success";
-            var buttonText = Model.HealthRecordId.HasValue ? "Zobacz Kartę Zdrowia" : "Utwórz Kartę Zdrowia";
+        @if (Model.HealthRecordId.HasValue)
+        {
+            <a asp-controller="HealthRecords" asp-action="Details" asp-route-id="@Model.HealthRecordId" class="btn btn-info">
+                <i class="bi bi-file-earmark-medical"></i> Zobacz Kartę Zdrowia
+            </a>
         }
-        <a asp-controller="Animals" asp-action="RedirectToHealthRecord" asp-route-id="@Model.Id" class="btn @buttonClass">
-            @buttonText
-        </a>
-        <a asp-action="Index" class="btn btn-outline-secondary">Powrót do Listy</a>
+
+        <a asp-action="Index" class="btn btn-outline-secondary ms-2">Powrót do Listy Zwierząt</a>
     </div>
 
 </div>

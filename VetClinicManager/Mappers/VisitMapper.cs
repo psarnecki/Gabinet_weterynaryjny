@@ -35,7 +35,8 @@ public partial class VisitMapper
             { 
                 Id = 0, 
                 Name = string.Empty, 
-                Breed = string.Empty 
+                Breed = string.Empty,
+                OwnerId = string.Empty
             };
         }
         
@@ -43,7 +44,8 @@ public partial class VisitMapper
         { 
             Id = animal.Id, 
             Name = animal.Name, 
-            Breed = animal.Breed ?? string.Empty 
+            Breed = animal.Breed ?? string.Empty,
+            OwnerId = animal.UserId
         };
     }
     
@@ -59,6 +61,7 @@ public partial class VisitMapper
             Id = user.Id, 
             FirstName = user.FirstName ?? string.Empty, 
             LastName = user.LastName ?? string.Empty, 
+            Email = user.Email
         };
     }
 

@@ -1,7 +1,9 @@
+using System.Reflection;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using VetClinicManager.DTOs.Users.UserBriefs;
 using VetClinicManager.DTOs.Visits;
 using VetClinicManager.Models;
 using VetClinicManager.Models.Enums;
@@ -124,20 +126,24 @@ namespace VetClinicManager.Controllers
             }
         }
 
-        // W pliku VisitsController.cs
-
         [Authorize(Roles = "Admin,Receptionist,Vet")]
         public async Task<IActionResult> Create()
         {
             // 1. Przygotuj listę dla Statusu (z enuma) - robimy to ręcznie
             ViewBag.Statuses = Enum.GetValues(typeof(VisitStatus))
                 .Cast<VisitStatus>()
-                .Select(e => new SelectListItem { Value = e.ToString(), Text = e.ToString() });
+                .Select(e => new SelectListItem { 
+                    Value = e.ToString(), 
+                    Text = e.GetType().GetMember(e.ToString()).First().GetCustomAttribute<System.ComponentModel.DataAnnotations.DisplayAttribute>()?.GetName() ?? e.ToString()
+                });
 
             // 2. Przygotuj listę dla Priorytetu (z enuma) - robimy to ręcznie
             ViewBag.Priorities = Enum.GetValues(typeof(VisitPriority))
                 .Cast<VisitPriority>()
-                .Select(e => new SelectListItem { Value = e.ToString(), Text = e.ToString() });
+                .Select(e => new SelectListItem { 
+                    Value = e.ToString(), 
+                    Text = e.GetType().GetMember(e.ToString()).First().GetCustomAttribute<System.ComponentModel.DataAnnotations.DisplayAttribute>()?.GetName() ?? e.ToString()
+                });
 
             // 3. Przygotuj listę dla Zwierząt (z serwisu)
             ViewBag.Animals = await _visitService.GetAnimalsSelectListAsync();
@@ -274,7 +280,7 @@ namespace VetClinicManager.Controllers
             }
         }
 
-        [Authorize(Roles = "Admin, Receptionist")]
+        [Authorize(Roles = "Admin,Receptionist")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null) return NotFound();
@@ -283,9 +289,23 @@ namespace VetClinicManager.Controllers
             {
                 var dto = await _visitService.GetVisitDetailsForReceptionistAsync(id.Value);
                 if (dto == null) return NotFound();
+                
+                if (dto.Owner == null && dto.Animal?.OwnerId != null)
+                {
+                    var ownerUser = await _userManager.FindByIdAsync(dto.Animal.OwnerId);
 
-                // TODO: Zwróć widok dedykowany do potwierdzenia usunięcia (np. DeleteConfirm.cshtml)
-                return View(dto);
+                    if (ownerUser != null)
+                    {
+                        dto.Owner = new UserBriefDto
+                        {
+                            Id = ownerUser.Id,
+                            FirstName = ownerUser.FirstName,
+                            LastName = ownerUser.LastName
+                        };
+                    }
+                }
+                
+                return View("Delete", dto);
             }
             catch (KeyNotFoundException)
             {
@@ -299,7 +319,7 @@ namespace VetClinicManager.Controllers
             }
         }
 
-        [Authorize(Roles = "Admin, Receptionist")]
+        [Authorize(Roles = "Admin,Receptionist")]
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)

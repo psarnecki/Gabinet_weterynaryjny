@@ -5,33 +5,58 @@
     Layout = "_Layout";
 }
 
-<h1>Zarządzanie lekami/materiałami</h1>
+<div class="container mt-4">
+    <h1>@ViewData["Title"]</h1>
 
-<p>
-    <a asp-area="Admin" asp-controller="Medications" asp-action="Create" class="btn btn-primary">Dodaj nowy lek/materiał</a>
-</p>
+    <p class="mt-3">
+        <a asp-area="Admin" asp-controller="Medications" asp-action="Create" class="btn btn-success">
+             <i class="bi bi-plus-circle"></i> Dodaj nowy lek/materiał
+        </a>
+    </p>
 
-<table class="table">
-    <thead>
-    <tr>
-        <th>
-            @Html.DisplayNameFor(model => model.Name)
-        </th>
-        <th></th>
-    </tr>
-    </thead>
-    <tbody>
-    @foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Name)
-            </td>
-            <td>
-                <a asp-area="Admin" asp-controller="Medications" asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-secondary">Edytuj</a> |
-                <a asp-area="Admin" asp-controller="Medications" asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info">Szczegóły</a> |
-                <a asp-area="Admin" asp-controller="Medications" asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Usuń</a>
-            </td>
-        </tr>
+    @if (Model == null || !Model.Any())
+    {
+        <div class="alert alert-info mt-3" role="alert">
+            Brak leków/materiałów w systemie.
+        </div>
     }
-    </tbody>
-</table>
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-striped table-hover align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>@Html.DisplayNameFor(model => model.Name)</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>
+                                <strong>@Html.DisplayFor(modelItem => item.Name)</strong>
+                            </td>
+                            <td>
+                                <a asp-area="Admin" asp-controller="Medications" asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-primary" title="Edytuj lek/materiał">
+                                     <i class="bi bi-pencil"></i> Edytuj
+                                </a>
+                                <a asp-area="Admin" asp-controller="Medications" asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info ms-1" title="Szczegóły leku/materiału">
+                                     <i class="bi bi-info-circle"></i> Szczegóły
+                                </a>
+                                <a asp-area="Admin" asp-controller="Medications" asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger ms-1" title="Usuń lek/materiał">
+                                     <i class="bi bi-trash"></i> Usuń
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+
+</div>
+
+@section Scripts {
+    @* Optional scripts *@
+}

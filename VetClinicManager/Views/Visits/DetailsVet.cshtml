@@ -1,13 +1,25 @@
 ﻿@using VetClinicManager.Models.Enums
 @model VetClinicManager.DTOs.Visits.VisitListVetDto
 
+@functions {
+    // Funkcja pomocnicza do pobierania polskich nazw z atrybutów [Display]
+    public string GetEnumDisplayName(Enum enumValue)
+    {
+        return enumValue.GetType()
+                        .GetMember(enumValue.ToString())
+                        .First()
+                        .GetCustomAttribute<System.ComponentModel.DataAnnotations.DisplayAttribute>()?
+                        .GetName() ?? enumValue.ToString();
+    }
+}
+
 <div class="container">
     <h2>@Model.Title</h2>
     <div class="row mb-4">
         <div class="col-md-6">
             <div class="card">
                 <div class="card-header bg-primary text-white">
-                    Visit Details
+                    Szczegóły Wizyty
                 </div>
                 <div class="card-body">
                     <p><strong>Status:</strong>
@@ -21,10 +33,10 @@
                                 _ => "bg-secondary"
                             };
                         }
-                        <span class="badge @statusBadgeClass">@Model.Status</span>
+                        <span class="badge @statusBadgeClass">@GetEnumDisplayName(Model.Status)</span>
                     </p>
 
-                    <p><strong>Priority:</strong>
+                    <p><strong>Priorytet:</strong>
                         @{
                             string priorityBadgeClass = Model.Priority switch
                             {
@@ -34,10 +46,10 @@
                                 _ => "bg-secondary"
                             };
                         }
-                        <span class="badge @priorityBadgeClass">@Model.Priority</span>
+                        <span class="badge @priorityBadgeClass">@GetEnumDisplayName(Model.Priority)</span>
                     </p>
-                    <p><strong>Created:</strong> @Model.CreatedDate.ToString("g")</p>
-                    <p><strong>Animal:</strong>
+                    <p><strong>Data:</strong> @Model.CreatedDate.ToString("g")</p>
+                    <p><strong>Zwierzę:</strong>
                         <a asp-controller="Animals" asp-action="Details" asp-route-id="@Model.Animal.Id">
                             @Model.Animal.Name</a>
                         <span>(@Model.Animal.Species @Model.Animal.Breed)</span>
@@ -51,7 +63,7 @@
             <div class="col-md-6">
                 <div class="card">
                     <div class="card-header bg-secondary text-white">
-                        Description
+                        Opis
                     </div>
                     <div class="card-body">
                         <p>@Model.Description</p>
@@ -61,18 +73,18 @@
         }
     </div>
 
-    <h3>Visit History</h3>
+    <h3>Historia Wizyty</h3>
     @if (Model.Updates.Any())
     {
         <div class="table-responsive">
             <table class="table table-striped">
                 <thead class="table-dark">
                     <tr>
-                        <th>Date</th>
-                        <th>Notes</th>
-                        <th>Medications</th>
-                        <th>Attachments</th>
-                        <th>Actions</th>
+                        <th>Data</th>
+                        <th>Notatki</th>
+                        <th>Leki</th>
+                        <th>Załączniki</th>
+                        <th>Akcje</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -93,7 +105,7 @@
                                         {
                                             <li>
                                                 <strong>@med.Name</strong> - 
-                                                (@med.StartDate.ToString("d") - @(med.EndDate?.ToString("d") ?? "until further notice"))
+                                                (@med.StartDate.ToString("d") - @(med.EndDate?.ToString("d") ?? "do odwołania"))
                                             </li>
                                         }
                                     </ul>
@@ -103,27 +115,22 @@
                                 @if (!string.IsNullOrEmpty(update.ImageUrl))
                                 {
                                     <a href="@update.ImageUrl" target="_blank" class="btn btn-sm btn-outline-primary">
-                                        <i class="bi bi-image"></i> View
+                                        <i class="bi bi-image"></i> Zobacz
                                     </a>
                                 }
                             </td>
-                            <td>
+                            <td class="text-nowrap">
                                 <a asp-controller="VisitUpdates" asp-action="Edit" asp-route-id="@update.Id" 
-                                   class="btn btn-sm btn-outline-primary" title="Edit this update">
+                                   class="btn btn-sm btn-primary" title="Edytuj tę aktualizację">
+                                    <i class="bi bi-pencil"></i> Edytuj
                                 </a>
+        
                                 @if (User.IsInRole("Vet"))
                                 {
-                                    <form asp-controller="VisitUpdates" asp-action="Delete" method="post" class="d-inline"
-                                          onsubmit="return confirm('Are you sure you want to delete this update? This action cannot be undone.');">
-      
-                                        <input type="hidden" name="id" value="@update.Id" />
-    
-                                        @Html.AntiForgeryToken()
-
-                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete this update">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </form>
+                                    <a asp-controller="VisitUpdates" asp-action="Delete" asp-route-id="@update.Id"
+                                       class="btn btn-sm btn-danger ms-1" title="Usuń tę aktualizację">
+                                        <i class="bi bi-trash"></i> Usuń
+                                    </a>
                                 }
                             </td>
                         </tr>
@@ -134,12 +141,12 @@
     }
     else
     {
-        <div class="alert alert-info">No updates recorded yet.</div>
+        <div class="alert alert-info">Brak zarejestrowanych aktualizacji.</div>
     }
 
     <div class="mt-3">
-        <a asp-action="Index" class="btn btn-outline-secondary">Back to List</a>
-        <a asp-controller="Visits" asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">Edit Visit</a>
-        <a asp-controller="VisitUpdates" asp-action="Create" asp-route-visitId="@Model.Id" class="btn btn-primary">Add Update</a>
+        <a asp-action="Index" class="btn btn-outline-secondary">Powrót do listy</a>
+        <a asp-controller="Visits" asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">Edytuj wizytę</a>
+        <a asp-controller="VisitUpdates" asp-action="Create" asp-route-visitId="@Model.Id" class="btn btn-primary">Dodaj aktualizację</a>
     </div>
 </div>

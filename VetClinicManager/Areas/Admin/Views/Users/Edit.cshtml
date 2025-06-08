@@ -5,79 +5,105 @@
     Layout = "_Layout";
 }
 
-<h1>Edytuj Użytkownika</h1>
+<div class="container mt-4">
+    <h1>@ViewData["Title"]: @Model.FirstName @Model.LastName</h1>
 
-<hr />
-<div class="row">
-    <div class="col-md-6">
-        <form asp-area="Admin" asp-controller="Users" asp-action="Edit" asp-route-id="@Model.Id" method="post">
-            <div asp-validation-summary="All" class="text-danger"></div>
+    <hr />
 
-            <input type="hidden" asp-for="Id" />
+    <div class="row">
+        <div class="col-md-6">
+            <form asp-area="Admin" asp-controller="Users" asp-action="Edit" method="post">
+                @if (!ViewData.ModelState.IsValid && ViewData.ModelState.ErrorCount > 0)
+                {
+                    <div asp-validation-summary="All" class="alert alert-danger"></div>
+                }
 
-            <div class="form-group mb-3">
-                <label asp-for="FirstName" class="form-label"></label>
-                <input asp-for="FirstName" class="form-control" />
-                <span asp-validation-for="FirstName" class="text-danger"></span>
+                <input type="hidden" asp-for="Id" />
+
+                <div class="form-group mb-3">
+                    <label asp-for="FirstName" class="form-label"></label>
+                    <input asp-for="FirstName" class="form-control" />
+                    <span asp-validation-for="FirstName" class="text-danger"></span>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label asp-for="LastName" class="form-label"></label>
+                    <input asp-for="LastName" class="form-control" />
+                    <span asp-validation-for="LastName" class="text-danger"></span>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label asp-for="Email" class="form-label"></label>
+                    <input asp-for="Email" class="form-control" type="email" />
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label asp-for="Specialization" class="form-label"></label>
+                    <input asp-for="Specialization" class="form-control" />
+                    <span asp-validation-for="Specialization" class="text-danger"></span>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label class="form-label">Role</label><br />
+                    @if (Model.AvailableRoles != null)
+                    {
+                        @for (int i = 0; i < Model.AvailableRoles.Count; i++)
+                        {
+                            var role = Model.AvailableRoles[i];
+                            <div class="form-check form-check-inline">
+                                <input type="checkbox"
+                                       name="SelectedRoles"
+                                       value="@role"
+                                       id="role_edit_@i"
+                                       class="form-check-input"
+                                       @(Model.SelectedRoles != null && Model.SelectedRoles.Contains(role) ? "checked" : "") />
+                                <label class="form-check-label" for="role_edit_@i">@role</label>
+                            </div>
+                        }
+                    }
+                    <span asp-validation-for="SelectedRoles" class="text-danger"></span>
+                </div>
+
+                <div class="form-group mt-4 d-flex">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save"></i> Zapisz zmiany
+                    </button>
+                    <a asp-area="Admin" asp-controller="Users" asp-action="Index" class="btn btn-outline-secondary ms-2">
+                        Anuluj
+                    </a>
+                </div>
+            </form>
+        </div>
+        
+        @* Sekcja do zmiany hasła - można ją odkomentować po implementacji logiki *@
+        <div class="col-md-6">
+            <div class="card bg-light">
+                <div class="card-body">
+                    <h5 class="card-title">Zmiana hasła (opcjonalnie)</h5>
+                    <p class="card-text text-muted small">Wypełnij poniższe pola tylko jeśli chcesz zmienić hasło użytkownika. W przeciwnym razie pozostaw je puste.</p>
+                    
+                    @* TODO: Odkomentuj po dodaniu logiki zmiany hasła i DTO *@
+                    @* 
+                    <form asp-action="ChangePassword" asp-route-id="@Model.Id" method="post">
+                        <div class="form-group mb-3">
+                             <label asp-for="NewPassword" class="form-label">Nowe hasło</label>
+                             <input asp-for="NewPassword" class="form-control" type="password" />
+                             <span asp-validation-for="NewPassword" class="text-danger"></span>
+                        </div>
+                        <div class="form-group mb-3">
+                             <label asp-for="ConfirmNewPassword" class="form-label">Potwierdź nowe hasło</label>
+                             <input asp-for="ConfirmNewPassword" class="form-control" type="password" />
+                             <span asp-validation-for="ConfirmNewPassword" class="text-danger"></span>
+                        </div>
+                        <button type="submit" class="btn btn-outline-primary w-100">
+                            <i class="bi bi-key"></i> Zmień hasło
+                        </button>
+                    </form>
+                    *@
+                </div>
             </div>
-             <div class="form-group mb-3">
-                <label asp-for="LastName" class="form-label"></label>
-                <input asp-for="LastName" class="form-control" />
-                <span asp-validation-for="LastName" class="text-danger"></span>
-            </div>
-            <div class="form-group mb-3">
-                <label asp-for="Email" class="form-label"></label>
-                <input asp-for="Email" class="form-control" />
-                <span asp-validation-for="Email" class="text-danger"></span>
-            </div>
-             <div class="form-group mb-3">
-                <label asp-for="Specialization" class="form-label"></label>
-                <input asp-for="Specialization" class="form-control" />
-                <span asp-validation-for="Specialization" class="text-danger"></span>
-            </div>
-
-            <div class="form-group mb-3">
-                 <label asp-for="SelectedRoles" class="form-label"></label><br/>
-                 @if (Model.AvailableRoles != null)
-                 {
-                     @for (int i = 0; i < Model.AvailableRoles.Count; i++)
-                     {
-                         var role = Model.AvailableRoles[i];
-                         var isSelected = Model.SelectedRoles != null && Model.SelectedRoles.Contains(role);
-
-                         <div class="form-check form-check-inline">
-                              <input type="checkbox"
-                                     name="SelectedRoles"
-                                     value="@role"
-                                     id="role_edit_@i"
-                                     class="form-check-input"
-                                     @(isSelected ? "checked" : "") />
-                              <label class="form-check-label" for="role_edit_@i">@role</label>
-                         </div>
-                     }
-                 }
-                 <span asp-validation-for="SelectedRoles" class="text-danger"></span>
-             </div>
-
-            @* TODO: Dodać dla implementacji zmiany hasła *@
-            @* ...
-             <div class="form-group mb-3">
-                 <label asp-for="NewPassword" class="form-label"></label>
-                 <input asp-for="NewPassword" class="form-control" />
-                 <span asp-validation-for="NewPassword" class="text-danger"></span>
-             </div>
-              <div class="form-group mb-3">
-                 <label asp-for="ConfirmNewPassword" class="form-label"></label>
-                 <input asp-for="ConfirmNewPassword" class="form-control" />
-                 <span asp-validation-for="ConfirmNewPassword" class="text-danger"></span>
-             </div>
-            *@
-            
-            <div class="form-group mt-3">
-                <button type="submit" class="btn btn-primary">Zapisz Zmiany</button>
-                 <a asp-area="Admin" asp-controller="Users" asp-action="Index" class="btn btn-secondary">Anuluj</a>
-            </div>
-        </form>
+        </div>
     </div>
 </div>
 

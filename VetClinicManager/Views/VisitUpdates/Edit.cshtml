@@ -1,21 +1,25 @@
 @model VetClinicManager.DTOs.VisitUpdates.VisitUpdateEditVetDto
 
 @{
-    ViewData["Title"] = "Edit Visit Update";
+    ViewData["Title"] = "Edytuj Aktualizację Wizyty";
 }
 
-<div asp-validation-summary="All" class="text-danger"></div>
 <div class="card">
     <div class="card-header bg-primary text-white">
         <h2>@ViewData["Title"]</h2>
     </div>
     <div class="card-body">
         <form asp-action="Edit" id="visitUpdateForm" enctype="multipart/form-data">
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div asp-validation-summary="All" class="alert alert-danger"></div>
+            }
+            
             @Html.AntiForgeryToken()
             <input type="hidden" asp-for="Id" />
 
-            <div class="form-group">
-                <label asp-for="Notes" class="control-label"></label>
+            <div class="form-group mb-3">
+                <label asp-for="Notes" class="form-label"></label>
                 <textarea asp-for="Notes" class="form-control" rows="5"></textarea>
                 <span asp-validation-for="Notes" class="text-danger"></span>
             </div>
@@ -23,121 +27,119 @@
             @if (!string.IsNullOrEmpty(Model.ImageUrl))
             {
                 <div class="mb-3">
-                    <label>Aktualny załącznik</label>
+                    <label class="form-label">Aktualny załącznik</label>
                     <div>
-                        <img src="@Model.ImageUrl" class="img-thumbnail" style="max-width: 200px;" alt="Current Attachment" />
+                        <img src="@Model.ImageUrl" class="img-thumbnail" style="max-width: 200px;" alt="Aktualny załącznik" />
                     </div>
                 </div>
             }
 
             <div class="form-group mb-3">
-                @* Zmieniamy etykietę w zależności od tego, czy obraz już istnieje *@
-                <label asp-for="ImageFile" class="control-label">
+                <label asp-for="ImageFile" class="form-label">
                     @(string.IsNullOrEmpty(Model.ImageUrl) ? "Dodaj załącznik (obraz)" : "Zmień załącznik (obraz)")
                 </label>
                 <input asp-for="ImageFile" type="file" class="form-control" accept="image/*" />
                 <span asp-validation-for="ImageFile" class="text-danger"></span>
             </div>
             
-            <!-- Current Medications Section -->
-<div class="card mt-3">
-    <div class="card-header bg-info text-white">
-        <h5>Current Medications</h5>
-    </div>
-    <div class="card-body">
-        @if (Model.ExistingAnimalMedications != null && Model.ExistingAnimalMedications.Any())
-        {
-            <table class="table table-sm">
-                <thead>
-                    <tr>
-                        <th>Medication</th>
-                        <th>Start Date</th>
-                        <th>End Date</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @for (int i = 0; i < Model.ExistingAnimalMedications.Count; i++)
-                    {
-                        <tr>
-                            <td>
-                                <input type="hidden" asp-for="ExistingAnimalMedications[i].Id" />
-                                <select asp-for="ExistingAnimalMedications[i].MedicationId" 
-                                        class="form-control" 
-                                        asp-items="ViewBag.Medications">
-                                    <option value="">-- Select Medication --</option>
-                                </select>
-                                <span asp-validation-for="ExistingAnimalMedications[i].MedicationId" class="text-danger"></span>
-                            </td>
-                            <td>
-                                <input type="date" asp-for="ExistingAnimalMedications[i].StartDate" 
-                                       class="form-control" />
-                                <span asp-validation-for="ExistingAnimalMedications[i].StartDate" class="text-danger"></span>
-                            </td>
-                            <td>
-                                <input type="date" asp-for="ExistingAnimalMedications[i].EndDate" 
-                                       class="form-control" />
-                            </td>
-                            <td>
-                                <button type="button" class="btn btn-sm btn-danger remove-existing-medication"
-                                        data-medication-id="@Model.ExistingAnimalMedications[i].Id">
-                                    Remove
-                                </button>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        }
-        else
-        {
-            <p class="text-muted">No medications assigned to this update.</p>
-        }
-    </div>
-</div>
-
-    <!-- Add New Medications Section -->
-<div class="card mt-3">
-    <div class="card-header bg-secondary text-white">
-        <h5>Add New Medications</h5>
-    </div>
-    <div class="card-body">
-        <div id="new-medications-container">
-            @for (var i = 0; i < Model.NewAnimalMedications.Count; i++)
-            {
-                <div class="medication-form mb-3 border p-3">
-                    <input type="hidden" asp-for="NewAnimalMedications[i].VisitUpdateId" value="@Model.Id" />
-                    <div class="form-group">
-                        <label asp-for="NewAnimalMedications[i].MedicationId" class="control-label"></label>
-                        <select asp-for="NewAnimalMedications[i].MedicationId" class="form-control" 
-                                asp-items="ViewBag.Medications">
-                            <option value="">-- Select Medication --</option>
-                        </select>
-                        <span asp-validation-for="NewAnimalMedications[i].MedicationId" class="text-danger"></span>
-                    </div>
-                    <div class="form-group">
-                        <label asp-for="NewAnimalMedications[i].StartDate" class="control-label"></label>
-                        <input type="date" asp-for="NewAnimalMedications[i].StartDate" class="form-control" />
-                        <span asp-validation-for="NewAnimalMedications[i].StartDate" class="text-danger"></span>
-                    </div>
-                    <div class="form-group">
-                        <label asp-for="NewAnimalMedications[i].EndDate" class="control-label"></label>
-                        <input type="date" asp-for="NewAnimalMedications[i].EndDate" class="form-control" />
-                    </div>
-                    <button type="button" class="btn btn-danger btn-sm remove-medication">Remove</button>
+            <!-- Sekcja Obecnych Leków -->
+            <div class="card mt-3">
+                <div class="card-header bg-info text-white">
+                    <h5>Obecnie podawane leki</h5>
                 </div>
-            }
-        </div>
-        <button type="button" id="add-medication" class="btn btn-success mt-2">
-            Add Another Medication
-        </button>
-    </div>
-</div>
+                <div class="card-body">
+                    @if (Model.ExistingAnimalMedications != null && Model.ExistingAnimalMedications.Any())
+                    {
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Lek</th>
+                                    <th>Data rozpoczęcia</th>
+                                    <th>Data zakończenia</th>
+                                    <th>Akcje</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @for (int i = 0; i < Model.ExistingAnimalMedications.Count; i++)
+                                {
+                                    <tr>
+                                        <td>
+                                            <input type="hidden" asp-for="ExistingAnimalMedications[i].Id" />
+                                            <select asp-for="ExistingAnimalMedications[i].MedicationId" 
+                                                    class="form-select" 
+                                                    asp-items="ViewBag.Medications">
+                                                <option value="">-- Wybierz lek --</option>
+                                            </select>
+                                            <span asp-validation-for="ExistingAnimalMedications[i].MedicationId" class="text-danger"></span>
+                                        </td>
+                                        <td>
+                                            <input type="date" asp-for="ExistingAnimalMedications[i].StartDate" class="form-control" />
+                                            <span asp-validation-for="ExistingAnimalMedications[i].StartDate" class="text-danger"></span>
+                                        </td>
+                                        <td>
+                                            <input type="date" asp-for="ExistingAnimalMedications[i].EndDate" class="form-control" />
+                                        </td>
+                                        <td>
+                                            <button type="button" class="btn btn-sm btn-danger remove-existing-medication"
+                                                    data-medication-id="@Model.ExistingAnimalMedications[i].Id">
+                                                Usuń
+                                            </button>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                    else
+                    {
+                        <p class="text-muted">Brak leków przypisanych do tej aktualizacji.</p>
+                    }
+                </div>
+            </div>
 
-            <div class="form-group mt-3">
-                <input type="submit" value="Save Changes" class="btn btn-primary" />
+            <!-- Sekcja Dodawania Nowych Leków -->
+            <div class="card mt-3">
+                <div class="card-header bg-secondary text-white">
+                    <h5>Dodaj nowe leki</h5>
+                </div>
+                <div class="card-body">
+                    <div id="new-medications-container">
+                        @for (var i = 0; i < Model.NewAnimalMedications.Count; i++)
+                        {
+                            <div class="medication-form mb-3 border p-3">
+                                <input type="hidden" asp-for="NewAnimalMedications[i].VisitUpdateId" value="@Model.Id" />
+                                <div class="form-group">
+                                    <label asp-for="NewAnimalMedications[i].MedicationId" class="form-label"></label>
+                                    <select asp-for="NewAnimalMedications[i].MedicationId" class="form-select" asp-items="ViewBag.Medications">
+                                        <option value="">-- Wybierz lek --</option>
+                                    </select>
+                                    <span asp-validation-for="NewAnimalMedications[i].MedicationId" class="text-danger"></span>
+                                </div>
+                                <div class="form-group">
+                                    <label asp-for="NewAnimalMedications[i].StartDate" class="form-label"></label>
+                                    <input type="date" asp-for="NewAnimalMedications[i].StartDate" class="form-control" />
+                                    <span asp-validation-for="NewAnimalMedications[i].StartDate" class="text-danger"></span>
+                                </div>
+                                <div class="form-group">
+                                    <label asp-for="NewAnimalMedications[i].EndDate" class="form-label"></label>
+                                    <input type="date" asp-for="NewAnimalMedications[i].EndDate" class="form-control" />
+                                </div>
+                                <button type="button" class="btn btn-danger btn-sm remove-medication mt-2">Usuń</button>
+                            </div>
+                        }
+                    </div>
+                    <button type="button" id="add-medication" class="btn btn-success mt-2">
+                        <i class="bi bi-plus-circle"></i> Dodaj kolejny lek
+                    </button>
+                </div>
+            </div>
+
+            <div class="form-group mt-4 d-flex">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-save"></i> Zapisz zmiany
+                </button>
                 <a asp-controller="Visits" asp-action="Details" asp-route-id="@ViewBag.VisitId"
-                   class="btn btn-secondary">Back to Visit</a>
+                   class="btn btn-outline-secondary ms-2">Powrót do wizyty</a>
             </div>
         </form>
     </div>
@@ -147,34 +149,30 @@
     <script>
         $(document).ready(function() {
             let newMedicationIndex = @Model.NewAnimalMedications.Count;
-            // Tablica `removedMedications` nie jest już potrzebna do budowania stringa
-            // Zostawmy ją, jeśli chcemy mieć logikę np. do cofania usunięcia
 
-            // Add new medication form
             $('#add-medication').click(function() {
-                // ... (ta część kodu jest w porządku, bez zmian)
                 const newForm = $(`
                     <div class="medication-form mb-3 border p-3">
-                        <div class="form-group">
-                            <label class="control-label">Medication</label>
-                            <select name="NewAnimalMedications[${newMedicationIndex}].MedicationId" class="form-control" required>
-                                <option value="">-- Select Medication --</option>
+                        <div class="form-group mb-2">
+                            <label class="form-label">Lek</label>
+                            <select name="NewAnimalMedications[${newMedicationIndex}].MedicationId" class="form-select" required>
+                                <option value="">-- Wybierz lek --</option>
                                 @foreach (var med in (IEnumerable<SelectListItem>)ViewBag.Medications)
                                 {
                                     <option value="@med.Value">@med.Text</option>
                                 }
                             </select>
                         </div>
-                        <div class="form-group">
-                            <label class="control-label">Start Date</label>
+                        <div class="form-group mb-2">
+                            <label class="form-label">Data rozpoczęcia</label>
                             <input type="date" name="NewAnimalMedications[${newMedicationIndex}].StartDate" 
                                    class="form-control" value="@DateTime.Now.ToString("yyyy-MM-dd")" required />
                         </div>
-                        <div class="form-group">
-                            <label class="control-label">End Date</label>
+                        <div class="form-group mb-2">
+                            <label class="form-label">Data zakończenia</label>
                             <input type="date" name="NewAnimalMedications[${newMedicationIndex}].EndDate" class="form-control" />
                         </div>
-                        <button type="button" class="btn btn-danger btn-sm remove-medication">Remove</button>
+                        <button type="button" class="btn btn-danger btn-sm remove-medication mt-2">Usuń</button>
                     </div>
                 `);
 
@@ -200,11 +198,6 @@
                 }
 
                 row.hide(); 
-            });
-
-
-            $('#visitUpdateForm').submit(function(e) {
-                return true;
             });
         });
     </script>

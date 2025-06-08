@@ -15,4 +15,7 @@ public partial class VisitUpdateMapper
     
     // VisitUpdate to VisitUpdateEditVetDto
     public partial VisitUpdateEditVetDto ToVisitUpdateEditVetDto(VisitUpdate model);
+    
+    public partial VisitUpdateDeleteDto ToDeleteDto(VisitUpdate update);
+
 }

@@ -5,24 +5,42 @@
     Layout = "_Layout";
 }
 
-<h1>Usuń lek/materiał</h1>
-
-<h3>Czy na pewno chcesz usunąć ten lek/materiał?</h3>
-<div>
-    <h4>Szczegóły leku/materiału</h4>
+<div class="container mt-4">
+    <h1>@ViewData["Title"]: @Model.Name</h1>
     <hr />
-    <dl class="row">
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Name)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Name)
-        </dd>
-    </dl>
 
-    <form asp-area="Admin" asp-controller="Medications" asp-action="DeleteConfirmed" asp-route-id="@Model.Id" method="post" asp-anti-forgery="true">
-        <button type="submit" value="Delete" class="btn btn-danger">Usuń</button>
-        |
-        <a asp-area="Admin" asp-controller="Medications" asp-action="Index" class="btn btn-secondary">Anuluj</a>
+    <div class="alert alert-danger" role="alert">
+        <h4 class="alert-heading"><i class="bi bi-exclamation-triangle-fill"></i> Potwierdzenie</h4>
+        <p>Czy na pewno chcesz trwale usunąć ten lek/materiał z systemu? <strong>Tej operacji nie można cofnąć.</strong></p>
+    </div>
+
+    <div class="card mt-4">
+        <div class="card-header">
+            Szczegóły leku/materiału do usunięcia
+        </div>
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-sm-3 col-md-2">
+                    @Html.DisplayNameFor(model => model.Name)
+                </dt>
+                <dd class="col-sm-9 col-md-10">
+                    @Html.DisplayFor(model => model.Name)
+                </dd>
+            </dl>
+        </div>
+    </div>
+
+    <form asp-area="Admin" asp-controller="Medications" asp-action="Delete" method="post" class="mt-4">
+        <input type="hidden" asp-for="Id" />
+        <button type="submit" class="btn btn-danger">
+            <i class="bi bi-trash"></i> Tak, usuń
+        </button>
+        <a asp-area="Admin" asp-controller="Medications" asp-action="Index" class="btn btn-outline-secondary ms-2">
+            Anuluj
+        </a>
     </form>
 </div>
+
+@section Scripts {
+    @* Optional scripts *@
+}
