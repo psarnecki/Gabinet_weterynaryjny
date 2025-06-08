@@ -37,10 +37,6 @@ ViewData["Title"] = "Lista Zwierząt";
                     {
                     <img src="@item.ImageUrl" alt="@item.Name" class="img-thumbnail rounded" style="max-width: 50px; max-height: 50px; object-fit: cover;" />
                     }
-                    else
-                    {
-                    <i class="bi bi-question-circle text-muted" style="font-size: 2rem;"></i>
-                    }
                 </td>
                 <td><strong>@Html.DisplayFor(modelItem => item.Name)</strong></td>
                 <td>@Html.DisplayFor(modelItem => item.Species)</td>
