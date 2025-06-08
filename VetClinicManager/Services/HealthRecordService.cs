@@ -31,14 +31,13 @@ public class HealthRecordService : IHealthRecordService
         if (entity == null) return null;
         
         var dto = _mapper.ToEditDto(entity);
-        dto.AnimalId = entity.AnimalId; // Ręcznie przypisujemy AnimalId
+        dto.AnimalId = entity.AnimalId;
         return dto;
     }
 
     public async Task<int> CreateAsync(HealthRecordEditVetDto createDto)
     {
         var entity = _mapper.ToEntity(createDto);
-        // AnimalId jest już w DTO, więc mapper powinien je przenieść.
         _context.Add(entity);
         await _context.SaveChangesAsync();
         return entity.Id;
@@ -61,7 +60,7 @@ public class HealthRecordService : IHealthRecordService
 
     public async Task<HealthRecordEditVetDto?> GetForDeleteAsync(int id)
     {
-        return await GetForEditAsync(id); // Możemy reużyć tę samą metodę
+        return await GetForEditAsync(id);
     }
     
     public async Task<bool> DeleteAsync(int id)

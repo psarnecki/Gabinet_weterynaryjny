@@ -90,7 +90,12 @@ public class VisitService : IVisitService
         if (visit == null) throw new KeyNotFoundException("Nie znaleziono wizyty.");
         if (isVet && visit.AssignedVetId != userId) throw new UnauthorizedAccessException();
         
-        _visitMapper.ToEntity(editDto, visit);
+        visit.Title = editDto.Title;
+        visit.Description = editDto.Description;
+        visit.Status = editDto.Status;
+        visit.Priority = editDto.Priority;
+        visit.AssignedVetId = editDto.AssignedVetId;
+        
         await _context.SaveChangesAsync();
     }
 

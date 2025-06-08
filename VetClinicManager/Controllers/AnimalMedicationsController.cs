@@ -48,8 +48,8 @@ namespace VetClinicManager.Controllers
 
         // POST: AnimalMedications/Create
         [HttpPost]
-        [Authorize(Roles = "Admin,Vet")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin,Vet")]
         public async Task<IActionResult> Create(AnimalMedicationCreateVetDto dto)
         {
             if (!ModelState.IsValid)
@@ -83,8 +83,8 @@ namespace VetClinicManager.Controllers
 
         // POST: AnimalMedications/Edit/5
         [HttpPost]
-        [Authorize(Roles = "Admin,Vet")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin,Vet")]
         public async Task<IActionResult> Edit(int id, AnimalMedicationEditVetDto dto)
         {
             if (id != dto.Id)
@@ -127,8 +127,8 @@ namespace VetClinicManager.Controllers
 
         // POST: AnimalMedications/Delete/5
         [HttpPost, ActionName("Delete")]
-        [Authorize(Roles = "Admin,Vet")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin,Vet")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             await _animalMedicationService.DeleteAnimalMedicationAsync(id);

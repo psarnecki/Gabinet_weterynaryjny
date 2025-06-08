@@ -18,6 +18,7 @@ namespace VetClinicManager.Controllers
             _animalMedicationService = animalMedicationService;
         }
 
+        // GET: VisitUpdates/Create?visitId=5
         public async Task<IActionResult> Create(int visitId)
         {
             ViewBag.Medications = await _animalMedicationService.GetMedicationsSelectListAsync();
@@ -25,6 +26,7 @@ namespace VetClinicManager.Controllers
             return View(model);
         }
 
+        // POST: VisitUpdates/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(VisitUpdateCreateDto createDto)
@@ -50,6 +52,7 @@ namespace VetClinicManager.Controllers
             }
         }
 
+        // GET: VisitUpdates/Edit/5
         public async Task<IActionResult> Edit(int id)
         {
             var vetId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -60,6 +63,7 @@ namespace VetClinicManager.Controllers
             return View(editDto);
         }
 
+        // POST: VisitUpdates/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, VisitUpdateEditVetDto editDto)
@@ -88,6 +92,7 @@ namespace VetClinicManager.Controllers
             }
         }
 
+        // GET: VisitUpdates/Delete/5
         public async Task<IActionResult> Delete(int id)
         {
             var vetId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -97,6 +102,7 @@ namespace VetClinicManager.Controllers
             return View(deleteDto);
         }
 
+        // POST: VisitUpdates/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(VisitUpdateDeleteDto dto)

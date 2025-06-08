@@ -22,6 +22,7 @@ namespace VetClinicManager.Controllers
             _userManager = userManager;
         }
 
+        // GET: Visits
         public async Task<IActionResult> Index()
         {
             var currentUser = await _userManager.GetUserAsync(User);
@@ -49,6 +50,7 @@ namespace VetClinicManager.Controllers
             return View(viewName, visitDtos);
         }
 
+        // GET: Visits/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null) return NotFound();
@@ -83,6 +85,7 @@ namespace VetClinicManager.Controllers
             catch (KeyNotFoundException) { return NotFound(); }
         }
 
+        // GET: Visits/Create
         [Authorize(Roles = "Admin,Receptionist,Vet")]
         public async Task<IActionResult> Create()
         {
@@ -90,6 +93,7 @@ namespace VetClinicManager.Controllers
             return View(new VisitCreateDto());
         }
 
+        // POST: Visits/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin,Receptionist")]
@@ -106,6 +110,7 @@ namespace VetClinicManager.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        // GET: Visits/Edit/5
         [Authorize(Roles = "Admin,Receptionist,Vet")]
         public async Task<IActionResult> Edit(int? id)
         {
@@ -125,6 +130,7 @@ namespace VetClinicManager.Controllers
             catch (KeyNotFoundException) { return NotFound(); }
         }
 
+        // POST: Visits/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin,Receptionist,Vet")]
@@ -152,6 +158,7 @@ namespace VetClinicManager.Controllers
             catch (KeyNotFoundException) { return NotFound(); }
         }
         
+        // GET: Visits/Delete/5
         [Authorize(Roles = "Admin,Receptionist")]
         public async Task<IActionResult> Delete(int? id)
         {
@@ -162,6 +169,7 @@ namespace VetClinicManager.Controllers
             return View(dto);
         }
 
+        // POST: Visits/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin,Receptionist")]
@@ -179,7 +187,7 @@ namespace VetClinicManager.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // --- Metody pomocnicze kontrolera (korzystają z serwisu) ---
+        // Metoda pomocnicza do przygotowania danych dla formularza tworzenia
         private async Task PrepareViewBagForCreate(string? selectedVetId = null)
         {
             ViewBag.Animals = await _visitService.GetAnimalsSelectListAsync();
@@ -196,21 +204,23 @@ namespace VetClinicManager.Controllers
             ViewBag.Priorities = GetEnumSelectList<VisitPriority>();
         }
         
+        // Metoda pomocnicza do przygotowania danych dla formularza edycji
         private async Task PrepareViewBagForEdit(string? selectedVetId = null)
         {
             var vetUsers = await _visitService.GetVetUsersAsync();
 
-            var vetSelectListItems = vetUsers.Select(v => new 
+            var vetSelectListItems = vetUsers.Select(v => new
             {
                 Id = v.Id,
                 FullName = $"{v.FirstName} {v.LastName}".Trim()
             }).ToList();
 
-            ViewBag.AssignedVetId = new SelectList(vetSelectListItems, "Id", "FullName", selectedVetId);
+            ViewBag.Vets = new SelectList(vetSelectListItems, "Id", "FullName", selectedVetId);
             ViewBag.Statuses = GetEnumSelectList<VisitStatus>();
             ViewBag.Priorities = GetEnumSelectList<VisitPriority>();
         }
 
+        // Generyczna metoda pomocnicza do tworzenia SelectList z enuma
         private SelectList GetEnumSelectList<TEnum>() where TEnum : Enum
         {
             return new SelectList(Enum.GetValues(typeof(TEnum)).Cast<TEnum>().Select(e =>

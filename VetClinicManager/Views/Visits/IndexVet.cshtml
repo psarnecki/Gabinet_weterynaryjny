@@ -40,7 +40,7 @@
                                 @Html.DisplayFor(modelItem => item.Description)
                             </td>
                             <td>
-                                @Html.DisplayFor(modelItem => item.CreatedDate.Date)
+                                @item.CreatedDate.ToString("d")
                             </td>
                             <td>
                                 @{

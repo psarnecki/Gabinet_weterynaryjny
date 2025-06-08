@@ -7,12 +7,9 @@
 <div class="container mt-4">
     <h1>@ViewData["Title"]</h1>
 
-    <h3>Czy na pewno chcesz usunąć to zwierzę?</h3>
-
     <div class="alert alert-danger">
-        <p class="lead">
-            Usunięcie zwierzęcia jest operacją **nieodwracalną**. Wszelkie powiązane dane, takie jak historia wizyt i leczenia, mogą również zostać usunięte lub stać się niedostępne.
-        </p>
+        <h4 class="alert-heading">Potwierdzenie</h4>
+        <p>Czy na pewno chcesz trwale usunąć to zwierzę? <strong>Tej operacji nie można cofnąć.</strong></p>
     </div>
 
     <h4>Informacje o zwierzęciu:</h4>
@@ -55,15 +52,7 @@
                 @Html.DisplayFor(model => model.MicrochipId)
             </dd>
         }
-
-        @* Owner field might be relevant for identification, but requires Owner property in AnimalEditDto *@
-        @* <dt class = "col-sm-3">
-             @Html.DisplayNameFor(model => model.Owner)
-         </dt>
-         <dd class = "col-sm-9">
-             @(Model.Owner?.FirstName + " " + Model.Owner?.LastName)
-         </dd> *@
-
+        
     </dl>
 
     <hr />

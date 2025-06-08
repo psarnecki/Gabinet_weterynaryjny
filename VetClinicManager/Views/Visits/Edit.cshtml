@@ -51,14 +51,12 @@
 
                 <div class="form-group mb-3">
                     <label asp-for="AssignedVetId" class="form-label"></label>
-                    <select asp-for="AssignedVetId" class="form-control" asp-items="ViewBag.AssignedVetId">
+                    <select asp-for="AssignedVetId" class="form-control" asp-items="ViewBag.Vets">
                         <option value="">-- Wybierz weterynarza --</option>
                     </select>
                     <span asp-validation-for="AssignedVetId" class="text-danger"></span>
                 </div>
-
-                @* TODO: Add other fields from VisitEditDto if they are editable *@
-
+                
                 <div class="form-group mt-3 d-flex">
                     <input type="submit" value="Zapisz" class="btn btn-primary" />
                     <a asp-action="Index" class="btn btn-outline-secondary ms-2">Powrót do Listy Wizyt</a>

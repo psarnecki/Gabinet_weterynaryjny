@@ -6,28 +6,25 @@ namespace VetClinicManager.Services;
 
 public interface IUserService
 {
-    // Dla akcji Index GET: Pobierz listę wszystkich użytkowników z ich rolami
+    // Dla akcji Index GET
     Task<List<UserListDto>> GetAllUsersWithRolesAsync();
 
-    // Dla akcji Create GET i Edit GET: Pobierz listę wszystkich dostępnych ról
+    // Dla akcji Create GET i Edit GET
     Task<List<string>> GetAllAvailableRolesAsync();
 
-    // Dla akcji Create POST: Utwórz nowego użytkownika
-    // Zwraca IdentityResult (sukces/błąd) i opcjonalnie obiekt utworzonego użytkownika (np. dla logowania)
+    // Dla akcji Create POST
     Task<(IdentityResult result, User? user)> CreateUserAsync(UserCreateDto userDto);
 
-    // Dla akcji Edit GET: Pobierz dane konkretnego użytkownika do wyświetlenia w formularzu edycji
+    // Dla akcji Edit GET
     Task<UserEditDto?> GetUserForEditAsync(string userId);
 
-    // Dla akcji Edit POST: Zaktualizuj dane i role istniejącego użytkownika
-    // Zwraca IdentityResult (sukces/błąd)
+    // Dla akcji Edit POST
     Task<IdentityResult> UpdateUserAsync(UserEditDto userDto);
 
-    // Dla akcji Delete GET: Pobierz dane konkretnego użytkownika do wyświetlenia na stronie potwierdzenia usunięcia
+    // Dla akcji Delete GET
     Task<UserDeleteDto?> GetUserForDeleteAsync(string userId);
 
-    // Dla akcji Delete POST: Usuń użytkownika
-    // Zwraca IdentityResult (sukces/błąd)
+    // Dla akcji Delete POST
     Task<IdentityResult> DeleteUserAsync(string userId);
 
     // TODO: Można dodać zmianę hasła użytkownika

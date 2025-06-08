@@ -1,11 +1,11 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using VetClinicManager.DTOs.HealthRecords;
-using VetClinicManager.Services; // Popraw namespace, jeśli trzeba
+using VetClinicManager.Services;
 
 namespace VetClinicManager.Controllers
 {
-    [Authorize(Roles = "Admin,Vet,Receptionist")]
+    [Authorize]
     public class HealthRecordsController : Controller
     {
         private readonly IHealthRecordService _healthRecordService;
@@ -15,7 +15,8 @@ namespace VetClinicManager.Controllers
             _healthRecordService = healthRecordService;
         }
 
-        // Akcja Details może używać GetForEditAsync, bo zwraca potrzebne DTO
+        // GET: HealthRecords/Details/5
+        [Authorize(Roles = "Admin,Vet,Receptionist,Client")]
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null) return NotFound();
@@ -24,7 +25,8 @@ namespace VetClinicManager.Controllers
             return View(dto);
         }
         
-        [HttpGet]
+        // GET: HealthRecords/Create?animalId=5
+        [Authorize(Roles = "Admin,Vet")]
         public async Task<IActionResult> Create(int animalId)
         {
             var animalName = await _healthRecordService.GetAnimalNameForCreateAsync(animalId);
@@ -40,8 +42,10 @@ namespace VetClinicManager.Controllers
             return View(model);
         }
 
+        // POST: HealthRecords/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin,Vet")]
         public async Task<IActionResult> Create(HealthRecordEditVetDto createDto)
         {
             if (ModelState.IsValid)
@@ -55,6 +59,7 @@ namespace VetClinicManager.Controllers
             return View(createDto);
         }
 
+        // GET: HealthRecords/Edit/5
         [Authorize(Roles = "Admin,Vet")]
         public async Task<IActionResult> Edit(int? id)
         {
@@ -64,6 +69,7 @@ namespace VetClinicManager.Controllers
             return View(editDto);
         }
 
+        // POST: HealthRecords/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin,Vet")]
@@ -82,6 +88,7 @@ namespace VetClinicManager.Controllers
             return View(editDto);
         }
 
+        // GET: HealthRecords/Delete/5
         [Authorize(Roles = "Admin,Vet")]
         public async Task<IActionResult> Delete(int? id)
         {
@@ -91,6 +98,7 @@ namespace VetClinicManager.Controllers
             return View(dto);
         }
 
+        // POST: HealthRecords/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin,Vet")]
@@ -99,7 +107,6 @@ namespace VetClinicManager.Controllers
             var success = await _healthRecordService.DeleteAsync(id);
             if (success) TempData["SuccessMessage"] = "Karta zdrowia została usunięta.";
             
-            // Tutaj prawdopodobnie chcesz wrócić do listy zwierząt, a nie kart zdrowia
             return RedirectToAction("Index", "Animals"); 
         }
     }

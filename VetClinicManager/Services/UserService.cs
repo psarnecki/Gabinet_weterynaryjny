@@ -12,7 +12,6 @@ public class UserService : IUserService
     private readonly RoleManager<IdentityRole> _roleManager;
     private readonly UserMapper _userMapper; 
 
-    // Wstrzykiwanie zależności przez DI
     public UserService(UserManager<User> userManager, RoleManager<IdentityRole> roleManager, UserMapper userMapper)
     {
         _userManager = userManager;
@@ -152,9 +151,7 @@ public class UserService : IUserService
         {
             return IdentityResult.Success;
         }
-
-        // TODO: W tym miejscu można by dodać logikę walidacji przed usunięciem (teraz ogólna wersja jest w kontrolerze)
-
+        
         var result = await _userManager.DeleteAsync(user);
         return result; 
     }

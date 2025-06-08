@@ -69,11 +69,6 @@
                  @Html.DisplayFor(model => model.LastVaccinationDate)
             </dd>
         </dl>
-
-        @* TODO: Add button to edit health record if personnel have permissions *@
-        @* <div class="mt-4">
-             <a asp-controller="HealthRecords" asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">Edytuj Kartę Zdrowia</a>
-        </div> *@
     }
 
 
@@ -81,11 +76,8 @@
     @if (User.IsInRole("Admin") || User.IsInRole("Vet"))
     {
         <a asp-controller="HealthRecords" asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-primary">Edytuj Kartę Zdrowia</a>
-
             <span class="ms-2"></span>
         }
-
-        @* Przycisk powrotu do listy zwierząt *@
         <a asp-controller="Animals" asp-action="Index" class="btn btn-outline-secondary">Powrót do Listy Zwierząt</a>
     
     </div>
@@ -93,5 +85,5 @@
 </div>
 
 @section Scripts {
-    @* Optional scripts *@
+    
 }

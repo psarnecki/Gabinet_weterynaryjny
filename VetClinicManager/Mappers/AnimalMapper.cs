@@ -10,7 +10,7 @@
     [Mapper]
     public partial class AnimalMapper
     {
-        // --- Metody mapujące na DTO ---
+        // Metody mapujące na DTO 
         [MapProperty(nameof(Animal.User), nameof(AnimalListVetRecDto.Owner))] 
         public partial AnimalListVetRecDto ToVetRecDto(Animal animal);
         public partial AnimalListUserDto ToUserDto(Animal animal);
@@ -19,11 +19,11 @@
         public partial AnimalDetailsUserDto ToAnimalDetailsUserDto(Animal animal);
         public partial AnimalEditDto ToEditDto(Animal animal);
 
-        // --- Metody mapujące na kolekcje DTO ---
+        // Metody mapujące na kolekcje DTO
         public partial IEnumerable<AnimalListVetRecDto> ToVetRecDtos(IEnumerable<Animal> animals);
         public partial IEnumerable<AnimalListUserDto> ToUserDtos(IEnumerable<Animal> animals);
         
-        // --- Metody mapujące z DTO na encję ---
+        // Metody mapujące z DTO na encję
         public partial Animal ToEntity(CreateAnimalDto dto);
         
         [MapperIgnoreTarget(nameof(Animal.LastVisitDate))]

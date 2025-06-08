@@ -21,7 +21,7 @@ namespace VetClinicManager.Controllers
             _userManager = userManager;
         }
 
-        [HttpGet]
+        // GET: Animals
         [Authorize(Roles = "Admin,Receptionist,Vet,Client")]
         public async Task<IActionResult> Index()
         {
@@ -42,7 +42,7 @@ namespace VetClinicManager.Controllers
             }
         }
 
-        [HttpGet]
+        // GET: Animals/Details/5
         [Authorize(Roles = "Admin,Receptionist,Vet,Client")]
         public async Task<IActionResult> Details(int id)
         {
@@ -68,7 +68,7 @@ namespace VetClinicManager.Controllers
             return View(viewName, dto);
         }
 
-        [HttpGet]
+        // GET: Animals/Create
         [Authorize(Roles = "Admin,Receptionist")]
         public async Task<IActionResult> Create()
         {
@@ -76,9 +76,10 @@ namespace VetClinicManager.Controllers
             return View(new CreateAnimalDto());
         }
 
+        // POST: Animals/Create
         [HttpPost]
-        [Authorize(Roles = "Admin,Receptionist")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin,Receptionist")]
         public async Task<IActionResult> Create(CreateAnimalDto createAnimalDto)
         {
             if (!ModelState.IsValid)
@@ -101,7 +102,7 @@ namespace VetClinicManager.Controllers
             }
         }
 
-        [HttpGet]
+        // GET: Animals/Edit/5
         [Authorize(Roles = "Admin,Receptionist,Vet")]
         public async Task<IActionResult> Edit(int? id)
         {
@@ -118,9 +119,10 @@ namespace VetClinicManager.Controllers
             return View(animalEditDto);
         }
 
+        // POST: Animals/Edit/5
         [HttpPost]
-        [Authorize(Roles = "Admin,Receptionist,Vet")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin,Receptionist,Vet")]
         public async Task<IActionResult> Edit(int id, AnimalEditDto animalEditDto)
         {
             if (id != animalEditDto.Id)
@@ -152,7 +154,7 @@ namespace VetClinicManager.Controllers
             }
         }
         
-        [HttpGet]
+        // GET: Animals/Delete/5
         [Authorize(Roles = "Admin,Receptionist")]
         public async Task<IActionResult> Delete(int? id)
         {
@@ -163,9 +165,10 @@ namespace VetClinicManager.Controllers
             return View(animalDto);
         }
 
+        // POST: Animals/Delete/5
         [HttpPost, ActionName("Delete")]
-        [Authorize(Roles = "Admin,Receptionist")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin,Receptionist")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             await _animalService.DeleteAnimalAsync(id);
@@ -174,7 +177,7 @@ namespace VetClinicManager.Controllers
             return RedirectToAction(nameof(Index));
         }
         
-        [HttpGet]
+        // GET: Animals/HealthRecord/5
         [Authorize(Roles = "Admin,Receptionist,Vet,Client")]
         public async Task<IActionResult> RedirectToHealthRecord(int? id)
         {
@@ -196,6 +199,7 @@ namespace VetClinicManager.Controllers
             return RedirectToAction("Details", "HealthRecords", new { id = healthRecordId.Value });
         }
         
+        // Metoda pomocnicza do przygotowania danych dla formularzy
         private async Task PrepareViewDataForForm(string? selectedUserId = null)
         {
             ViewBag.GenderOptions = _animalService.GetEnumSelectList<Gender>();

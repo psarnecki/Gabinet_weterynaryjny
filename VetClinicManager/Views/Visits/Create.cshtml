@@ -26,10 +26,6 @@
                             <textarea asp-for="Description" class="form-control" rows="3"></textarea>
                             <span asp-validation-for="Description" class="text-danger"></span>
                         </div>
-                        
-                        @* Pole CreatedDate powinno być ustawiane automatycznie na serwerze,
-                           więc nie powinno być w formularzu. Jeśli jest potrzebne,
-                           można użyć pola 'datetime-local' *@
 
                         <div class="form-group mb-3">
                             <label asp-for="AnimalId" class="control-label"></label>
@@ -58,7 +54,6 @@
                         </div>
 
                         <div class="form-group mb-3">
-                            @* ZMIANA: Usunięto tekst "Przypisz weterynarza" z etykiety. *@
                             <label asp-for="AssignedVetId" class="control-label"></label>
                             <select asp-for="AssignedVetId" class="form-control" asp-items="@ViewBag.Vets">
                                 <option value="">-- Opcjonalnie, wybierz weterynarza --</option>

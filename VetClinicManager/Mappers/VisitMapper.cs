@@ -9,11 +9,11 @@ namespace VetClinicManager.Mappers;
 [Mapper]
 public partial class VisitMapper
 {
-    // --- Metody mapujące z DTO na encję ---
+    // Metody mapujące z DTO na encję
     public partial Visit ToEntity(VisitCreateDto dto);
     public partial void ToEntity(VisitEditDto dto, Visit visit);
     
-    // --- Metody mapujące na DTO ---
+    // Metody mapujące na DTO
     [MapProperty(nameof(Visit.Animal.User), nameof(VisitListReceptionistDto.Owner))]
     public partial VisitListReceptionistDto ToReceptionistDto(Visit visit);
     [MapProperty(nameof(Visit.Animal.User), nameof(VisitListVetDto.Owner))]
@@ -22,7 +22,7 @@ public partial class VisitMapper
     public partial VisitEditDto ToEditDto(Visit visit);
 
     
-    // --- Metody mapujące na kolekcje DTO ---
+    // Metody mapujące na kolekcje DTO
     public partial IEnumerable<VisitListVetDto> ToVetDtos(IEnumerable<Visit> visits);
     public partial IEnumerable<VisitListUserDto> ToUserDtos(IEnumerable<Visit> visits);
     public partial IEnumerable<VisitListReceptionistDto> ToReceptionistDtos(IEnumerable<Visit> visits);

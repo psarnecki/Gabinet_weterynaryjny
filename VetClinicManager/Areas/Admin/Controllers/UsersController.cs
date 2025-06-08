@@ -143,7 +143,6 @@ namespace VetClinicManager.Areas.Admin.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            // Dla niestandardowej logiki walidacji przed usunięciem (sprawdzanie powiązanych danych) będzie trzeba dodać w UserService
             string errorMessage = "Nie udało się usunąć użytkownika: " +
                                   string.Join(", ", result.Errors.Select(e => e.Description));
             TempData["ErrorMessage"] = errorMessage;

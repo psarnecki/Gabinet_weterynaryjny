@@ -26,7 +26,7 @@ namespace VetClinicManager.Areas.Admin.Controllers
         }
 
         // GET: Admin/Medications/Details/5
-        [Authorize(Roles = "Admin, Receptionist, Vet")]
+        [Authorize(Roles = "Admin,Receptionist,Vet")]
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)

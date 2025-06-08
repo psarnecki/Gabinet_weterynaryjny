@@ -24,7 +24,7 @@ public class VisitUpdate {
     [Required]
     [ForeignKey("UpdatedBy")]
     public string UpdatedByVetId { get; set; }
-    public User UpdatedBy { get; set; } // weterynarz
+    public User UpdatedBy { get; set; } 
     
     public ICollection<AnimalMedication> AnimalMedications { get; set; } = new List<AnimalMedication>();
 }

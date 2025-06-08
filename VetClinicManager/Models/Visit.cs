@@ -30,7 +30,7 @@ public class Visit {
     [ForeignKey("AssignedVet")]
     public string? AssignedVetId { get; set; }
     
-    public User? AssignedVet { get; set; } // główny lekarz przypisany do wizyty
+    public User? AssignedVet { get; set; }
 
     public ICollection<VisitUpdate> Updates { get; set; } = new List<VisitUpdate>();
 }

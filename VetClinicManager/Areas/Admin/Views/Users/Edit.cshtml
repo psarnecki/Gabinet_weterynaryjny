@@ -75,14 +75,13 @@
             </form>
         </div>
         
-        @* Sekcja do zmiany hasła - można ją odkomentować po implementacji logiki *@
         <div class="col-md-6">
             <div class="card bg-light">
                 <div class="card-body">
                     <h5 class="card-title">Zmiana hasła (opcjonalnie)</h5>
                     <p class="card-text text-muted small">Wypełnij poniższe pola tylko jeśli chcesz zmienić hasło użytkownika. W przeciwnym razie pozostaw je puste.</p>
                     
-                    @* TODO: Odkomentuj po dodaniu logiki zmiany hasła i DTO *@
+                    @* TODO: Odkomentować po dodaniu logiki zmiany hasła i DTO *@
                     @* 
                     <form asp-action="ChangePassword" asp-route-id="@Model.Id" method="post">
                         <div class="form-group mb-3">
