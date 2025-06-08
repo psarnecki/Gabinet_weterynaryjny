@@ -113,9 +113,7 @@
                             <td>
                                 @if (!string.IsNullOrEmpty(update.ImageUrl))
                                 {
-                                    <a href="@update.ImageUrl" target="_blank" class="btn btn-sm btn-outline-primary">
-                                        <i class="bi bi-image"></i> Zobacz
-                                    </a>
+                                    <a href="@update.ImageUrl" target="_blank" class="btn btn-sm btn-outline-primary">Załącznik</a>
                                 }
                             </td>
                             <td class="text-nowrap">
@@ -143,5 +141,6 @@
         <a asp-action="Index" class="btn btn-outline-secondary">Powrót do listy</a>
         <a asp-controller="Visits" asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">Edytuj wizytę</a>
         <a asp-controller="VisitUpdates" asp-action="Create" asp-route-visitId="@Model.Id" class="btn btn-primary">Dodaj aktualizację</a>
+        <a asp-action="GenerateVisitReport" asp-route-id="@Model.Id" class="btn btn-success" target="_blank">Zapisz w pliku PDF</a>
     </div>
 </div>

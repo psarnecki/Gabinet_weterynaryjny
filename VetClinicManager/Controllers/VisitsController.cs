@@ -218,5 +218,32 @@ namespace VetClinicManager.Controllers
                     .GetCustomAttribute<System.ComponentModel.DataAnnotations.DisplayAttribute>()?.GetName() ?? e.ToString() }),
                 "Value", "Text");
         }
+        
+        [HttpGet]
+        [Authorize]
+        public async Task<IActionResult> GenerateVisitReport(int id)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            var roles = await _userManager.GetRolesAsync(user);
+
+            try
+            {
+                var pdfBytes = await _visitService.GeneratePdfReportAsync(id, user.Id, roles);
+                if (pdfBytes == null)
+                {
+                    return Forbid(); 
+                }
+            
+                return File(pdfBytes, "application/pdf", $"Raport_Wizyty_{id}.pdf");
+            }
+            catch(UnauthorizedAccessException)
+            {
+                return Forbid();
+            }
+            catch(KeyNotFoundException)
+            {
+                return NotFound();
+            }
+        }
     }
 }
