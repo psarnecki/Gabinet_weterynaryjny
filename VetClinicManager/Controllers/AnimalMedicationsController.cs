@@ -67,23 +67,16 @@ namespace VetClinicManager.Controllers
         [Authorize(Roles = "Admin,Vet")]
         public async Task<IActionResult> Edit(int? id)
         {
-            if (id == null)
+            if (id == null) 
                 return NotFound();
 
-            var animalMedication = await _animalMedicationService.GetAnimalMedicationByIdAsync(id.Value);
-            if (animalMedication == null)
+            var editDto = await _animalMedicationService.GetForEditAsync(id.Value);    
+            
+            if (editDto == null) 
                 return NotFound();
 
             ViewData["AnimalId"] = await _animalMedicationService.GetAnimalsSelectListAsync();
             ViewData["MedicationId"] = await _animalMedicationService.GetMedicationsSelectListAsync();
-
-            var editDto = new AnimalMedicationEditVetDto
-            {
-                Id = animalMedication.Id,
-                MedicationId = animalMedication.MedicationId,
-                StartDate = animalMedication.StartDate,
-                EndDate = animalMedication.EndDate
-            };
 
             return View(editDto);
         }

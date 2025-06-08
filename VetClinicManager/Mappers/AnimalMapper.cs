@@ -10,39 +10,23 @@
     [Mapper]
     public partial class AnimalMapper
     {
-        // Mapowanie z Animal na AnimalListVetRecDto (dla weterynarzy/recepcji)
+        // --- Metody mapujące na DTO ---
         [MapProperty(nameof(Animal.User), nameof(AnimalListVetRecDto.Owner))] 
         public partial AnimalListVetRecDto ToVetRecDto(Animal animal);
-        
-        // Mapowanie z Animal na AnimalListUserDto (dla klientów)
         public partial AnimalListUserDto ToUserDto(Animal animal);
-        
-        // Mapowanie z CreateAnimalDto na Animal
-        public partial Animal ToEntity(CreateAnimalDto dto);
-        
-        // Mapowanie z AnimalEditDto na Animal (tworzenie nowej instancji)
-        public partial Animal ToEntity(AnimalEditDto dto);
-        
-        // Aktualizacja istniejącego Animal z AnimalEditDto
-        public partial void UpdateFromDto(AnimalEditDto dto, Animal animal);
-        
-        // Mapowanie z Animal na AnimalEditDto
-        public partial AnimalEditDto ToEditDto(Animal animal);
-        
-        // Mapowanie kolekcji Animal na AnimalListVetRecDto
-        public partial IEnumerable<AnimalListVetRecDto> ToVetRecDtos(IEnumerable<Animal> animals);
-        
-        // Mapowanie kolekcji Animal na AnimalListUserDto
-        public partial IEnumerable<AnimalListUserDto> ToUserDtos(IEnumerable<Animal> animals);
-        
-        // Mapowanie z Animal na VisitAnimalBriefDto
-        public partial VisitAnimalBriefDto ToVisitAnimalBriefDto(Animal animal);
-        
         [MapProperty(nameof(Animal.User), nameof(AnimalListVetRecDto.Owner))] 
         public partial AnimalDetailsVetRecDto ToAnimalDetailsVetRecDto(Animal animal);
-        
         public partial AnimalDetailsUserDto ToAnimalDetailsUserDto(Animal animal);
+        public partial AnimalEditDto ToEditDto(Animal animal);
+
+        // --- Metody mapujące na kolekcje DTO ---
+        public partial IEnumerable<AnimalListVetRecDto> ToVetRecDtos(IEnumerable<Animal> animals);
+        public partial IEnumerable<AnimalListUserDto> ToUserDtos(IEnumerable<Animal> animals);
         
-        public partial HealthRecordEditVetDto ToHealthRecordEditVetDto(HealthRecord healthRecord);
+        // --- Metody mapujące z DTO na encję ---
+        public partial Animal ToEntity(CreateAnimalDto dto);
+        
+        [MapperIgnoreTarget(nameof(Animal.LastVisitDate))]
+        public partial void UpdateFromDto(AnimalEditDto dto, Animal animal);
 
     }

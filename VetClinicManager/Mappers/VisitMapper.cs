@@ -9,24 +9,24 @@ namespace VetClinicManager.Mappers;
 [Mapper]
 public partial class VisitMapper
 {
-    // Map from CreateVisitDto to Visit
+    // --- Metody mapujące z DTO na encję ---
     public partial Visit ToEntity(VisitCreateDto dto);
-    
-    // Map from UpdateVisitDto to existing Visit
     public partial void ToEntity(VisitEditDto dto, Visit visit);
     
+    // --- Metody mapujące na DTO ---
     [MapProperty(nameof(Visit.Animal.User), nameof(VisitListReceptionistDto.Owner))]
     public partial VisitListReceptionistDto ToReceptionistDto(Visit visit);
-    
     [MapProperty(nameof(Visit.Animal.User), nameof(VisitListVetDto.Owner))]
     public partial VisitListVetDto ToVetDto(Visit visit);
-    
     public partial VisitListUserDto ToUserDto(Visit visit);
+    public partial VisitEditDto ToEditDto(Visit visit);
+
+    
+    // --- Metody mapujące na kolekcje DTO ---
     public partial IEnumerable<VisitListVetDto> ToVetDtos(IEnumerable<Visit> visits);
     public partial IEnumerable<VisitListUserDto> ToUserDtos(IEnumerable<Visit> visits);
     public partial IEnumerable<VisitListReceptionistDto> ToReceptionistDtos(IEnumerable<Visit> visits);
-
-    // Custom mappings for nested objects
+    
     private VisitAnimalBriefDto MapAnimalToBriefDto(Animal? animal)
     {
         if (animal == null)
@@ -65,7 +65,6 @@ public partial class VisitMapper
         };
     }
 
-    // Mapowanie AnimalMedication na AnimalMedicationBriefDto
     private AnimalMedicationBriefDto MapAnimalMedicationToBriefDto(AnimalMedication medication)
     {
         return new AnimalMedicationBriefDto
@@ -77,7 +76,6 @@ public partial class VisitMapper
         };
     }
 
-    // Mapowanie VisitUpdate na VisitUpdateDto
     private VisitUpdateBriefDto MapVisitUpdateToDto(VisitUpdate update)
     {
         return new VisitUpdateBriefDto
@@ -99,13 +97,17 @@ public partial class VisitMapper
         {
             return null;
         }
-        return new UserBriefDto { Id = user.Id, FirstName = user.FirstName, LastName = user.LastName };
+        return new UserBriefDto
+        {
+            Id = user.Id, 
+            FirstName = user.FirstName, 
+            LastName = user.LastName
+        };
     }
     
-    [UserMapping(Default = false)] // Mówimy, że to nie jest domyślne mapowanie dla typu User
+    [UserMapping(Default = false)]
     private UserBriefDto? MapOwner(Visit visit) => MapUserToBriefDto(visit.Animal?.User);
     
-    // Mapowanie listy VisitUpdate na listę VisitUpdateDto
     private List<VisitUpdateBriefDto> MapUpdates(ICollection<VisitUpdate> updates)
     {
         return updates?

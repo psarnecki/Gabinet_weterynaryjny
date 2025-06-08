@@ -6,19 +6,25 @@ namespace VetClinicManager.Services
 {
     public interface IVisitService
     {
+        // === POBIERANIE LIST ===
         Task<IEnumerable<VisitListReceptionistDto>> GetVisitsForReceptionistAsync();
-        Task<IEnumerable<VisitListVetDto>> GetVisitsForVetAsync(string userId);
-        Task<IEnumerable<VisitListUserDto>> GetVisitsForOwnerAnimalsAsync(string ownerUserId);
-        Task<VisitListReceptionistDto> GetVisitDetailsForReceptionistAsync(int id);
-        Task<VisitListVetDto> GetVisitDetailsForVetAsync(int id, string userId);
-        Task<VisitListUserDto> GetVisitDetailsForUserAsync(int id, string userId);
-        Task CreateVisitAsync(VisitCreateDto createVisitDto);
-        Task UpdateVisitAsync(int id, VisitEditDto visitEditDto, string currentUserId, bool isVet);
-        Task DeleteVisitAsync(int id);
-        Task<VisitEditDto> GetVisitForEditAsync(int id, string currentUserId);
-        Task<IEnumerable<User>> GetVetUsersAsync();
+        Task<IEnumerable<VisitListVetDto>> GetVisitsForVetAsync(string vetId);
+        Task<IEnumerable<VisitListUserDto>> GetVisitsForOwnerAsync(string ownerId);
+
+        // === POBIERANIE DETALI ===
+        Task<VisitListReceptionistDto?> GetDetailsForReceptionistAsync(int id);
+        Task<VisitListVetDto?> GetDetailsForVetAsync(int id, string vetId);
+        Task<VisitListUserDto?> GetDetailsForUserAsync(int id, string ownerId);
+
+        // === OPERACJE CRUD ===
+        Task CreateAsync(VisitCreateDto createDto);
+        Task UpdateAsync(int id, VisitEditDto editDto, string userId, bool isVet);
+        Task DeleteAsync(int id);
+
+        // === DANE DLA FORMULARZY I WIDOKÓW ===
+        Task<VisitEditDto?> GetForEditAsync(int id, string userId, bool isVet);
+        Task<VisitListReceptionistDto?> GetForDeleteAsync(int id); 
         Task<IEnumerable<SelectListItem>> GetAnimalsSelectListAsync();
-        Task<IEnumerable<SelectListItem>> GetVetsSelectListAsync();
-        
+        Task<IEnumerable<User>> GetVetUsersAsync();
     }
 }

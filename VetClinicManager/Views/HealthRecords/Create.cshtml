@@ -1,4 +1,4 @@
-@model VetClinicManager.Models.HealthRecord
+@model VetClinicManager.DTOs.HealthRecords.HealthRecordEditVetDto
 
 @{
     ViewData["Title"] = "Utwórz Kartę Zdrowia";
@@ -19,7 +19,7 @@
                     <div asp-validation-summary="All" class="alert alert-danger"></div>
                 }
 
-                <input type="hidden" asp-for="AnimalId" value="@ViewBag.AnimalId" />
+                <input type="hidden" asp-for="AnimalId" />
 
                 <div class="form-group form-check mb-3">
                     <input class="form-check-input" asp-for="IsSterilized" />

@@ -36,6 +36,18 @@ public class AnimalMedicationService : IAnimalMedicationService
             .Include(a => a.Medication)
             .FirstOrDefaultAsync(m => m.Id == id);
     }
+    
+    public async Task<AnimalMedicationEditVetDto?> GetForEditAsync(int id)
+    {
+        var entity = await _context.AnimalMedications.AsNoTracking().FirstOrDefaultAsync(m => m.Id == id);
+        
+        if (entity == null)
+        {
+            return null;
+        }
+        
+        return _mapper.MapToEditDto(entity);
+    }
 
     public async Task CreateAnimalMedicationAsync(AnimalMedicationCreateVetDto dto)
     {

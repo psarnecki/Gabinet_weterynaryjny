@@ -1,5 +1,5 @@
-﻿using VetClinicManager.DTOs.Animals;
-using VetClinicManager.DTOs.HealthRecords;
+﻿using Microsoft.AspNetCore.Mvc.Rendering;
+using VetClinicManager.DTOs.Animals;
 
 namespace VetClinicManager.Services
 {
@@ -10,12 +10,12 @@ namespace VetClinicManager.Services
         Task<IEnumerable<AnimalListUserDto>> GetAnimalsForOwnerAsync(string ownerUserId);
         Task<AnimalDetailsUserDto?> GetAnimalDetailsForOwnerAsync(int id, string userId);
         Task<int?> GetHealthRecordIdByAnimalIdAsync(int animalId);
-        Task<CreateAnimalDto> GetCreateAnimalDtoAsync();
         Task CreateAnimalAsync(CreateAnimalDto createAnimalDto);
         Task<AnimalEditDto?> GetAnimalForEditAsync(int id);
         Task UpdateAnimalAsync(int id, AnimalEditDto animalEditDto);
         Task<AnimalEditDto?> GetAnimalForDeleteAsync(int id);
         Task DeleteAnimalAsync(int id);
-        Task<bool> IsAnimalOwnerAsync(int animalId, string userId);
+        Task<IEnumerable<SelectListItem>> GetClientUsersForSelectListAsync();
+        List<SelectListItem> GetEnumSelectList<TEnum>() where TEnum : Enum;
     }
 }

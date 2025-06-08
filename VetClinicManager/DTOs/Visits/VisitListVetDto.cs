@@ -15,5 +15,4 @@ public class VisitListVetDto
     public UserBriefDto? Owner { get; set; }
     public VisitAnimalBriefDto Animal { get; set; }
     public List<VisitUpdateBriefDto> Updates { get; set; } = new();
-
 }

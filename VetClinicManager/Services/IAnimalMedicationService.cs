@@ -8,6 +8,7 @@ public interface IAnimalMedicationService
 {
     Task<List<AnimalMedication>> GetAnimalMedicationsAsync();
     Task<AnimalMedication?> GetAnimalMedicationByIdAsync(int id);
+    Task<AnimalMedicationEditVetDto?> GetForEditAsync(int id);
     Task CreateAnimalMedicationAsync(AnimalMedicationCreateVetDto dto);
     Task UpdateAnimalMedicationAsync(AnimalMedicationEditVetDto dto);
     Task DeleteAnimalMedicationAsync(int id);

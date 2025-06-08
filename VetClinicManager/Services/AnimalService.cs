@@ -1,8 +1,11 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 using VetClinicManager.Data;
 using VetClinicManager.DTOs.Animals;
-using VetClinicManager.DTOs.HealthRecords;
 using VetClinicManager.Mappers;
+using VetClinicManager.Models;
 
 namespace VetClinicManager.Services
 {
@@ -10,11 +13,15 @@ namespace VetClinicManager.Services
     {
         private readonly ApplicationDbContext _context;
         private readonly AnimalMapper _animalMapper;
+        private readonly IFileService _fileService;
+        private readonly UserManager<User> _userManager;
 
-        public AnimalService(ApplicationDbContext context, AnimalMapper animalMapper)
+        public AnimalService(ApplicationDbContext context, AnimalMapper animalMapper, IFileService fileService, UserManager<User> userManager)
         {
             _context = context;
             _animalMapper = animalMapper;
+            _fileService = fileService;
+            _userManager = userManager;
         }
 
         public async Task<IEnumerable<AnimalListUserDto>> GetAnimalsForOwnerAsync(string ownerUserId)
@@ -84,15 +91,14 @@ namespace VetClinicManager.Services
             return healthRecordId;
         }
 
-        public Task<CreateAnimalDto> GetCreateAnimalDtoAsync()
-        {
-             return Task.FromResult(new CreateAnimalDto());
-        }
-
         public async Task CreateAnimalAsync(CreateAnimalDto createAnimalDto)
         {
+            if (createAnimalDto.ImageFile != null)
+            {
+                createAnimalDto.ImageUrl = await _fileService.SaveFileAsync(createAnimalDto.ImageFile, "uploads/animals");
+            }
+            
             var animal = _animalMapper.ToEntity(createAnimalDto);
-            // TODO: Jeśli User tworzy swoje zwierzę, kontroler powinien przypisać UserId przed wywołaniem tej metody.
             _context.Animals.Add(animal);
             await _context.SaveChangesAsync();
         }
@@ -100,7 +106,11 @@ namespace VetClinicManager.Services
         public async Task<AnimalEditDto?> GetAnimalForEditAsync(int id)
         {
             var animal = await _context.Animals.FirstOrDefaultAsync(a => a.Id == id);
-            if (animal == null) return null;
+            if (animal == null)
+            {
+                return null;
+            }
+
             return _animalMapper.ToEditDto(animal);
         }
 
@@ -108,8 +118,20 @@ namespace VetClinicManager.Services
         {
             var animal = await _context.Animals.FirstOrDefaultAsync(a => a.Id == id);
             if (animal == null) throw new KeyNotFoundException("Animal not found for update.");
-            // TODO: Logika uprawnień (jeśli User edytuje swoje) MUSI być w kontrolerze PRZED wywołaniem tej metody,
-            // albo metoda powinna przyjmować userId i sprawdzać własność.
+            
+            var oldImageUrl = animal.ImageUrl;
+            if (animalEditDto.ImageFile != null)
+            {
+                if (!string.IsNullOrEmpty(oldImageUrl))
+                {
+                    _fileService.DeleteFile(oldImageUrl);
+                }
+                animalEditDto.ImageUrl = await _fileService.SaveFileAsync(animalEditDto.ImageFile, "uploads/animals");
+            }
+            else
+            {
+                animalEditDto.ImageUrl = oldImageUrl;
+            }
 
             _animalMapper.UpdateFromDto(animalEditDto, animal);
             await _context.SaveChangesAsync();
@@ -118,7 +140,11 @@ namespace VetClinicManager.Services
         public async Task<AnimalEditDto?> GetAnimalForDeleteAsync(int id)
         {
             var animal = await _context.Animals.FirstOrDefaultAsync(a => a.Id == id);
-             if (animal == null) return null;
+            if (animal == null)
+            {
+                return null;
+            }
+            
             return _animalMapper.ToEditDto(animal);
         }
 
@@ -126,15 +152,34 @@ namespace VetClinicManager.Services
         {
             var animal = await _context.Animals.FirstOrDefaultAsync(a => a.Id == id);
             if (animal == null) throw new KeyNotFoundException("Animal not found for deletion.");
-            // TODO: Logika uprawnień (jeśli User usuwa swoje) MUSI być w kontrolerze PRZED wywołaniem tej metody
 
             _context.Animals.Remove(animal);
             await _context.SaveChangesAsync();
         }
-
-        public async Task<bool> IsAnimalOwnerAsync(int animalId, string userId)
+        
+        public async Task<IEnumerable<SelectListItem>> GetClientUsersForSelectListAsync()
         {
-            return await _context.Animals.AnyAsync(a => a.Id == animalId && a.UserId == userId);
+            var clients = await _userManager.GetUsersInRoleAsync("Client");
+            return clients.OrderBy(c => c.LastName).Select(c => new SelectListItem {
+                Value = c.Id,
+                Text = $"{c.FirstName} {c.LastName}"
+            }).ToList();
+        }
+        
+        public List<SelectListItem> GetEnumSelectList<TEnum>() where TEnum : Enum
+        {
+            return Enum.GetValues(typeof(TEnum)).Cast<TEnum>().Select(enumValue =>
+            {
+                var displayAttribute = typeof(TEnum).GetField(enumValue.ToString())
+                    ?.GetCustomAttributes(typeof(DisplayAttribute), false)
+                    .Cast<DisplayAttribute>().FirstOrDefault();
+                
+                return new SelectListItem
+                {
+                    Value = enumValue.ToString(),
+                    Text = displayAttribute?.Name ?? enumValue.ToString()
+                };
+            }).ToList();
         }
     }
 }
