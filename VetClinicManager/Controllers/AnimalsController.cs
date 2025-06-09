@@ -14,11 +14,13 @@ namespace VetClinicManager.Controllers
     {
         private readonly UserManager<User> _userManager;
         private readonly IAnimalService _animalService;
+        private readonly ILogger<AnimalsController> _logger;
 
-        public AnimalsController(UserManager<User> userManager, IAnimalService animalService)
+        public AnimalsController(UserManager<User> userManager, IAnimalService animalService, ILogger<AnimalsController> logger)
         {
             _animalService = animalService;
             _userManager = userManager;
+            _logger = logger;
         }
 
         // GET: Animals
@@ -106,17 +108,27 @@ namespace VetClinicManager.Controllers
         [Authorize(Roles = "Admin,Receptionist,Vet")]
         public async Task<IActionResult> Edit(int? id)
         {
-            if (id == null)
+            try
             {
-                return NotFound();
-            }
-            
-            var animalEditDto = await _animalService.GetAnimalForEditAsync(id.Value);
-            if (animalEditDto == null) return NotFound();
-                
-            await PrepareViewDataForForm(animalEditDto.UserId);
+                if (id == null)
+                {
+                    return NotFound();
+                }
 
-            return View(animalEditDto);
+                var animalEditDto = await _animalService.GetAnimalForEditAsync(id.Value);
+                if (animalEditDto == null) return NotFound();
+
+                await PrepareViewDataForForm(animalEditDto.UserId);
+
+                return View(animalEditDto);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Wystąpił błąd podczas próby edytowania zwierzęcia");
+            
+                ModelState.AddModelError("", "Wystąpił nieoczekiwany błąd.");
+                return View("Error");
+            }
         }
 
         // POST: Animals/Edit/5

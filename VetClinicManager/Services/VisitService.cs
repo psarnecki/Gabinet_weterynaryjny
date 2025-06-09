@@ -15,12 +15,14 @@ public class VisitService : IVisitService
     private readonly ApplicationDbContext _context;
     private readonly VisitMapper _visitMapper;
     private readonly UserManager<User> _userManager;
-
-    public VisitService(ApplicationDbContext context, VisitMapper visitMapper, UserManager<User> userManager)
+    private readonly ILogger<VisitService> _logger;
+    
+    public VisitService(ApplicationDbContext context, VisitMapper visitMapper, UserManager<User> userManager, ILogger<VisitService> logger)
     {
         _context = context;
         _visitMapper = visitMapper;
         _userManager = userManager;
+        _logger = logger;
     }
 
     private IQueryable<Visit> GetBaseVisitQuery()
@@ -145,18 +147,21 @@ public class VisitService : IVisitService
     {
         return await _userManager.GetUsersInRoleAsync("Vet");
     }
-    
-       public async Task<byte[]?> GeneratePdfReportAsync(int visitId, string userId, IEnumerable<string> userRoles)
+
+    public async Task<byte[]?> GeneratePdfReportAsync(int visitId, string userId, IEnumerable<string> userRoles)
+    {
+        try
         {
             VisitReportDto? reportDto = null;
-            
+
             if (userRoles.Contains("Admin") || userRoles.Contains("Receptionist"))
             {
                 var visitData = await GetDetailsForReceptionistAsync(visitId);
                 if (visitData == null) return null;
                 reportDto = new VisitReportDto
                 {
-                    Title = visitData.Title, Description = visitData.Description, CreatedDate = visitData.CreatedDate,
+                    Title = visitData.Title, Description = visitData.Description,
+                    CreatedDate = visitData.CreatedDate,
                     Status = visitData.Status, Priority = visitData.Priority, Animal = visitData.Animal,
                     Owner = visitData.Owner, AssignedVet = visitData.AssignedVet, Updates = visitData.Updates
                 };
@@ -167,7 +172,8 @@ public class VisitService : IVisitService
                 if (visitData == null) return null;
                 reportDto = new VisitReportDto
                 {
-                    Title = visitData.Title, Description = visitData.Description, CreatedDate = visitData.CreatedDate,
+                    Title = visitData.Title, Description = visitData.Description,
+                    CreatedDate = visitData.CreatedDate,
                     Status = visitData.Status, Priority = visitData.Priority, Animal = visitData.Animal,
                     Owner = visitData.Owner, Updates = visitData.Updates
                 };
@@ -178,8 +184,9 @@ public class VisitService : IVisitService
                 if (visitData == null) return null;
                 reportDto = new VisitReportDto
                 {
-                    Title = visitData.Title, Description = visitData.Description, CreatedDate = visitData.CreatedDate,
-                    Status = visitData.Status, Animal = visitData.Animal, AssignedVet = visitData.AssignedVet, 
+                    Title = visitData.Title, Description = visitData.Description,
+                    CreatedDate = visitData.CreatedDate,
+                    Status = visitData.Status, Animal = visitData.Animal, AssignedVet = visitData.AssignedVet,
                     Updates = visitData.Updates
                 };
             }
@@ -193,6 +200,12 @@ public class VisitService : IVisitService
             var reportDocument = new VisitPdfReport(reportDto);
             return reportDocument.GeneratePdf();
         }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Wystąpił błąd podczas próby generowania raportu.");
+            return null;
+        }
+}
        
         private IQueryable<Visit> SortVisits(IQueryable<Visit> visits, string sortOrder)
         {

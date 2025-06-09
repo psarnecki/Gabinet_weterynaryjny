@@ -9,10 +9,12 @@ namespace VetClinicManager.Controllers
     public class AnimalMedicationsController : Controller
     {
         private readonly IAnimalMedicationService _animalMedicationService;
+        private readonly ILogger<AnimalMedicationsController> _logger;
 
-        public AnimalMedicationsController(IAnimalMedicationService animalMedicationService)
+        public AnimalMedicationsController(IAnimalMedicationService animalMedicationService, ILogger<AnimalMedicationsController> logger)
         {
             _animalMedicationService = animalMedicationService;
+            _logger = logger; 
         }
 
         // GET: AnimalMedications
@@ -41,9 +43,19 @@ namespace VetClinicManager.Controllers
         [Authorize(Roles = "Admin,Vet")]
         public async Task<IActionResult> Create()
         {
-            ViewData["AnimalId"] = await _animalMedicationService.GetAnimalsSelectListAsync();
-            ViewData["MedicationId"] = await _animalMedicationService.GetMedicationsSelectListAsync();
-            return View();
+            try
+            {
+                ViewData["AnimalId"] = await _animalMedicationService.GetAnimalsSelectListAsync();
+                ViewData["MedicationId"] = await _animalMedicationService.GetMedicationsSelectListAsync();
+                return View();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Wystąpił błąd podczas przypisywania leku od zwierzęcia");
+            
+                ModelState.AddModelError("", "Wystąpił nieoczekiwany błąd.");
+                return View("Error");
+            }
         }
 
         // POST: AnimalMedications/Create

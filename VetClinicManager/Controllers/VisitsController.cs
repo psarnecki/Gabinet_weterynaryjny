@@ -15,68 +15,80 @@ namespace VetClinicManager.Controllers
     {
         private readonly IVisitService _visitService;
         private readonly UserManager<User> _userManager;
+        private readonly ILogger<VisitsController> _logger; 
 
-        public VisitsController(IVisitService visitService, UserManager<User> userManager)
+        public VisitsController(IVisitService visitService, UserManager<User> userManager, ILogger<VisitsController> logger)
         {
             _visitService = visitService;
             _userManager = userManager;
+            _logger = logger;
         }
 
         // GET: Visits
         public async Task<IActionResult> Index(string sortOrder)
         {
-            ViewData["TitleSortParm"] = String.IsNullOrEmpty(sortOrder) ? "title_desc" : "";
-            ViewData["DateSortParm"] = sortOrder == "Date" ? "date_desc" : "Date";
-            ViewData["AnimalSortParm"] = sortOrder == "Animal" ? "animal_desc" : "Animal";
-            ViewData["OwnerSortParm"] = sortOrder == "Owner" ? "owner_desc" : "Owner";
-            ViewData["StatusSortParm"] = sortOrder == "Status" ? "status_desc" : "Status";
-            ViewData["PrioritySortParm"] = sortOrder == "Priority" ? "priority_desc" : "Priority";
-            ViewData["VetSortParm"] = sortOrder == "Vet" ? "vet_desc" : "Vet";
-            ViewData["CurrentSort"] = sortOrder;
-            
-            string sortDescription = sortOrder switch
+            try
             {
-                "Title" => "Tytuł (rosnąco)",
-                "title_desc" => "Tytuł (malejąco)",
-                "Date" => "Data (rosnąco)",
-                "date_desc" => "Data (malejąco)",
-                "Animal" => "Zwierzę (rosnąco)",
-                "animal_desc" => "Zwierzę (malejąco)",
-                "Owner" => "Właściciel (rosnąco)",
-                "owner_desc" => "Właściciel (malejąco)",
-                "Status" => "Status (rosnąco)",
-                "status_desc" => "Status (malejąco)",
-                "Priority" => "Priorytet (rosnąco)",
-                "priority_desc" => "Priorytet (malejąco)",
-                "Vet" => "Lekarz (rosnąco)",
-                "vet_desc" => "Lekarz (malejąco)",
-                _ => "Data (malejąco)"
-            };
-            ViewData["SortDescription"] = sortDescription;
-                
-            var currentUser = await _userManager.GetUserAsync(User);
-            if (currentUser == null) return Unauthorized();
+                ViewData["TitleSortParm"] = String.IsNullOrEmpty(sortOrder) ? "title_desc" : "";
+                ViewData["DateSortParm"] = sortOrder == "Date" ? "date_desc" : "Date";
+                ViewData["AnimalSortParm"] = sortOrder == "Animal" ? "animal_desc" : "Animal";
+                ViewData["OwnerSortParm"] = sortOrder == "Owner" ? "owner_desc" : "Owner";
+                ViewData["StatusSortParm"] = sortOrder == "Status" ? "status_desc" : "Status";
+                ViewData["PrioritySortParm"] = sortOrder == "Priority" ? "priority_desc" : "Priority";
+                ViewData["VetSortParm"] = sortOrder == "Vet" ? "vet_desc" : "Vet";
+                ViewData["CurrentSort"] = sortOrder;
 
-            object visitDtos;
-            string viewName;
+                string sortDescription = sortOrder switch
+                {
+                    "Title" => "Tytuł (rosnąco)",
+                    "title_desc" => "Tytuł (malejąco)",
+                    "Date" => "Data (rosnąco)",
+                    "date_desc" => "Data (malejąco)",
+                    "Animal" => "Zwierzę (rosnąco)",
+                    "animal_desc" => "Zwierzę (malejąco)",
+                    "Owner" => "Właściciel (rosnąco)",
+                    "owner_desc" => "Właściciel (malejąco)",
+                    "Status" => "Status (rosnąco)",
+                    "status_desc" => "Status (malejąco)",
+                    "Priority" => "Priorytet (rosnąco)",
+                    "priority_desc" => "Priorytet (malejąco)",
+                    "Vet" => "Lekarz (rosnąco)",
+                    "vet_desc" => "Lekarz (malejąco)",
+                    _ => "Data (malejąco)"
+                };
+                ViewData["SortDescription"] = sortDescription;
 
-            if (User.IsInRole("Client"))
-            {
-                visitDtos = await _visitService.GetVisitsForOwnerAsync(currentUser.Id, sortOrder);
-                viewName = "IndexUser";
+                var currentUser = await _userManager.GetUserAsync(User);
+                if (currentUser == null) return Unauthorized();
+
+                object visitDtos;
+                string viewName;
+
+                if (User.IsInRole("Client"))
+                {
+                    visitDtos = await _visitService.GetVisitsForOwnerAsync(currentUser.Id, sortOrder);
+                    viewName = "IndexUser";
+                }
+                else if (User.IsInRole("Vet"))
+                {
+                    visitDtos = await _visitService.GetVisitsForVetAsync(currentUser.Id, sortOrder);
+                    viewName = "IndexVet";
+                }
+                else
+                {
+                    visitDtos = await _visitService.GetVisitsForReceptionistAsync(sortOrder);
+                    viewName = "IndexReceptionist";
+                }
+
+                return View(viewName, visitDtos);
             }
-            else if (User.IsInRole("Vet"))
+            catch (Exception ex)
             {
-                visitDtos = await _visitService.GetVisitsForVetAsync(currentUser.Id, sortOrder);
-                viewName = "IndexVet";
-            }
-            else
-            {
-                visitDtos = await _visitService.GetVisitsForReceptionistAsync(sortOrder);
-                viewName = "IndexReceptionist";
-            }
+                _logger.LogError(ex, "Wystąpił błąd podczas sortowania wizyt");
             
-            return View(viewName, visitDtos);
+                ModelState.AddModelError("", "Wystąpił nieoczekiwany błąd.");
+                return View("Error");
+            }
         }
 
         // GET: Visits/Details/5
@@ -191,11 +203,21 @@ namespace VetClinicManager.Controllers
         [Authorize(Roles = "Admin,Receptionist")]
         public async Task<IActionResult> Delete(int? id)
         {
-            if (id == null) return NotFound();
-            var dto = await _visitService.GetForDeleteAsync(id.Value);
-            if (dto == null) return NotFound();
+            try
+            {
+                if (id == null) return NotFound();
+                var dto = await _visitService.GetForDeleteAsync(id.Value);
+                if (dto == null) return NotFound();
+
+                return View(dto);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Wystąpił błąd podczas próby usunięcia wizyty o ID: {VisitId}", id);
             
-            return View(dto);
+                ModelState.AddModelError("", "Wystąpił nieoczekiwany błąd.");
+                return View("Error");
+            }
         }
 
         // POST: Visits/Delete/5
@@ -262,6 +284,7 @@ namespace VetClinicManager.Controllers
         [Authorize]
         public async Task<IActionResult> GenerateVisitReport(int id)
         {
+            
             var user = await _userManager.GetUserAsync(User);
             var roles = await _userManager.GetRolesAsync(user);
 
