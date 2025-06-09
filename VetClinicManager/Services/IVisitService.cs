@@ -28,5 +28,6 @@ namespace VetClinicManager.Services
         Task<IEnumerable<User>> GetVetUsersAsync();
         
         Task<byte[]?> GeneratePdfReportAsync(int visitId, string userId, IEnumerable<string> userRoles);
+        Task<IEnumerable<Visit>> GetOpenVisitsForReportAsync();
     }
 }

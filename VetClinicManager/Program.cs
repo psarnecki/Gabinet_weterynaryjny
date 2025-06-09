@@ -8,6 +8,7 @@ using VetClinicManager.Data;
 using VetClinicManager.Mappers;
 using VetClinicManager.Models;
 using VetClinicManager.Services;
+using VetClinicManager.Services.Reports;
 using UserMapper = VetClinicManager.Areas.Admin.Mappers.UserMapper;
 
 var logger = LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
@@ -61,6 +62,9 @@ try
     builder.Services.AddSingleton<AnimalMapper>();
     builder.Services.AddSingleton<HealthRecordMapper>();
     builder.Services.AddSingleton<AnimalMedicationMapper>();
+    builder.Services.AddTransient<EmailSender>();
+    builder.Services.AddScoped<PdfReportGenerator>();
+    builder.Services.AddHostedService<OpenOrderReportBackgroundService>();
     builder.Services.AddControllersWithViews();
     builder.Services.AddRazorPages();
     builder.Services.AddTransient<SeedData>();

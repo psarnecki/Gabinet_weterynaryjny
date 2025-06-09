@@ -34,4 +34,28 @@ public class EmailSender : IEmailSender
 
         return client.SendEmailAsync(msg);
     }
+    
+    public Task SendEmailWithAttachmentAsync(string toEmail, string subject, string htmlMessage, byte[] attachmentData, string attachmentName)
+    {
+        if (string.IsNullOrEmpty(Options.SendGridKey))
+        {
+            throw new Exception("Klucz SendGridKey nie został skonfigurowany w user-secrets.");
+        }
+
+        var client = new SendGridClient(Options.SendGridKey);
+        var msg = new SendGridMessage()
+        {
+            From = new EmailAddress("zomek212@gmail.com", "VetClinic Manager"),
+            Subject = subject,
+            HtmlContent = htmlMessage
+        };
+        msg.AddTo(new EmailAddress(toEmail));
+        
+        var attachmentString = Convert.ToBase64String(attachmentData);
+        msg.AddAttachment(attachmentName, attachmentString, "application/pdf");
+
+        msg.SetClickTracking(false, false);
+
+        return client.SendEmailAsync(msg);
+    }
 }

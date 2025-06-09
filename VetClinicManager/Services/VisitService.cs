@@ -205,40 +205,51 @@ public class VisitService : IVisitService
             _logger.LogError(ex, "Wystąpił błąd podczas próby generowania raportu.");
             return null;
         }
-}
-       
-        private IQueryable<Visit> SortVisits(IQueryable<Visit> visits, string sortOrder)
+    }
+    
+    public async Task<IEnumerable<Visit>> GetOpenVisitsForReportAsync()
+    {
+        return await _context.Visits
+            .AsNoTracking()
+            .Include(v => v.Animal).ThenInclude(a => a.User)
+            .Include(v => v.AssignedVet)
+            .Where(v => v.Status == Models.Enums.VisitStatus.Scheduled || v.Status == Models.Enums.VisitStatus.InProgress)
+            .OrderBy(v => v.CreatedDate)
+            .ToListAsync();
+    }
+    
+    private IQueryable<Visit> SortVisits(IQueryable<Visit> visits, string sortOrder)
+    {
+        switch (sortOrder)
         {
-            switch (sortOrder)
-            {
-                case "title_desc":
-                    return visits.OrderByDescending(v => v.Title);
-                case "Date":
-                    return visits.OrderBy(v => v.CreatedDate);
-                case "date_desc":
-                    return visits.OrderByDescending(v => v.CreatedDate);
-                case "Animal":
-                    return visits.OrderBy(v => v.Animal.Name);
-                case "animal_desc":
-                    return visits.OrderByDescending(v => v.Animal.Name);
-                case "Owner":
-                    return visits.OrderBy(v => v.Animal.User.LastName).ThenBy(v => v.Animal.User.FirstName);
-                case "owner_desc":
-                    return visits.OrderByDescending(v => v.Animal.User.LastName).ThenByDescending(v => v.Animal.User.FirstName);
-                case "Status":
-                    return visits.OrderBy(v => v.Status);
-                case "status_desc":
-                    return visits.OrderByDescending(v => v.Status);
-                case "Priority":
-                    return visits.OrderBy(v => v.Priority);
-                case "priority_desc":
-                    return visits.OrderByDescending(v => v.Priority);
-                case "Vet":
-                    return visits.OrderBy(v => v.AssignedVet.LastName).ThenBy(v => v.AssignedVet.FirstName);
-                case "vet_desc":
-                    return visits.OrderByDescending(v => v.AssignedVet.LastName).ThenByDescending(v => v.AssignedVet.FirstName);
-                default:
-                    return visits.OrderBy(v => v.Title);
-            }
+            case "title_desc":
+                return visits.OrderByDescending(v => v.Title);
+            case "Date":
+                return visits.OrderBy(v => v.CreatedDate);
+            case "date_desc":
+                return visits.OrderByDescending(v => v.CreatedDate);
+            case "Animal":
+                return visits.OrderBy(v => v.Animal.Name);
+            case "animal_desc":
+                return visits.OrderByDescending(v => v.Animal.Name);
+            case "Owner":
+                return visits.OrderBy(v => v.Animal.User.LastName).ThenBy(v => v.Animal.User.FirstName);
+            case "owner_desc":
+                return visits.OrderByDescending(v => v.Animal.User.LastName).ThenByDescending(v => v.Animal.User.FirstName);
+            case "Status":
+                return visits.OrderBy(v => v.Status);
+            case "status_desc":
+                return visits.OrderByDescending(v => v.Status);
+            case "Priority":
+                return visits.OrderBy(v => v.Priority);
+            case "priority_desc":
+                return visits.OrderByDescending(v => v.Priority);
+            case "Vet":
+                return visits.OrderBy(v => v.AssignedVet.LastName).ThenBy(v => v.AssignedVet.FirstName);
+            case "vet_desc":
+                return visits.OrderByDescending(v => v.AssignedVet.LastName).ThenByDescending(v => v.AssignedVet.FirstName);
+            default:
+                return visits.OrderBy(v => v.Title);
         }
+    }
 }
