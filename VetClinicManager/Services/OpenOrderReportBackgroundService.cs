@@ -43,7 +43,7 @@ public class OpenOrderReportBackgroundService : BackgroundService
                     var pdfData = reportGenerator.GenerateOpenVisitsReport(openVisits);
                     var reportName = $"raport-otwarte-wizyty-{DateTime.Now:yyyy-MM-dd}.pdf";
 
-                    var adminEmail = "fihohop277@3dboxer.com";
+                    var adminEmail = "lesoro7159@adrewire.com";
                     var subject = $"Dzienny raport otwartych wizyt - {DateTime.Now:dd.MM.yyyy}";
                     var body = "W załączniku znajduje się automatycznie wygenerowany raport otwartych wizyt.";
 

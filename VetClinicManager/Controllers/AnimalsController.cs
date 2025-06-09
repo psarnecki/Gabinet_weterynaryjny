@@ -18,7 +18,7 @@ namespace VetClinicManager.Controllers
 
         public AnimalsController(UserManager<User> userManager, IAnimalService animalService, ILogger<AnimalsController> logger)
         {
-            _animalService = animalService;
+            _animalService = animalService ?? throw new ArgumentNullException(nameof(animalService));
             _userManager = userManager;
             _logger = logger;
         }
