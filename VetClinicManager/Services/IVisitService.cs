@@ -7,9 +7,9 @@ namespace VetClinicManager.Services
     public interface IVisitService
     {
         // Pobieranie list
-        Task<IEnumerable<VisitListReceptionistDto>> GetVisitsForReceptionistAsync();
-        Task<IEnumerable<VisitListVetDto>> GetVisitsForVetAsync(string vetId);
-        Task<IEnumerable<VisitListUserDto>> GetVisitsForOwnerAsync(string ownerId);
+        Task<IEnumerable<VisitListReceptionistDto>> GetVisitsForReceptionistAsync(string sortOrder);
+        Task<IEnumerable<VisitListVetDto>> GetVisitsForVetAsync(string vetId, string sortOrder);
+        Task<IEnumerable<VisitListUserDto>> GetVisitsForOwnerAsync(string ownerId, string sortOrder);
         
         // Pobieranie detali
         Task<VisitListReceptionistDto?> GetDetailsForReceptionistAsync(int id);

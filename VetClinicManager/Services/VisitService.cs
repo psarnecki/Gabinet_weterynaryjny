@@ -6,6 +6,7 @@ using VetClinicManager.DTOs.Visits;
 using VetClinicManager.Mappers;
 using VetClinicManager.Models;
 using QuestPDF.Fluent;
+using System.Linq;
 
 namespace VetClinicManager.Services;
 
@@ -31,23 +32,34 @@ public class VisitService : IVisitService
             .Include(v => v.Updates).ThenInclude(u => u.AnimalMedications).ThenInclude(am => am.Medication);
     }
     
-    public async Task<IEnumerable<VisitListReceptionistDto>> GetVisitsForReceptionistAsync()
+    public async Task<IEnumerable<VisitListReceptionistDto>> GetVisitsForReceptionistAsync(string sortOrder)
     {
-        var visits = await GetBaseVisitQuery().OrderByDescending(v => v.CreatedDate).ToListAsync();
+        var visitsQuery = GetBaseVisitQuery();
+    
+        visitsQuery = SortVisits(visitsQuery, sortOrder);
+
+        var visits = await visitsQuery.ToListAsync();
         return _visitMapper.ToReceptionistDtos(visits);
     }
 
-    public async Task<IEnumerable<VisitListVetDto>> GetVisitsForVetAsync(string vetId)
+    public async Task<IEnumerable<VisitListVetDto>> GetVisitsForVetAsync(string vetId, string sortOrder)
     {
-        var visits = await GetBaseVisitQuery().Where(v => v.AssignedVetId == vetId)
-            .OrderByDescending(v => v.CreatedDate).ToListAsync();
+        var visitsQuery = GetBaseVisitQuery().Where(v => v.AssignedVetId == vetId);
+    
+        visitsQuery = SortVisits(visitsQuery, sortOrder);
+
+        var visits = await visitsQuery.ToListAsync();
         return _visitMapper.ToVetDtos(visits);
     }
 
-    public async Task<IEnumerable<VisitListUserDto>> GetVisitsForOwnerAsync(string ownerId)
+    public async Task<IEnumerable<VisitListUserDto>> GetVisitsForOwnerAsync(string ownerId, string sortOrder)
     {
-        var visits = await GetBaseVisitQuery().Where(v => v.Animal.UserId == ownerId)
-            .OrderByDescending(v => v.CreatedDate).ToListAsync();
+        var visitsQuery = GetBaseVisitQuery().Where(v => v.Animal.UserId == ownerId);
+    
+        visitsQuery = SortVisits(visitsQuery, sortOrder);
+
+        var visits = await visitsQuery.ToListAsync();
+    
         return _visitMapper.ToUserDtos(visits);
     }
 
@@ -180,5 +192,40 @@ public class VisitService : IVisitService
             QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
             var reportDocument = new VisitPdfReport(reportDto);
             return reportDocument.GeneratePdf();
+        }
+       
+        private IQueryable<Visit> SortVisits(IQueryable<Visit> visits, string sortOrder)
+        {
+            switch (sortOrder)
+            {
+                case "title_desc":
+                    return visits.OrderByDescending(v => v.Title);
+                case "Date":
+                    return visits.OrderBy(v => v.CreatedDate);
+                case "date_desc":
+                    return visits.OrderByDescending(v => v.CreatedDate);
+                case "Animal":
+                    return visits.OrderBy(v => v.Animal.Name);
+                case "animal_desc":
+                    return visits.OrderByDescending(v => v.Animal.Name);
+                case "Owner":
+                    return visits.OrderBy(v => v.Animal.User.LastName).ThenBy(v => v.Animal.User.FirstName);
+                case "owner_desc":
+                    return visits.OrderByDescending(v => v.Animal.User.LastName).ThenByDescending(v => v.Animal.User.FirstName);
+                case "Status":
+                    return visits.OrderBy(v => v.Status);
+                case "status_desc":
+                    return visits.OrderByDescending(v => v.Status);
+                case "Priority":
+                    return visits.OrderBy(v => v.Priority);
+                case "priority_desc":
+                    return visits.OrderByDescending(v => v.Priority);
+                case "Vet":
+                    return visits.OrderBy(v => v.AssignedVet.LastName).ThenBy(v => v.AssignedVet.FirstName);
+                case "vet_desc":
+                    return visits.OrderByDescending(v => v.AssignedVet.LastName).ThenByDescending(v => v.AssignedVet.FirstName);
+                default:
+                    return visits.OrderBy(v => v.Title);
+            }
         }
 }

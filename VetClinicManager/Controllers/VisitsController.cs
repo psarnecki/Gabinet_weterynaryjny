@@ -23,8 +23,37 @@ namespace VetClinicManager.Controllers
         }
 
         // GET: Visits
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string sortOrder)
         {
+            ViewData["TitleSortParm"] = String.IsNullOrEmpty(sortOrder) ? "title_desc" : "";
+            ViewData["DateSortParm"] = sortOrder == "Date" ? "date_desc" : "Date";
+            ViewData["AnimalSortParm"] = sortOrder == "Animal" ? "animal_desc" : "Animal";
+            ViewData["OwnerSortParm"] = sortOrder == "Owner" ? "owner_desc" : "Owner";
+            ViewData["StatusSortParm"] = sortOrder == "Status" ? "status_desc" : "Status";
+            ViewData["PrioritySortParm"] = sortOrder == "Priority" ? "priority_desc" : "Priority";
+            ViewData["VetSortParm"] = sortOrder == "Vet" ? "vet_desc" : "Vet";
+            ViewData["CurrentSort"] = sortOrder;
+            
+            string sortDescription = sortOrder switch
+            {
+                "Title" => "Tytuł (rosnąco)",
+                "title_desc" => "Tytuł (malejąco)",
+                "Date" => "Data (rosnąco)",
+                "date_desc" => "Data (malejąco)",
+                "Animal" => "Zwierzę (rosnąco)",
+                "animal_desc" => "Zwierzę (malejąco)",
+                "Owner" => "Właściciel (rosnąco)",
+                "owner_desc" => "Właściciel (malejąco)",
+                "Status" => "Status (rosnąco)",
+                "status_desc" => "Status (malejąco)",
+                "Priority" => "Priorytet (rosnąco)",
+                "priority_desc" => "Priorytet (malejąco)",
+                "Vet" => "Lekarz (rosnąco)",
+                "vet_desc" => "Lekarz (malejąco)",
+                _ => "Data (malejąco)"
+            };
+            ViewData["SortDescription"] = sortDescription;
+                
             var currentUser = await _userManager.GetUserAsync(User);
             if (currentUser == null) return Unauthorized();
 
@@ -33,17 +62,17 @@ namespace VetClinicManager.Controllers
 
             if (User.IsInRole("Client"))
             {
-                visitDtos = await _visitService.GetVisitsForOwnerAsync(currentUser.Id);
+                visitDtos = await _visitService.GetVisitsForOwnerAsync(currentUser.Id, sortOrder);
                 viewName = "IndexUser";
             }
             else if (User.IsInRole("Vet"))
             {
-                visitDtos = await _visitService.GetVisitsForVetAsync(currentUser.Id);
+                visitDtos = await _visitService.GetVisitsForVetAsync(currentUser.Id, sortOrder);
                 viewName = "IndexVet";
             }
             else
             {
-                visitDtos = await _visitService.GetVisitsForReceptionistAsync();
+                visitDtos = await _visitService.GetVisitsForReceptionistAsync(sortOrder);
                 viewName = "IndexReceptionist";
             }
             
