@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VetClinicManager", "VetClin
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VetClinicManager.Tests.Unit", "VetClinicManager.Tests.Unit\VetClinicManager.Tests.Unit.csproj", "{E1043DB7-5C9B-4BCA-9318-CC1B4BF7E146}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NBomberTester", "NBomberTester\NBomberTester.csproj", "{7E197C86-E06F-4136-8715-1D3A2791C365}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +26,9 @@ Global
 		{E1043DB7-5C9B-4BCA-9318-CC1B4BF7E146}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E1043DB7-5C9B-4BCA-9318-CC1B4BF7E146}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E1043DB7-5C9B-4BCA-9318-CC1B4BF7E146}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7E197C86-E06F-4136-8715-1D3A2791C365}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7E197C86-E06F-4136-8715-1D3A2791C365}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7E197C86-E06F-4136-8715-1D3A2791C365}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7E197C86-E06F-4136-8715-1D3A2791C365}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
