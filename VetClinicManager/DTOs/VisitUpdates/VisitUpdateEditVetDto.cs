@@ -6,6 +6,8 @@ namespace VetClinicManager.DTOs.VisitUpdates;
 public class VisitUpdateEditVetDto
 {
     public int Id { get; set; }
+    
+    public int VisitId { get; set; }
 
     [Display(Name = "Notatki")]
     public string? Notes { get; set; }

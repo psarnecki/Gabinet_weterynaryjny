@@ -70,12 +70,12 @@ public class SeedData
                 Email = "vet@vet.com",
                 FirstName = "Anna",
                 LastName = "Nowak",
-                Specialization = "Lekarz weterynarii",
+                Specialization = "Lekarz weterynarii egzotycznej",
                 EmailConfirmed = true
             },
             new User
             {
-                    UserName = "receptionist@vet.com",
+                UserName = "receptionist@vet.com",
                 Email = "receptionist@vet.com",
                 FirstName = "Agata",
                 LastName = "Poloczek",
@@ -88,11 +88,19 @@ public class SeedData
                 FirstName = "Michał",
                 LastName = "Wiśniewski",
                 EmailConfirmed = true
-            }
+            },
+            new User
+            {
+            UserName = "client2@vet.com",
+            Email = "client2@vet.com",
+            FirstName = "Andrzej",
+            LastName = "Konieczny",
+            EmailConfirmed = true
+        }
         };
 
-        var passwords = new[] { "Admin123!", "Vet123!", "Rec123!", "Client123!" };
-        var roles = new[] { "Admin", "Vet", "Receptionist", "Client" };
+        var passwords = new[] { "Admin123!", "Vet123!", "Rec123!", "Client123!", "Client123!" };
+        var roles = new[] { "Admin", "Vet", "Receptionist", "Client", "Client" };
 
         for (int i = 0; i < users.Count; i++)
         {
@@ -112,7 +120,9 @@ public class SeedData
     {
         if (await _context.Animals.AnyAsync()) return;
 
-        var users = await _userManager.Users.ToListAsync();
+        var client1 = await _userManager.FindByEmailAsync("client@vet.com");
+        var client2 = await _userManager.FindByEmailAsync("client2@vet.com");
+
 
         var animals = new List<Animal>
         {
@@ -124,8 +134,8 @@ public class SeedData
                 DateOfBirth = new DateTime(2018, 5, 10),
                 BodyWeight = 18.5f, 
                 Gender = Gender.Male,
-                ImageUrl = "/uploads/default-dog.jpg",
-                UserId = users[3].Id,
+                ImageUrl = "/uploads/animals/default-dog.png",
+                UserId = client1.Id,
                 MicrochipId = "123456789012345",
                 LastVisitDate = DateTime.Now.AddDays(-10) 
             },
@@ -137,8 +147,8 @@ public class SeedData
                 DateOfBirth = new DateTime(2020, 2, 15),
                 BodyWeight = 4.2f,
                 Gender = Gender.Male,
-                ImageUrl = "/uploads/default-cat.jpg",
-                UserId = users[3].Id
+                ImageUrl = "/uploads/animals/default-cat-1.png",
+                UserId = client2.Id
             },
             new Animal
             {
@@ -148,8 +158,8 @@ public class SeedData
                 DateOfBirth = new DateTime(2019, 8, 22),
                 BodyWeight = 3.1f,
                 Gender = Gender.Female,
-                ImageUrl = "/uploads/default-cat.jpg",
-                UserId = users[1].Id,
+                ImageUrl = "/uploads/animals/default-cat-2.png",
+                UserId = client2.Id,
                 MicrochipId = "123456789012345",
                 LastVisitDate = DateTime.Now.AddDays(-14) 
             }
@@ -243,7 +253,7 @@ public class SeedData
             new Medication { Name = "Środek przeciwbólowy ABC" },
             new Medication { Name = "Krople do uszu DEF" },
             new Medication { Name = "Szampon przeciwgrzybiczy GHI" },
-            new Medication { Name = "Revolution Plus" }
+            new Medication { Name = "Preparat przeciw kleszczom JKL" }
         };
 
         await _context.Medications.AddRangeAsync(medications);
@@ -265,7 +275,7 @@ public class SeedData
             new Visit
             {
                 Title = "Szczepienie przeciwko wściekliźnie",
-                Description = "Routine vaccination",
+                Description = "Rutynowe szczepienie.",
                 CreatedDate = DateTime.Now.AddDays(-10),
                 Status = VisitStatus.Completed,
                 Priority = VisitPriority.Normal,
@@ -275,21 +285,41 @@ public class SeedData
             new Visit
             {
                 Title = "Kontrola stanu zdrowia",
-                Description = "Routine checkup",
+                Description = "Rutynowa kontrola.",
                 CreatedDate = DateTime.Now.AddDays(-5),
                 Status = VisitStatus.Completed,
                 Priority = VisitPriority.Normal, 
                 AnimalId = animals[1].Id,
-                AssignedVetId = vetUser.Id
+                AssignedVetId = vetUserId
             },
             new Visit
             {
                 Title = "Leczenie infekcji ucha",
-                Description = "Ear infection treatment",
+                Description = "Podanie antybiotyku i kontrola stanu zainfekowanego ucha.",
                 CreatedDate = DateTime.Now.AddDays(-2),
                 Status = VisitStatus.InProgress,
-                Priority = VisitPriority.Critical, 
+                Priority = VisitPriority.Urgent, 
                 AnimalId = animals[2].Id,
+                AssignedVetId = vetUserId
+            },
+            new Visit
+            {
+                Title = "Ściągnęcie gipsu ze złamanej kończyny",
+                Description = "Usunięcie zbędnego usztywnienia z kontuzjowanej łapy.",
+                CreatedDate = DateTime.Now.AddDays(4),
+                Status = VisitStatus.Scheduled,
+                Priority = VisitPriority.Urgent, 
+                AnimalId = animals[2].Id,
+                AssignedVetId = vetUserId
+            },
+            new Visit
+            {
+                Title = "Operacja chirurgiczna",
+                Description = "Usunięcie połkniętej zabawki z żołądka.",
+                CreatedDate = DateTime.UtcNow,
+                Status = VisitStatus.InProgress,
+                Priority = VisitPriority.Critical, 
+                AnimalId = animals[0].Id,
                 AssignedVetId = vetUserId
             }
         };
@@ -314,7 +344,7 @@ public class SeedData
             {
                 Notes = "Szczepienie wykonane, zwierzę w dobrym stanie",
                 UpdateDate = DateTime.Now.AddDays(-9),
-                ImageUrl = "/uploads/vaccine.jpg",
+                ImageUrl = "/uploads/visit-updates/vaccine.png",
                 VisitId = visits[0].Id,
                 UpdatedByVetId = vetUserId
             },
@@ -322,7 +352,7 @@ public class SeedData
             {
                 Notes = "Kontrola wykazała dobry stan zdrowia",
                 UpdateDate = DateTime.Now.AddDays(-4),
-                ImageUrl = "/uploads/checkup.jpg",
+                ImageUrl = "/uploads/visit-updates/checkup.png",
                 VisitId = visits[1].Id,
                 UpdatedByVetId = vetUserId
             },
@@ -330,7 +360,7 @@ public class SeedData
             {
                 Notes = "Rozpoczęto leczenie antybiotykami",
                 UpdateDate = DateTime.Now.AddDays(-1),
-                ImageUrl = "/uploads/ear-infection.jpg",
+                ImageUrl = "/uploads/visit-updates/ear-infection.png",
                 VisitId = visits[2].Id,
                 UpdatedByVetId = vetUserId
             }

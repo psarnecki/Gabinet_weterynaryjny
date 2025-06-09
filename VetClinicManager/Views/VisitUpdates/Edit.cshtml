@@ -134,7 +134,7 @@
 
             <div class="form-group mt-4 d-flex">
                 <button type="submit" class="btn btn-primary">Zapisz zmiany</button>
-                <a asp-controller="Visits" asp-action="Details" asp-route-id="@ViewBag.VisitId"
+                <a asp-controller="Visits" asp-action="Details" asp-route-id="@Model.VisitId"
                    class="btn btn-outline-secondary ms-2">Powrót do wizyty</a>
             </div>
         </form>
